@@ -1,3 +1,7 @@
+import type { StyleDNA, StyleDimensions, NamedPaletteColor, AgentRunRecord } from '../ai/schemas'
+
+export type { StyleDNA, StyleDimensions, NamedPaletteColor, AgentRunRecord }
+
 // All financial values are integers in paise (1 rupee = 100 paise)
 // NEVER use floating-point for money calculations
 
@@ -27,6 +31,7 @@ export interface BudgetLine {
   currentPaise: Paise         // current allocation (integer paise, mutable)
   elasticityRank?: number     // lower rank = trimmed first (1 = first to trim)
   isProtected?: boolean       // Protected Moment — immune to downward trimming (ADR-0004)
+  protectedQuote?: string     // Protected Moment verbatim quote
 }
 
 export interface EventBrief {
@@ -39,6 +44,8 @@ export interface EventBrief {
   protectedCategory: BudgetCategory
   nuances?: string[]
   customNotes?: string
+  vibeStatement?: string
+  protectedMomentQuote?: string
 }
 
 export type ShortfallRemedyType = 'increase_budget' | 'reduce_guests' | 'trim_elastic'
@@ -59,6 +66,7 @@ export interface Plan {
   isInfeasible?: boolean      // true when elastic capacity is exhausted
   shortfallPaise?: Paise      // how much is unaccounted for
   remedies?: ShortfallRemedy[]
+  styleDNA?: StyleDNA
 }
 
 // Timeline Domain Types (D-13, D-14, D-16, TIME-01)
@@ -122,6 +130,10 @@ export interface PlanVersionRecord {
   snapshot: Plan
   isFloorProtected?: boolean
   isAccepted?: boolean
+  meta?: {
+    run_record?: AgentRunRecord
+    styleDNA?: StyleDNA
+  }
 }
 
 export interface SanitizedSharedPlan {
