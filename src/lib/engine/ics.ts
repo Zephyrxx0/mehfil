@@ -119,3 +119,4 @@ export function downloadICS(content: string, filename = 'celebration-timeline.ic
   document.body.removeChild(link)
   URL.revokeObjectURL(url)
 }
+

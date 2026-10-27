@@ -87,3 +87,4 @@ All 26 automated unit and property-based tests passed:
 - `63c6e03`: `chore(01-01): init Next.js 15 project scaffold with Vitest 3`
 - `d2715a8`: `feat(01-01): implement domain types, INR formatter/parser, and celebration archetypes`
 - `0f32d47`: `feat(01-01): implement Hare-Niemeyer budget engine with guest scaling and ADR-0002 shortfall solver`
+

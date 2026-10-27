@@ -231,3 +231,4 @@ export function BriefModal({ isOpen, onClose, onPlanCreated }: BriefModalProps) 
     </div>
   )
 }
+

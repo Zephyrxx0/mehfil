@@ -267,3 +267,4 @@ export function calculateBackwardsTimeline(
     isCompressedMode,
   }
 }
+

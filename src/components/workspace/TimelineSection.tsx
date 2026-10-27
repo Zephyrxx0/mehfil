@@ -54,3 +54,4 @@ export function TimelineSection({ plan, schedule }: TimelineSectionProps) {
     </div>
   )
 }
+

@@ -115,3 +115,4 @@ export function MilestoneBand({ band }: MilestoneBandProps) {
     </div>
   )
 }
+

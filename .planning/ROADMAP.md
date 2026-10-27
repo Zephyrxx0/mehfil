@@ -11,7 +11,7 @@ Mehfil delivers a production-grade, mathematically verified celebration planning
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Core Foundation & Instant Plan Slice** - Brief intake, deterministic template archetypes, integer paise budget engine, and backwards topological timeline.
+- [x] **Phase 1: Core Foundation & Instant Plan Slice** - Brief intake, deterministic template archetypes, integer paise budget engine, and backwards topological timeline.
 - [ ] **Phase 2: Festive Design System & Centerpiece Kinetic Hero** - 3-hue palette tokens, shadcn/ui primitives, and big bold Fraunces animated typography hero with celebration micro-motion.
 - [ ] **Phase 3: Anonymous Persistence & Dual-Link Collaboration** - Supabase RLS migrations, immutable version snapshots, Organizer Edit Keys, and sanitized Family Share Links.
 - [ ] **Phase 4: Multi-Agent Style DNA & Resilient Fallback Ladder** - 24-swatch vibe intake, vision extraction, bounded Planner modulation diffs, and 3-tier zero-failure fallback ladder.
@@ -39,15 +39,15 @@ Mehfil delivers a production-grade, mathematically verified celebration planning
 Plans:
 **Wave 1**
 
-- [ ] 01-01: Pure TypeScript budget engine (integer paise, largest-remainder solver, per-guest scaling, template archetypes).
+- [x] 01-01: Pure TypeScript budget engine (integer paise, largest-remainder solver, per-guest scaling, template archetypes).
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-02: Backwards topological timeline scheduler with calendar date math and `.ics` export generator.
+- [x] 01-02: Backwards topological timeline scheduler with calendar date math and `.ics` export generator.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-03: Event brief intake modal and baseline workspace view wiring budget and timeline into a functional interactive slice.
+- [x] 01-03: Event brief intake modal and baseline workspace view wiring budget and timeline into a functional interactive slice.
 
 ### Phase 2: Festive Design System & Centerpiece Kinetic Hero
 

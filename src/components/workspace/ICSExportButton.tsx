@@ -47,3 +47,4 @@ export function ICSExportButton({ plan, schedule }: ICSExportButtonProps) {
     </button>
   )
 }
+

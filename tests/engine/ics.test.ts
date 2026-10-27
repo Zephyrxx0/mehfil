@@ -56,3 +56,4 @@ describe('generateICS', () => {
     expect(ics).toMatch(/₹\d+/)
   })
 })
+

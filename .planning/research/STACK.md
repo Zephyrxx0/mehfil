@@ -70,3 +70,4 @@ pnpm add motion gsap @gsap/react lenis vaul
 ---
 *Stack research for: Mehfil Celebration Planner*  
 *Researched: 2026-10-27*
+
