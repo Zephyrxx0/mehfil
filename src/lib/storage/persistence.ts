@@ -194,7 +194,13 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
     if (typeof window !== 'undefined' && window.localStorage) {
       const local = window.localStorage.getItem(LOCAL_STORAGE_PREFIX + planId)
       if (local) {
-        return { plan: JSON.parse(local), isReadOnly: false }
+        let isAuthorized = false
+        if (editKey) {
+          isAuthorized = true
+        } else if (typeof document !== 'undefined' && document.cookie.includes(`mehfil_edit_${planId}`)) {
+          isAuthorized = true
+        }
+        return { plan: JSON.parse(local), isReadOnly: !isAuthorized }
       }
     }
 

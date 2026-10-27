@@ -10,12 +10,14 @@ import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
-interface PlanWorkspaceProps {
+export interface PlanWorkspaceProps {
   initialPlan: Plan
   onResetPlan?: () => void
+  isReadOnly?: boolean
+  editKey?: string
 }
 
-export function PlanWorkspace({ initialPlan, onResetPlan }: PlanWorkspaceProps) {
+export function PlanWorkspace({ initialPlan, onResetPlan, isReadOnly, editKey }: PlanWorkspaceProps) {
   const [plan, setPlan] = useState<Plan>(initialPlan)
   const [previousGuestCount, setPreviousGuestCount] = useState<number | undefined>(
     initialPlan.baselineGuestCount
