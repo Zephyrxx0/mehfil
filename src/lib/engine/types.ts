@@ -60,3 +60,39 @@ export interface Plan {
   shortfallPaise?: Paise      // how much is unaccounted for
   remedies?: ShortfallRemedy[]
 }
+
+// Timeline Domain Types (D-13, D-14, D-16, TIME-01)
+export type MilestoneBandId =
+  | 'milestone_immediate'
+  | 'milestone_t6m'
+  | 'milestone_t3m'
+  | 'milestone_t1m'
+  | 'milestone_t2w'
+  | 'milestone_day0'
+
+export interface TimelineTask {
+  id: string
+  title: string
+  budgetCategory: BudgetCategory
+  leadDays: number            // days before event (e.g. 180 for T-6M)
+  targetDate: string          // ISO date 'YYYY-MM-DD'
+  isCompleted: boolean
+  isCriticalPath: boolean
+  dependencies?: string[]
+  notes?: string
+}
+
+export interface MilestoneBand {
+  id: MilestoneBandId
+  name: string
+  targetDate: string          // ISO date 'YYYY-MM-DD'
+  isImmediateAction?: boolean
+  tasks: TimelineTask[]
+}
+
+export interface TimelineSchedule {
+  eventDate: string
+  milestoneBands: MilestoneBand[]
+  isCompressedMode: boolean
+}
+
