@@ -150,7 +150,7 @@ describe('Centerpiece Kinetic Hero Component Suite', () => {
       // Modal dialog should now be visible
       expect(screen.getByRole('dialog')).toBeInTheDocument()
       expect(screen.getByText('Plan Your Celebration')).toBeInTheDocument()
-      expect(screen.getByText(/Step 1 of 3/)).toBeInTheDocument()
+      expect(screen.getByText(/Step 1 of 5/)).toBeInTheDocument()
     })
   })
 

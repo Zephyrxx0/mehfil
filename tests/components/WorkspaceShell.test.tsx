@@ -96,7 +96,7 @@ describe('WorkspaceShell Component', () => {
     const styleTab = screen.getByRole('tab', { name: /Style/i })
     fireEvent.click(styleTab)
     expect(screen.getByTestId('mobile-pane-style')).toBeInTheDocument()
-    expect(screen.getByText('Style DNA')).toBeInTheDocument()
+    expect(screen.getAllByText('Style DNA').length).toBeGreaterThanOrEqual(1)
 
     // Click Summary tab
     const summaryTab = screen.getByRole('tab', { name: /Summary/i })

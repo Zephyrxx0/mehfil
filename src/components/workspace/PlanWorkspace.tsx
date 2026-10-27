@@ -2,12 +2,17 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import type { BudgetCategory, Plan, ShortfallRemedy, PlanVersionRecord } from '@/lib/engine/types'
+import type { StyleDNA, StyleDimensions, AgentRunRecord } from '@/lib/ai/schemas'
 import { rebalanceGuestCount, setProtectedMoment } from '@/lib/engine/budget'
 import { formatINR } from '@/lib/engine/currency'
 import { computePlanDiff } from '@/lib/engine/diff'
+import { applyStyleModulationToPlan, generateStyleModulationRationale } from '@/lib/engine/style'
+import { extractDeterministicStyleDNA } from '@/lib/ai/heuristic'
+import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
 import { persistence } from '@/lib/storage/persistence'
 import { WorkspaceShell } from './WorkspaceShell'
 import { ConcurrencyConflictBanner } from './ConcurrencyConflictBanner'
+import { V2ChangeBanner } from './V2ChangeBanner'
 import type { SyncState } from './SyncStatusBadge'
 import type { PlanChangeRecord, PlanChangeDelta } from './ChangeExplainer'
 import { ArrowLeft } from 'lucide-react'
@@ -38,6 +43,12 @@ export function PlanWorkspace({
     initialPlan.baselineGuestCount
   )
   const [snapshotStack, setSnapshotStack] = useState<PlanChangeRecord[]>([])
+
+  // Two-Beat Reveal & Style DNA State (D-09, D-10, VIBE-04)
+  const [isExtractingStyle, setIsExtractingStyle] = useState<boolean>(false)
+  const [showV2Banner, setShowV2Banner] = useState<boolean>(false)
+  const [v2Rationale, setV2Rationale] = useState<string>('')
+  const hasTriggeredInitialExtraction = useRef(false)
   
   // Versions & Sync state (D-09, D-10, D-14, D-15)
   const [versions, setVersions] = useState<PlanVersionRecord[]>(() => {
@@ -107,6 +118,295 @@ export function PlanWorkspace({
       }
     }
   }, [])
+
+  // Two-Beat Reveal Application: applies Style DNA modulation to create v2
+  const applyExtractedStyleDNA = useCallback(
+    (styleDNA: StyleDNA, runRecord?: AgentRunRecord) => {
+      const currentPlan = activePlanRef.current
+      const prevPlan = currentPlan
+      const modulatedPlan = applyStyleModulationToPlan(currentPlan, styleDNA)
+
+      const deltas: PlanChangeDelta[] = []
+      const styleDeltasForRationale: Array<{ category: BudgetCategory; deltaPaise: number }> = []
+
+      for (const nextLine of modulatedPlan.lines) {
+        const prevLine = prevPlan.lines.find((l) => l.id === nextLine.id)
+        const prevPaise = prevLine ? prevLine.currentPaise : nextLine.baselinePaise
+        const deltaPaise = nextLine.currentPaise - prevPaise
+        if (deltaPaise !== 0) {
+          deltas.push({
+            category: nextLine.name,
+            deltaPaise,
+          })
+          styleDeltasForRationale.push({
+            category: nextLine.category,
+            deltaPaise,
+          })
+        }
+      }
+
+      const rationale = generateStyleModulationRationale(styleDNA, styleDeltasForRationale)
+      const nextVerNum = currentVersionNumber + 1
+      const nextVerId = `ver-${modulatedPlan.id}-${nextVerNum}`
+
+      const v2Record: PlanVersionRecord = {
+        id: nextVerId,
+        eventId: modulatedPlan.id,
+        versionNumber: nextVerNum,
+        parentVersionId: currentVersionId,
+        reason: rationale,
+        isFloorProtected: Boolean(modulatedPlan.brief.protectedCategory),
+        snapshot: modulatedPlan,
+        meta: {
+          run_record: runRecord,
+          styleDNA,
+        },
+        createdAt: new Date().toISOString(),
+      }
+
+      setVersions((prev) => [v2Record, ...prev.filter((v) => v.versionNumber !== nextVerNum)])
+      setCurrentVersionNumber(nextVerNum)
+      setCurrentVersionId(nextVerId)
+      setPlan(modulatedPlan)
+      setV2Rationale(rationale)
+      setShowV2Banner(true)
+
+      // Add to legacy undo stack
+      const record: PlanChangeRecord = {
+        id: `change-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        timestamp: new Date(),
+        description: rationale,
+        deltas,
+        isFloorProtected: Boolean(modulatedPlan.brief.protectedCategory),
+        previousSnapshot: prevPlan,
+      }
+      setSnapshotStack((prev) => [record, ...prev])
+
+      // Commit to persistence
+      if (!isReadOnly) {
+        persistence.savePlan(modulatedPlan, currentVersionId, rationale, editKey)
+      }
+    },
+    [currentVersionId, currentVersionNumber, editKey, isReadOnly]
+  )
+
+  // Trigger Style DNA Extraction API call
+  const triggerStyleDNAExtraction = useCallback(
+    async (
+      swatchIds: string[],
+      protectedMomentQuote?: string,
+      tradeoffs?: any
+    ) => {
+      setIsExtractingStyle(true)
+      try {
+        const response = await fetch('/api/style-dna', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            selectedSwatchIds: swatchIds,
+            protectedMomentQuote: protectedMomentQuote || '',
+            tradeoffs: tradeoffs || {
+              feastVsSpectacle: 'feast',
+              intimateVsGrand: 'intimate',
+              heritageVsModern: 'heritage',
+            },
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error(`API responded with HTTP ${response.status}`)
+        }
+
+        const json = await response.json()
+        if (json.success && json.data) {
+          applyExtractedStyleDNA(json.data.styleDNA, json.data.runRecord)
+        } else {
+          throw new Error('API payload unsuccessful')
+        }
+      } catch (err) {
+        console.warn('[PlanWorkspace] Extraction error, applying Tier 3 heuristic locally:', err)
+        const fallbackDNA = extractDeterministicStyleDNA(
+          swatchIds,
+          protectedMomentQuote || '',
+          tradeoffs || {
+            feastVsSpectacle: 'feast',
+            intimateVsGrand: 'intimate',
+            heritageVsModern: 'heritage',
+          }
+        )
+        applyExtractedStyleDNA(fallbackDNA, {
+          activeTier: 3,
+          durationMs: 0,
+          modelId: 'deterministic-heuristic-v1',
+          fallbackReason: `Client fallback: ${err instanceof Error ? err.message : String(err)}`,
+          timestamp: new Date().toISOString(),
+        })
+      } finally {
+        setIsExtractingStyle(false)
+      }
+    },
+    [applyExtractedStyleDNA]
+  )
+
+  // Two-Beat Reveal Trigger: Beat 1 is instant baseline arrival (<10ms).
+  // Once mounted, if vibeSwatches are present and styleDNA is not yet set, trigger Beat 2.
+  useEffect(() => {
+    if (
+      plan.brief.vibeSwatches &&
+      plan.brief.vibeSwatches.length >= 6 &&
+      !plan.styleDNA &&
+      !hasTriggeredInitialExtraction.current
+    ) {
+      hasTriggeredInitialExtraction.current = true
+      triggerStyleDNAExtraction(
+        plan.brief.vibeSwatches,
+        plan.brief.protectedMomentQuote,
+        plan.brief.tradeoffs
+      )
+    }
+  }, [
+    plan.brief.vibeSwatches,
+    plan.brief.protectedMomentQuote,
+    plan.brief.tradeoffs,
+    plan.styleDNA,
+    triggerStyleDNAExtraction,
+  ])
+
+  // Handle Retuning Style DNA from Sliders Sheet (D-08, VIBE-04)
+  const handleRetuneStyle = useCallback(
+    (newDimensions: StyleDimensions) => {
+      if (isReadOnly) return
+
+      const currentDNA: StyleDNA = plan.styleDNA || {
+        dimensions: newDimensions,
+        namedPalette: [
+          { name: 'Marigold Amber', hex: '#F7C873' },
+          { name: 'Gulabi Rose', hex: '#F2A7B8' },
+          { name: 'Royal Plum', hex: '#3A2442' },
+          { name: 'Warm Ivory', hex: '#FFF8EE' },
+        ],
+        vibeStatement: plan.brief.vibeStatement || 'Calibrated custom aesthetic vibe.',
+        protectedCategory: plan.brief.protectedCategory,
+        protectedMomentQuote: plan.brief.protectedMomentQuote || '',
+      }
+
+      const retunedDNA: StyleDNA = {
+        ...currentDNA,
+        dimensions: newDimensions,
+      }
+
+      const prevPlan = plan
+      const modulatedPlan = applyStyleModulationToPlan(plan, retunedDNA)
+
+      const deltas: PlanChangeDelta[] = []
+      const categoryDeltas: Array<{ category: BudgetCategory; deltaPaise: number }> = []
+
+      for (const nextLine of modulatedPlan.lines) {
+        const prevLine = prevPlan.lines.find((l) => l.id === nextLine.id)
+        const prevPaise = prevLine ? prevLine.currentPaise : nextLine.baselinePaise
+        const deltaPaise = nextLine.currentPaise - prevPaise
+        if (deltaPaise !== 0) {
+          deltas.push({ category: nextLine.name, deltaPaise })
+          categoryDeltas.push({ category: nextLine.category, deltaPaise })
+        }
+      }
+
+      const rationale = generateStyleModulationRationale(retunedDNA, categoryDeltas)
+      const nextVerNum = currentVersionNumber + 1
+      const nextVerId = `ver-${modulatedPlan.id}-${nextVerNum}`
+
+      const retunedRecord: PlanVersionRecord = {
+        id: nextVerId,
+        eventId: modulatedPlan.id,
+        versionNumber: nextVerNum,
+        parentVersionId: currentVersionId,
+        reason: `Retuned Style: ${rationale}`,
+        isFloorProtected: Boolean(modulatedPlan.brief.protectedCategory),
+        snapshot: modulatedPlan,
+        meta: {
+          styleDNA: retunedDNA,
+        },
+        createdAt: new Date().toISOString(),
+      }
+
+      setVersions((prev) => [retunedRecord, ...prev])
+      setCurrentVersionNumber(nextVerNum)
+      setCurrentVersionId(nextVerId)
+      setPlan(modulatedPlan)
+
+      const changeRecord: PlanChangeRecord = {
+        id: `change-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        timestamp: new Date(),
+        description: `Retuned Style: ${rationale}`,
+        deltas,
+        isFloorProtected: Boolean(modulatedPlan.brief.protectedCategory),
+        previousSnapshot: prevPlan,
+      }
+      setSnapshotStack((prev) => [changeRecord, ...prev])
+
+      persistence.savePlan(modulatedPlan, currentVersionId, `Retuned Style: ${rationale}`, editKey)
+    },
+    [currentVersionId, currentVersionNumber, editKey, isReadOnly, plan]
+  )
+
+  // Handle Reset to Baseline (v1) action (D-11, T-04-08)
+  const handleResetToBaseline = useCallback(async () => {
+    if (isReadOnly) return
+
+    const v1Record = versions.find((v) => v.versionNumber === 1)
+    let baselinePlan: Plan
+
+    if (v1Record?.snapshot) {
+      baselinePlan = {
+        ...v1Record.snapshot,
+        styleDNA: undefined,
+        brief: {
+          ...v1Record.snapshot.brief,
+          vibeStatement: undefined,
+        },
+      }
+    } else {
+      baselinePlan = instantiatePlanFromBrief({
+        ...plan.brief,
+        vibeSwatches: undefined,
+        protectedMomentQuote: undefined,
+        vibeStatement: undefined,
+      })
+    }
+
+    const nextVerNum = currentVersionNumber + 1
+    const nextVerId = `ver-${plan.id}-${nextVerNum}`
+    const reason = 'Reset celebration plan to baseline archetype (v1)'
+
+    const newRecord: PlanVersionRecord = {
+      id: nextVerId,
+      eventId: plan.id,
+      versionNumber: nextVerNum,
+      parentVersionId: currentVersionId,
+      reason,
+      isFloorProtected: Boolean(baselinePlan.brief.protectedCategory),
+      snapshot: baselinePlan,
+      createdAt: new Date().toISOString(),
+    }
+
+    setVersions((prev) => [newRecord, ...prev])
+    setCurrentVersionNumber(nextVerNum)
+    setCurrentVersionId(nextVerId)
+    setPlan(baselinePlan)
+    setShowV2Banner(false)
+
+    await persistence.savePlan(baselinePlan, currentVersionId, reason, editKey)
+  }, [currentVersionId, currentVersionNumber, editKey, isReadOnly, plan, versions])
+
+  // Handle Retry Extraction (D-14)
+  const handleRetryExtraction = useCallback(async () => {
+    const swatches = plan.brief.vibeSwatches || []
+    const quote = plan.brief.protectedMomentQuote || ''
+    const tradeoffs = plan.brief.tradeoffs
+    if (swatches.length >= 6) {
+      await triggerStyleDNAExtraction(swatches, quote, tradeoffs)
+    }
+  }, [plan.brief.protectedMomentQuote, plan.brief.tradeoffs, plan.brief.vibeSwatches, triggerStyleDNAExtraction])
 
   // Core commit worker: computes diff and commits to persistence
   const commitPlan = useCallback(
@@ -392,7 +692,6 @@ export function PlanWorkspace({
   const handleCommitAsNewSnapshot = async () => {
     if (concurrencyConflict) {
       setSyncStatus('syncing')
-      // Save without parentVersionId or using conflict plan's version to bypass conflict check
       const saveResult = await persistence.savePlan(
         plan,
         undefined,
@@ -459,17 +758,31 @@ export function PlanWorkspace({
         changes={snapshotStack}
         versions={versions}
         currentVersionNumber={currentVersionNumber}
+        currentVersion={versions.find((v) => v.versionNumber === currentVersionNumber) || versions[0]}
         previousGuestCount={previousGuestCount}
         syncStatus={syncStatus}
         isReadOnly={isReadOnly}
         editKey={editKey}
         initialShareToken={initialShareToken}
+        isExtracting={isExtractingStyle}
+        v2Banner={
+          showV2Banner && v2Rationale ? (
+            <V2ChangeBanner
+              rationale={v2Rationale}
+              vibeStatement={plan.styleDNA?.vibeStatement}
+              onDismiss={() => setShowV2Banner(false)}
+            />
+          ) : undefined
+        }
         onGuestCountChange={handleGuestCountChange}
         onSetProtected={handleSetProtected}
         onApplyRemedy={handleApplyRemedy}
         onUndo={handleUndo}
         onRestoreVersion={handleRestoreVersion}
         onUnlockEdit={onUnlockEdit}
+        onRetuneStyle={handleRetuneStyle}
+        onResetToBaseline={handleResetToBaseline}
+        onRetryExtraction={handleRetryExtraction}
       />
     </div>
   )

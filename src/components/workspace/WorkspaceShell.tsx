@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react'
 import type { Plan, BudgetCategory, ShortfallRemedy, PlanVersionRecord } from '@/lib/engine/types'
+import type { StyleDimensions } from '@/lib/ai/schemas'
 import { calculateBackwardsTimeline } from '@/lib/engine/timeline'
 import { formatINR } from '@/lib/engine/currency'
 import { BudgetSection } from './BudgetSection'
 import { TimelineSection } from './TimelineSection'
 import { ChangeExplainer, type PlanChangeRecord } from './ChangeExplainer'
+import { StyleDNACard } from './StyleDNACard'
 import { ShortfallBanner } from './ShortfallBanner'
 import { SyncStatusBadge, type SyncState } from './SyncStatusBadge'
 import { ShareSaveModal } from './ShareSaveModal'
@@ -23,17 +25,23 @@ export interface WorkspaceShellProps {
   history?: PlanChangeRecord[]
   versions?: PlanVersionRecord[]
   currentVersionNumber?: number
+  currentVersion?: PlanVersionRecord
   previousGuestCount?: number
   syncStatus?: SyncState
   isReadOnly?: boolean
   editKey?: string
   initialShareToken?: string
+  isExtracting?: boolean
+  v2Banner?: React.ReactNode
   onGuestCountChange: (count: number) => void
   onSetProtected: (category: BudgetCategory) => void
   onApplyRemedy: (remedy: ShortfallRemedy) => void
   onUndo?: (item?: PlanChangeRecord, index?: number) => void
   onRestoreVersion?: (targetVersion: number) => void
   onUnlockEdit?: () => void
+  onRetuneStyle?: (dimensions: StyleDimensions) => void
+  onResetToBaseline?: () => void
+  onRetryExtraction?: () => void
 }
 
 export type MobileTab = 'budget' | 'timeline' | 'style' | 'summary'
@@ -44,17 +52,23 @@ export function WorkspaceShell({
   history,
   versions,
   currentVersionNumber,
+  currentVersion,
   previousGuestCount,
   syncStatus,
   isReadOnly = false,
   editKey,
   initialShareToken,
+  isExtracting = false,
+  v2Banner,
   onGuestCountChange,
   onSetProtected,
   onApplyRemedy,
   onUndo,
   onRestoreVersion,
   onUnlockEdit,
+  onRetuneStyle,
+  onResetToBaseline,
+  onRetryExtraction,
 }: WorkspaceShellProps) {
   const [mobileTab, setMobileTab] = useState<MobileTab>('budget')
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
@@ -70,6 +84,11 @@ export function WorkspaceShell({
     plan.brief.eventDate,
     plan.brief.guestCount
   )
+
+  const effectiveCurrentVersion =
+    currentVersion ||
+    versions?.find((v) => v.versionNumber === currentVersionNumber) ||
+    versions?.[0]
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -114,6 +133,9 @@ export function WorkspaceShell({
         </div>
       </div>
 
+      {/* Two-Beat v2 Reveal Change Banner (D-10, VIBE-04) */}
+      {v2Banner}
+
       {/* Shortfall Banner (ADR-0002 Permissive Balancing) */}
       <ShortfallBanner
         plan={plan}
@@ -122,7 +144,7 @@ export function WorkspaceShell({
         onUndo={() => onUndo?.()}
       />
 
-      {/* Desktop 3-Pane Layout (35% Budget, 40% Timeline, 25% Change Explainer / Summary) */}
+      {/* Desktop 3-Pane Layout (35% Budget, 40% Timeline, 25% Style DNA & Change Explainer) */}
       <div
         data-testid="desktop-workspace-layout"
         className="hidden lg:grid lg:grid-cols-12 lg:gap-6 lg:h-[calc(100vh-5rem)] items-start"
@@ -147,11 +169,22 @@ export function WorkspaceShell({
           <TimelineSection plan={plan} schedule={schedule} />
         </div>
 
-        {/* Right Column: 25% Change Explainer & Summary (col-span-3) */}
+        {/* Right Column: 25% Style DNA, Change Explainer & Summary (col-span-3) */}
         <div
           data-testid="desktop-explainer-pane"
           className="lg:col-span-3 h-[calc(100vh-5rem)] overflow-y-auto flex flex-col gap-6"
         >
+          {/* Pinned Style DNA Card (D-08, D-14, VIBE-04) */}
+          <StyleDNACard
+            plan={plan}
+            currentVersion={effectiveCurrentVersion}
+            isReadOnly={isReadOnly}
+            isExtracting={isExtracting}
+            onRetuneStyle={onRetuneStyle}
+            onResetToBaseline={onResetToBaseline}
+            onRetryExtraction={onRetryExtraction}
+          />
+
           <ChangeExplainer
             plan={plan}
             changes={changeList}
@@ -218,14 +251,16 @@ export function WorkspaceShell({
         )}
 
         {mobileTab === 'style' && (
-          <div
-            data-testid="mobile-pane-style"
-            className="rounded-2xl border border-royal-plum/10 bg-warm-ivory p-6 text-center shadow-xs"
-          >
-            <h3 className="font-serif font-bold text-lg text-royal-plum">Style DNA</h3>
-            <p className="text-xs text-royal-plum/60 mt-1">
-              Aesthetic identity & Protected Moment highlights ({plan.brief.protectedCategory}).
-            </p>
+          <div data-testid="mobile-pane-style" className="flex flex-col gap-4">
+            <StyleDNACard
+              plan={plan}
+              currentVersion={effectiveCurrentVersion}
+              isReadOnly={isReadOnly}
+              isExtracting={isExtracting}
+              onRetuneStyle={onRetuneStyle}
+              onResetToBaseline={onResetToBaseline}
+              onRetryExtraction={onRetryExtraction}
+            />
           </div>
         )}
 
@@ -277,12 +312,23 @@ export function WorkspaceShell({
           </button>
         </div>
 
-        {/* Bottom Sheet Drawer containing ChangeExplainer */}
+        {/* Bottom Sheet Drawer containing StyleDNACard and ChangeExplainer */}
         <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
           <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
-            <SheetHeader className="mb-2">
+            <SheetHeader className="mb-3">
               <SheetTitle>Plan Changes & Rebalancing</SheetTitle>
             </SheetHeader>
+            <div className="mb-4">
+              <StyleDNACard
+                plan={plan}
+                currentVersion={effectiveCurrentVersion}
+                isReadOnly={isReadOnly}
+                isExtracting={isExtracting}
+                onRetuneStyle={onRetuneStyle}
+                onResetToBaseline={onResetToBaseline}
+                onRetryExtraction={onRetryExtraction}
+              />
+            </div>
             <ChangeExplainer
               plan={plan}
               changes={changeList}
