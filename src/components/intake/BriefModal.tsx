@@ -22,22 +22,32 @@ interface BriefModalProps {
   isOpen: boolean
   onClose: () => void
   onPlanCreated: (plan: Plan) => void
+  initialBrief?: EventBrief
 }
 
-export function BriefModal({ isOpen, onClose, onPlanCreated }: BriefModalProps) {
+export function BriefModal({
+  isOpen,
+  onClose,
+  onPlanCreated,
+  initialBrief,
+}: BriefModalProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [isRevealing, setIsRevealing] = useState(false)
 
   // Form State
-  const [title, setTitle] = useState('My Celebration')
-  const [eventType, setEventType] = useState<EventType>('wedding')
-  const [eventDate, setEventDate] = useState('2026-11-20')
-  const [city, setCity] = useState('Delhi')
-  const [guestCount, setGuestCount] = useState(300)
-  const [rawBudgetInput, setRawBudgetInput] = useState('25L')
-  const [protectedCategory, setProtectedCategory] = useState<BudgetCategory>('catering')
-  const [nuances, setNuances] = useState<string[]>([])
-  const [customNotes, setCustomNotes] = useState('')
+  const [title, setTitle] = useState(initialBrief?.title ?? 'My Celebration')
+  const [eventType, setEventType] = useState<EventType>(initialBrief?.eventType ?? 'wedding')
+  const [eventDate, setEventDate] = useState(initialBrief?.eventDate ?? '2026-11-20')
+  const [city, setCity] = useState(initialBrief?.city ?? 'Delhi')
+  const [guestCount, setGuestCount] = useState(initialBrief?.guestCount ?? 300)
+  const [rawBudgetInput, setRawBudgetInput] = useState(
+    initialBrief ? `${Math.round(initialBrief.totalBudgetPaise / 100_000_00)}L` : '25L'
+  )
+  const [protectedCategory, setProtectedCategory] = useState<BudgetCategory>(
+    initialBrief?.protectedCategory ?? 'catering'
+  )
+  const [nuances, setNuances] = useState<string[]>(initialBrief?.nuances ?? [])
+  const [customNotes, setCustomNotes] = useState(initialBrief?.customNotes ?? '')
 
   if (!isOpen) return null
 
