@@ -81,3 +81,4 @@ Out of scope for Phase 5: Untrusted vendor quote ingestion, OCR, and Generative 
 
 - None noted during this discussion. All scope remains tightly anchored to Phase 5 requirements.
 </deferred>
+
