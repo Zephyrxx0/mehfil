@@ -1,0 +1,35 @@
+{
+  "name": "mehfil",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "next": "15.0.3",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "lucide-react": "0.460.0",
+    "clsx": "2.1.1",
+    "tailwind-merge": "2.5.4"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3",
+    "@types/node": "22.8.0",
+    "@types/react": "19.0.1",
+    "@types/react-dom": "19.0.1",
+    "vitest": "3.0.0",
+    "@vitejs/plugin-react": "4.3.3",
+    "tailwindcss": "3.4.14",
+    "autoprefixer": "10.4.20",
+    "postcss": "8.4.47",
+    "happy-dom": "15.11.7",
+    "@testing-library/react": "16.0.1",
+    "@testing-library/user-event": "14.5.2",
+    "@testing-library/jest-dom": "6.6.3"
+  }
+}
