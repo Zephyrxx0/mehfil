@@ -3,17 +3,18 @@
 import React from 'react'
 import type { Plan, TimelineSchedule } from '@/lib/engine/types'
 import { MilestoneBand } from './MilestoneBand'
+import { SeasonalAdvisoryBanner } from './SeasonalAdvisoryBanner'
 import { ICSExportButton } from './ICSExportButton'
-import { CalendarDays, AlertTriangle } from 'lucide-react'
+import { CalendarDays, Clock } from 'lucide-react'
 
-interface TimelineSectionProps {
+export interface TimelineSectionProps {
   plan: Plan
   schedule: TimelineSchedule
 }
 
 export function TimelineSection({ plan, schedule }: TimelineSectionProps) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6" data-testid="timeline-section">
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-royal-plum/10 pb-4">
         <div>
@@ -32,15 +33,26 @@ export function TimelineSection({ plan, schedule }: TimelineSectionProps) {
         <ICSExportButton plan={plan} schedule={schedule} />
       </div>
 
-      {/* Compressed Mode Notice Banner */}
+      {/* Ambient Seasonal Advisory Banner atop Timeline (D-09, TIME-02) */}
+      <SeasonalAdvisoryBanner analysis={plan.environmentalAnalysis} />
+
+      {/* Calm Compressed Planning Mode Banner (ADR-0005, D-12) */}
       {schedule.isCompressedMode && (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-xs text-amber-950 flex items-start gap-2.5">
-          <AlertTriangle className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
-          <div>
-            <span className="font-semibold">Short-Notice Celebration Triage (ADR-0005):</span>{' '}
-            Because your celebration date is within standard vendor lead times, past booking milestones have been
-            triaged into the <strong>Immediate Action (This Week)</strong> sprint group, ordered strictly by critical
-            path blockers.
+        <div
+          data-testid="compressed-mode-banner"
+          className="rounded-xl border border-marigold/60 bg-marigold/10 p-4 text-xs text-royal-plum flex items-start gap-3 shadow-2xs"
+        >
+          <div className="rounded-full bg-marigold/30 p-1.5 text-royal-plum mt-0.5 shrink-0">
+            <Clock className="w-4 h-4 text-royal-plum" />
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <span className="font-serif font-bold text-sm text-royal-plum">
+              Compressed Planning Mode &bull; Short-Notice Celebration Triage (ADR-0005)
+            </span>
+            <p className="text-xs text-royal-plum/80 leading-relaxed">
+              Compressed Planning Mode: Immediate Action items for this week organized strictly by critical path blockers.
+              Because your celebration is scheduled on short notice, past booking dates have been triaged into this week&apos;s sprint.
+            </p>
           </div>
         </div>
       )}
@@ -54,4 +66,3 @@ export function TimelineSection({ plan, schedule }: TimelineSectionProps) {
     </div>
   )
 }
-

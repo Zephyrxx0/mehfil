@@ -1,9 +1,16 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import type { BudgetCategory, Plan, ShortfallRemedy, PlanVersionRecord } from '@/lib/engine/types'
+import type { BudgetCategory, Plan, ShortfallRemedy, PlanVersionRecord, CuratedIdea } from '@/lib/engine/types'
 import type { StyleDNA, StyleDimensions, AgentRunRecord } from '@/lib/ai/schemas'
-import { rebalanceGuestCount, setProtectedMoment } from '@/lib/engine/budget'
+import {
+  rebalanceGuestCount,
+  setProtectedMoment,
+  adoptIdea,
+  retractIdea,
+  applyTrimElasticRemedy,
+} from '@/lib/engine/budget'
+import { detectEnvironmentalRisks } from '@/lib/engine/environmental'
 import { formatINR } from '@/lib/engine/currency'
 import { computePlanDiff } from '@/lib/engine/diff'
 import { applyStyleModulationToPlan, generateStyleModulationRationale } from '@/lib/engine/style'
@@ -13,6 +20,7 @@ import { persistence } from '@/lib/storage/persistence'
 import { WorkspaceShell } from './WorkspaceShell'
 import { ConcurrencyConflictBanner } from './ConcurrencyConflictBanner'
 import { V2ChangeBanner } from './V2ChangeBanner'
+import { UndoActionBar } from './UndoActionBar'
 import type { SyncState } from './SyncStatusBadge'
 import type { PlanChangeRecord, PlanChangeDelta } from './ChangeExplainer'
 import { ArrowLeft } from 'lucide-react'
@@ -38,11 +46,16 @@ export function PlanWorkspace({
   initialShareToken,
   onUnlockEdit,
 }: PlanWorkspaceProps) {
-  const [plan, setPlan] = useState<Plan>(initialPlan)
+  const [plan, setPlan] = useState<Plan>(() => {
+    if (initialPlan.environmentalAnalysis) return initialPlan
+    const analysis = detectEnvironmentalRisks(initialPlan.brief.eventDate, initialPlan.brief.city)
+    return { ...initialPlan, environmentalAnalysis: analysis }
+  })
   const [previousGuestCount, setPreviousGuestCount] = useState<number | undefined>(
     initialPlan.baselineGuestCount
   )
   const [snapshotStack, setSnapshotStack] = useState<PlanChangeRecord[]>([])
+  const [undoState, setUndoState] = useState<{ message: string; previousPlan: Plan } | null>(null)
 
   // Two-Beat Reveal & Style DNA State (D-09, D-10, VIBE-04)
   const [isExtractingStyle, setIsExtractingStyle] = useState<boolean>(false)
@@ -593,17 +606,91 @@ export function PlanWorkspace({
     scheduleDebouncedCommit(nextPlan, prevPlan, 'protected_lock')
   }
 
-  // Handle ADR-0002 shortfall remedies
+  // Handle Curated Idea Adoption (IDEA-02, BUDGET-04, ADR-0004)
+  const handleAdoptIdea = useCallback((idea: CuratedIdea) => {
+    if (isReadOnly) return
+    const prevPlan = plan
+    const nextPlan = adoptIdea(plan, idea)
+
+    const deltas: PlanChangeDelta[] = []
+    for (const nextLine of nextPlan.lines) {
+      const prevLine = plan.lines.find((l) => l.id === nextLine.id)
+      const prevPaise = prevLine ? prevLine.currentPaise : nextLine.baselinePaise
+      const deltaPaise = nextLine.currentPaise - prevPaise
+      if (deltaPaise !== 0) {
+        deltas.push({ category: nextLine.name, deltaPaise })
+      }
+    }
+
+    const description = `Adopted ${idea.title} (${formatINR(idea.costPaise)})`
+    const record: PlanChangeRecord = {
+      id: `change-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      timestamp: new Date(),
+      description,
+      deltas,
+      isFloorProtected: Boolean(nextPlan.brief.protectedCategory),
+      previousSnapshot: prevPlan,
+    }
+
+    setSnapshotStack((prev) => [record, ...prev])
+    setPlan(nextPlan)
+    setUndoState({ message: description, previousPlan: prevPlan })
+    scheduleDebouncedCommit(nextPlan, prevPlan, 'budget_change')
+  }, [isReadOnly, plan, scheduleDebouncedCommit])
+
+  // Handle Curated Idea Retraction (IDEA-03, ADR-0004)
+  const handleRetractIdea = useCallback((ideaId: string) => {
+    if (isReadOnly) return
+    const prevPlan = plan
+    const ideaTitle = plan.adoptedIdeas?.find((r) => r.ideaId === ideaId)?.title || 'idea'
+    const nextPlan = retractIdea(plan, ideaId)
+
+    const deltas: PlanChangeDelta[] = []
+    for (const nextLine of nextPlan.lines) {
+      const prevLine = plan.lines.find((l) => l.id === nextLine.id)
+      const prevPaise = prevLine ? prevLine.currentPaise : nextLine.baselinePaise
+      const deltaPaise = nextLine.currentPaise - prevPaise
+      if (deltaPaise !== 0) {
+        deltas.push({ category: nextLine.name, deltaPaise })
+      }
+    }
+
+    const description = `Retracted ${ideaTitle}`
+    const record: PlanChangeRecord = {
+      id: `change-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      timestamp: new Date(),
+      description,
+      deltas,
+      isFloorProtected: Boolean(nextPlan.brief.protectedCategory),
+      previousSnapshot: prevPlan,
+    }
+
+    setSnapshotStack((prev) => [record, ...prev])
+    setPlan(nextPlan)
+    setUndoState({ message: description, previousPlan: prevPlan })
+    scheduleDebouncedCommit(nextPlan, prevPlan, 'budget_change')
+  }, [isReadOnly, plan, scheduleDebouncedCommit])
+
+  // Handle ADR-0002 shortfall remedies (BUDGET-03, D-13)
   const handleApplyRemedy = (remedy: ShortfallRemedy) => {
+    if (isReadOnly) return
+    const prevPlan = plan
+
     if (remedy.type === 'reduce_guests') {
       handleGuestCountChange(remedy.deltaValue)
+      setUndoState({
+        message: `Applied remedy: Set Guests to ${remedy.deltaValue}`,
+        previousPlan: prevPlan,
+      })
     } else if (remedy.type === 'increase_budget') {
-      const prevPlan = plan
       const increasedBudget = plan.totalBudgetPaise + remedy.deltaValue
       const updatedPlan: Plan = {
         ...plan,
         totalBudgetPaise: increasedBudget,
         brief: { ...plan.brief, totalBudgetPaise: increasedBudget },
+        isInfeasible: false,
+        shortfallPaise: undefined,
+        remedies: undefined,
       }
       const nextPlan = rebalanceGuestCount(updatedPlan, plan.brief.guestCount)
       const record: PlanChangeRecord = {
@@ -612,18 +699,53 @@ export function PlanWorkspace({
         description: `Increased total budget by ${formatINR(remedy.deltaValue)}`,
         deltas: [{ category: 'Total Budget', deltaPaise: remedy.deltaValue }],
         isFloorProtected: Boolean(nextPlan.brief.protectedCategory),
-        previousSnapshot: plan,
+        previousSnapshot: prevPlan,
       }
       setSnapshotStack((prev) => [record, ...prev])
       setPlan(nextPlan)
+      setUndoState({
+        message: `Applied remedy: Added ${formatINR(remedy.deltaValue)} to Budget`,
+        previousPlan: prevPlan,
+      })
       scheduleDebouncedCommit(nextPlan, prevPlan, 'budget_change')
     } else if (remedy.type === 'trim_elastic') {
-      const prevPlan = plan
-      const nextPlan = rebalanceGuestCount(plan, plan.brief.guestCount)
+      const nextPlan = applyTrimElasticRemedy(plan, plan.shortfallPaise || 0)
+      const deltas: PlanChangeDelta[] = []
+      for (const nextLine of nextPlan.lines) {
+        const prevLine = plan.lines.find((l) => l.id === nextLine.id)
+        const prevPaise = prevLine ? prevLine.currentPaise : nextLine.baselinePaise
+        const deltaPaise = nextLine.currentPaise - prevPaise
+        if (deltaPaise !== 0) {
+          deltas.push({ category: nextLine.name, deltaPaise })
+        }
+      }
+      const record: PlanChangeRecord = {
+        id: `change-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        timestamp: new Date(),
+        description: 'Applied remedy: Trimmed flexible lines to their floors',
+        deltas,
+        isFloorProtected: Boolean(nextPlan.brief.protectedCategory),
+        previousSnapshot: prevPlan,
+      }
+      setSnapshotStack((prev) => [record, ...prev])
       setPlan(nextPlan)
+      setUndoState({
+        message: 'Applied remedy: Trimmed flexible lines',
+        previousPlan: prevPlan,
+      })
       scheduleDebouncedCommit(nextPlan, prevPlan, 'budget_change')
     }
   }
+
+  // Handle Tier 1 Instant Floating Undo (D-14)
+  const handleTier1Undo = useCallback(() => {
+    if (!undoState) return
+    const restored = undoState.previousPlan
+    const current = plan
+    setPlan(restored)
+    scheduleDebouncedCommit(restored, current, 'restore')
+    setUndoState(null)
+  }, [plan, scheduleDebouncedCommit, undoState])
 
   // Handle Forward Restore Undo (D-10, D-11, COLLAB-04)
   const handleRestoreVersion = async (targetVersionNumber: number) => {
@@ -783,6 +905,15 @@ export function PlanWorkspace({
         onRetuneStyle={handleRetuneStyle}
         onResetToBaseline={handleResetToBaseline}
         onRetryExtraction={handleRetryExtraction}
+        onAdoptIdea={handleAdoptIdea}
+        onRetractIdea={handleRetractIdea}
+      />
+
+      {/* Tier 1 Floating Instant Undo Action Bar (D-14, IDEA-03, BUDGET-03) */}
+      <UndoActionBar
+        message={undoState?.message || null}
+        onUndo={handleTier1Undo}
+        onDismiss={() => setUndoState(null)}
       />
     </div>
   )

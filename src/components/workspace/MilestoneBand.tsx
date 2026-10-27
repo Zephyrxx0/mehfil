@@ -83,13 +83,23 @@ export function MilestoneBand({ band }: MilestoneBandProps) {
                 <CheckCircle2 className="w-4 h-4" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-royal-plum">
                     {task.title}
                   </span>
                   {task.isCriticalPath && (
                     <span className="rounded-full bg-red-100 px-1.5 py-0.2 text-3xs font-bold uppercase text-red-800">
                       Critical Path
+                    </span>
+                  )}
+                  {task.bufferDays !== undefined && task.bufferDays > 0 && (
+                    <span className="rounded-full bg-marigold/20 border border-marigold/50 px-2 py-0.5 text-3xs font-bold text-royal-plum">
+                      +{task.bufferDays}d peak buffer
+                    </span>
+                  )}
+                  {task.environmentalRisk && (
+                    <span className="rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-3xs font-medium text-amber-900">
+                      [ {task.environmentalRisk} ]
                     </span>
                   )}
                 </div>
