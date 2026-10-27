@@ -151,4 +151,154 @@ describe('Pure TypeScript Deterministic Diff Engine (D-12, COLLAB-04, ADR-0004)'
     expect(result.summary).toBe('All allocations balanced in harmony.')
     expect(result.deltas.length).toBe(0)
   })
+
+  it('computes plain-language idea adoption sentence with donor lines and Protected Moment immunity (IDEA-02, MOMENT-02)', () => {
+    const nextPlan: Plan = {
+      ...basePlan,
+      lines: [
+        { ...basePlan.lines[0] },
+        { ...basePlan.lines[1], currentPaise: 55000000 }, // +50,000 rupees (Catering received idea)
+        { ...basePlan.lines[2], currentPaise: 25000000 }, // -50,000 rupees (Decor donated)
+        { ...basePlan.lines[3] },
+      ],
+      adoptedIdeas: [
+        {
+          ideaId: 'chai_bar',
+          title: 'Artisanal Kulhad Chai Bar',
+          targetCategory: 'catering',
+          costPaise: 5000000, // ₹50,000
+          displacedDonors: [
+            { lineId: 'line-decor', category: 'decor', displacedPaise: 5000000 },
+          ],
+          adoptedAt: '2026-10-27T10:00:00.000Z',
+        },
+      ],
+    }
+
+    const result = computePlanDiff({ prevPlan: basePlan, nextPlan, actionType: 'adopt_idea' })
+
+    expect(result.summary).toBe(
+      "Adopted curated idea 'Artisanal Kulhad Chai Bar' (+₹50,000), funded by trimming Decor in elasticity order, with Protected Moment immune."
+    )
+    expect(result.isFloorProtected).toBe(true)
+    expect(result.deltas).toHaveLength(2)
+  })
+
+  it('computes plain-language idea retraction sentence with restored donors (IDEA-03)', () => {
+    const planWithIdea: Plan = {
+      ...basePlan,
+      lines: [
+        { ...basePlan.lines[0] },
+        { ...basePlan.lines[1], currentPaise: 55000000 },
+        { ...basePlan.lines[2], currentPaise: 25000000 },
+        { ...basePlan.lines[3] },
+      ],
+      adoptedIdeas: [
+        {
+          ideaId: 'chai_bar',
+          title: 'Artisanal Kulhad Chai Bar',
+          targetCategory: 'catering',
+          costPaise: 5000000,
+          displacedDonors: [
+            { lineId: 'line-decor', category: 'decor', displacedPaise: 5000000 },
+          ],
+          adoptedAt: '2026-10-27T10:00:00.000Z',
+        },
+      ],
+    }
+
+    // Retracting the idea returns to basePlan
+    const result = computePlanDiff({
+      prevPlan: planWithIdea,
+      nextPlan: basePlan,
+      actionType: 'retract_idea',
+    })
+
+    expect(result.summary).toBe(
+      "Retracted curated idea 'Artisanal Kulhad Chai Bar', restoring exact funds back to Decor."
+    )
+    expect(result.isFloorProtected).toBe(true)
+  })
+
+  it('computes plain-language diff for shortfall remedy: budget increase (BUDGET-03)', () => {
+    const infeasiblePlan: Plan = {
+      ...basePlan,
+      isInfeasible: true,
+      shortfallPaise: 10000000, // ₹1,00,000
+    }
+    const resolvedPlan: Plan = {
+      ...basePlan,
+      totalBudgetPaise: 160000000,
+      brief: { ...basePlan.brief, totalBudgetPaise: 160000000 },
+      isInfeasible: false,
+    }
+
+    const result = computePlanDiff({
+      prevPlan: infeasiblePlan,
+      nextPlan: resolvedPlan,
+      actionType: 'remedy_budget',
+    })
+
+    expect(result.summary).toBe(
+      'Applied Remedy: Increased total budget by ₹1,00,000 to balance shortfall.'
+    )
+  })
+
+  it('computes plain-language diff for shortfall remedy: guest reduction (BUDGET-03)', () => {
+    const infeasiblePlan: Plan = {
+      ...basePlan,
+      brief: { ...basePlan.brief, guestCount: 300 },
+      isInfeasible: true,
+      shortfallPaise: 5000000,
+    }
+    const resolvedPlan: Plan = {
+      ...basePlan,
+      brief: { ...basePlan.brief, guestCount: 220 },
+      isInfeasible: false,
+    }
+
+    const result = computePlanDiff({
+      prevPlan: infeasiblePlan,
+      nextPlan: resolvedPlan,
+      actionType: 'remedy_guests',
+    })
+
+    expect(result.summary).toBe(
+      'Applied Remedy: Reduced guest count from 300 to 220 to restore feasible budget.'
+    )
+  })
+
+  it('computes plain-language diff for shortfall remedy: flexible trimming (BUDGET-03)', () => {
+    const infeasiblePlan: Plan = {
+      ...basePlan,
+      lines: [
+        { ...basePlan.lines[0] },
+        { ...basePlan.lines[1], currentPaise: 55000000 }, // +50,000
+        { ...basePlan.lines[2] },
+        { ...basePlan.lines[3] },
+      ],
+      isInfeasible: true,
+      shortfallPaise: 5000000,
+    }
+    const resolvedPlan: Plan = {
+      ...basePlan,
+      lines: [
+        { ...basePlan.lines[0] },
+        { ...basePlan.lines[1], currentPaise: 55000000 },
+        { ...basePlan.lines[2], currentPaise: 25000000 }, // trimmed Decor
+        { ...basePlan.lines[3] },
+      ],
+      isInfeasible: false,
+    }
+
+    const result = computePlanDiff({
+      prevPlan: infeasiblePlan,
+      nextPlan: resolvedPlan,
+      actionType: 'remedy_trim',
+    })
+
+    expect(result.summary).toBe(
+      'Applied Remedy: Sequentially trimmed flexible lines (Decor) to absorb deficit while protecting floors.'
+    )
+  })
 })

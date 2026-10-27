@@ -4,7 +4,17 @@ import { formatINR } from './currency'
 export interface PlanDiffInput {
   prevPlan: Plan
   nextPlan: Plan
-  actionType?: 'guest_scale' | 'budget_change' | 'protected_lock' | 'restore' | 'manual'
+  actionType?:
+    | 'guest_scale'
+    | 'budget_change'
+    | 'protected_lock'
+    | 'restore'
+    | 'manual'
+    | 'adopt_idea'
+    | 'retract_idea'
+    | 'remedy_budget'
+    | 'remedy_guests'
+    | 'remedy_trim'
   restoredVersionNumber?: number
   restoredReason?: string
 }
@@ -63,7 +73,107 @@ export function computePlanDiff(input: PlanDiffInput): PlanDiffResult {
   const isFloorProtected = Boolean(nextPlan.brief.protectedCategory)
   const protectedSuffix = isFloorProtected ? '; Protected Moment held firm' : ''
 
-  // 3. Protected Moment Lock / Reassignment Action
+  const prevIdeas = prevPlan.adoptedIdeas ?? []
+  const nextIdeas = nextPlan.adoptedIdeas ?? []
+  const isIdeaAdopted =
+    actionType === 'adopt_idea' ||
+    (actionType === undefined && nextIdeas.length > prevIdeas.length)
+  const isIdeaRetracted =
+    actionType === 'retract_idea' ||
+    (actionType === undefined && prevIdeas.length > nextIdeas.length)
+
+  // 3. Idea Adoption (IDEA-02, BUDGET-04)
+  if (isIdeaAdopted && nextIdeas.length > 0) {
+    const addedIdea =
+      nextIdeas.find((n) => !prevIdeas.some((p) => p.ideaId === n.ideaId)) ??
+      nextIdeas[nextIdeas.length - 1]
+
+    const donorNames =
+      donorCategories.length > 0
+        ? donorCategories.join(', ')
+        : addedIdea.displacedDonors
+            .map((d) => prevPlan.lines.find((l) => l.id === d.lineId)?.name ?? d.category)
+            .join(', ')
+
+    const fundingClause = donorNames ? `funded by trimming ${donorNames} in elasticity order, ` : ''
+
+    return {
+      summary: `Adopted curated idea '${addedIdea.title}' (+${formatINR(addedIdea.costPaise)}), ${fundingClause}with Protected Moment immune.`,
+      deltas,
+      isFloorProtected: true,
+      donorCategories,
+      recipientCategories,
+    }
+  }
+
+  // 4. Idea Retraction (IDEA-03, D-07)
+  if (isIdeaRetracted && prevIdeas.length > 0) {
+    const removedIdea =
+      prevIdeas.find((p) => !nextIdeas.some((n) => n.ideaId === p.ideaId)) ?? prevIdeas[0]
+
+    const restoredNames =
+      recipientCategories.length > 0
+        ? recipientCategories.join(', ')
+        : removedIdea.displacedDonors
+            .map((d) => prevPlan.lines.find((l) => l.id === d.lineId)?.name ?? d.category)
+            .join(', ')
+
+    return {
+      summary: `Retracted curated idea '${removedIdea.title}', restoring exact funds back to ${restoredNames}.`,
+      deltas,
+      isFloorProtected: true,
+      donorCategories,
+      recipientCategories,
+    }
+  }
+
+  // 5. Shortfall Remedy Executions (BUDGET-03, ADR-0002)
+  const isShortfallResolved = Boolean(prevPlan.isInfeasible && !nextPlan.isInfeasible)
+
+  if (
+    actionType === 'remedy_budget' ||
+    (isShortfallResolved && nextPlan.totalBudgetPaise > prevPlan.totalBudgetPaise)
+  ) {
+    const delta = formatINR(nextPlan.totalBudgetPaise - prevPlan.totalBudgetPaise)
+    return {
+      summary: `Applied Remedy: Increased total budget by ${delta} to balance shortfall.`,
+      deltas,
+      isFloorProtected,
+      donorCategories,
+      recipientCategories,
+    }
+  }
+
+  if (
+    actionType === 'remedy_guests' ||
+    (isShortfallResolved && nextPlan.brief.guestCount < prevPlan.brief.guestCount)
+  ) {
+    return {
+      summary: `Applied Remedy: Reduced guest count from ${prevPlan.brief.guestCount} to ${nextPlan.brief.guestCount} to restore feasible budget.`,
+      deltas,
+      isFloorProtected,
+      donorCategories,
+      recipientCategories,
+    }
+  }
+
+  if (
+    actionType === 'remedy_trim' ||
+    (isShortfallResolved &&
+      donorCategories.length > 0 &&
+      nextPlan.totalBudgetPaise === prevPlan.totalBudgetPaise &&
+      nextPlan.brief.guestCount === prevPlan.brief.guestCount)
+  ) {
+    return {
+      summary: `Applied Remedy: Sequentially trimmed flexible lines (${donorCategories.join(', ')}) to absorb deficit while protecting floors.`,
+      deltas,
+      isFloorProtected,
+      donorCategories,
+      recipientCategories,
+    }
+  }
+
+  // 6. Protected Moment Lock / Reassignment Action
   if (
     actionType === 'protected_lock' ||
     prevPlan.brief.protectedCategory !== nextPlan.brief.protectedCategory
@@ -78,7 +188,7 @@ export function computePlanDiff(input: PlanDiffInput): PlanDiffResult {
     }
   }
 
-  // 4. Guest Count Change Action
+  // 7. Guest Count Change Action
   if (
     actionType === 'guest_scale' ||
     prevPlan.brief.guestCount !== nextPlan.brief.guestCount
@@ -106,7 +216,7 @@ export function computePlanDiff(input: PlanDiffInput): PlanDiffResult {
     }
   }
 
-  // 5. Total Budget Change Action
+  // 8. Total Budget Change Action
   if (
     actionType === 'budget_change' ||
     prevPlan.totalBudgetPaise !== nextPlan.totalBudgetPaise
@@ -122,7 +232,7 @@ export function computePlanDiff(input: PlanDiffInput): PlanDiffResult {
     }
   }
 
-  // 6. Default fallback / manual line adjustment
+  // 9. Default fallback / manual line adjustment
   return {
     summary:
       deltas.length > 0
