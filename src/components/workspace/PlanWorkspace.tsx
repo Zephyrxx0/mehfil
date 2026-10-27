@@ -7,7 +7,9 @@ import { calculateBackwardsTimeline } from '@/lib/engine/timeline'
 import { ShortfallBanner } from './ShortfallBanner'
 import { BudgetSection } from './BudgetSection'
 import { TimelineSection } from './TimelineSection'
-import { Sparkles, Calendar, Coins, ArrowLeft } from 'lucide-react'
+import { Calendar, Coins, ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 interface PlanWorkspaceProps {
   initialPlan: Plan
@@ -76,9 +78,9 @@ export function PlanWorkspace({ initialPlan, onResetPlan }: PlanWorkspaceProps) 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-royal-plum/10 pb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-marigold/20 px-2.5 py-0.5 text-xs font-bold text-royal-plum uppercase tracking-wider">
+            <Badge variant="default" className="uppercase tracking-wider">
               {plan.brief.eventType}
-            </span>
+            </Badge>
             <span className="text-xs text-royal-plum/50">• {plan.brief.city}</span>
             <span className="text-xs text-royal-plum/50">• {plan.brief.eventDate}</span>
           </div>
@@ -91,14 +93,16 @@ export function PlanWorkspace({ initialPlan, onResetPlan }: PlanWorkspaceProps) 
         </div>
 
         {onResetPlan && (
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={onResetPlan}
-            className="inline-flex items-center gap-1.5 self-start sm:self-center rounded-full border border-royal-plum/20 bg-white/80 px-4 py-2 text-xs font-semibold text-royal-plum shadow-xs hover:bg-white active:scale-95 transition"
+            className="inline-flex items-center gap-1.5 self-start sm:self-center text-xs font-semibold"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>New Celebration</span>
-          </button>
+          </Button>
         )}
       </div>
 
@@ -112,31 +116,27 @@ export function PlanWorkspace({ initialPlan, onResetPlan }: PlanWorkspaceProps) 
 
       {/* Tab Switcher */}
       <div className="flex items-center gap-2 border-b border-royal-plum/10 pb-2">
-        <button
+        <Button
           type="button"
+          variant={activeTab === 'budget' ? 'default' : 'ghost'}
+          size="sm"
           onClick={() => setActiveTab('budget')}
-          className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
-            activeTab === 'budget'
-              ? 'bg-royal-plum text-warm-ivory shadow-xs'
-              : 'text-royal-plum/70 hover:bg-royal-plum/5'
-          }`}
+          className="gap-2"
         >
-          <Coins className="w-4 h-4 text-marigold" />
+          <Coins className="w-4 h-4 text-royal-plum" />
           <span>Interactive Budget</span>
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="button"
+          variant={activeTab === 'timeline' ? 'default' : 'ghost'}
+          size="sm"
           onClick={() => setActiveTab('timeline')}
-          className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition ${
-            activeTab === 'timeline'
-              ? 'bg-royal-plum text-warm-ivory shadow-xs'
-              : 'text-royal-plum/70 hover:bg-royal-plum/5'
-          }`}
+          className="gap-2"
         >
-          <Calendar className="w-4 h-4 text-marigold" />
+          <Calendar className="w-4 h-4 text-royal-plum" />
           <span>Milestone Roadmap ({schedule.milestoneBands.length} Bands)</span>
-        </button>
+        </Button>
       </div>
 
       {/* Main Content Area */}
@@ -152,4 +152,3 @@ export function PlanWorkspace({ initialPlan, onResetPlan }: PlanWorkspaceProps) 
     </div>
   )
 }
-

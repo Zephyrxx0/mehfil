@@ -8,7 +8,15 @@ import { StarterChips } from './StarterChips'
 import { StepEventBasics } from './StepEventBasics'
 import { StepScaleBudget } from './StepScaleBudget'
 import { StepNuances } from './StepNuances'
-import { X, ArrowRight, ArrowLeft, Loader2, Sparkles } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Sparkles } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 interface BriefModalProps {
   isOpen: boolean
@@ -73,17 +81,8 @@ export function BriefModal({ isOpen, onClose, onPlanCreated }: BriefModalProps) 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-royal-plum/40 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-xl rounded-3xl border border-royal-plum/10 bg-warm-ivory p-6 shadow-2xl transition-all sm:p-8">
-        {/* Close Button */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-5 top-5 rounded-full p-1.5 text-royal-plum/50 hover:bg-royal-plum/5 hover:text-royal-plum"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-xl">
         {isRevealing ? (
           /* 300ms Reveal State (D-04) */
           <div className="flex flex-col items-center justify-center py-16 text-center animate-pulse">
@@ -100,19 +99,17 @@ export function BriefModal({ isOpen, onClose, onPlanCreated }: BriefModalProps) 
         ) : (
           <div className="flex flex-col gap-6">
             {/* Header & 1-Click Starters */}
-            <div className="flex flex-col gap-4 border-b border-royal-plum/10 pb-5">
+            <DialogHeader className="gap-4 border-b border-royal-plum/10 pb-5">
               <div>
-                <h2 className="text-2xl font-serif font-bold text-royal-plum">
-                  Plan Your Celebration
-                </h2>
-                <p className="text-xs text-royal-plum/60 mt-0.5">
+                <DialogTitle>Plan Your Celebration</DialogTitle>
+                <DialogDescription className="text-xs text-royal-plum/60 mt-0.5">
                   Step {step} of 3 — Instant mathematical plan generation
-                </p>
+                </DialogDescription>
               </div>
 
               {/* Starter Chips */}
               <StarterChips onSelect={handleStarterSelect} />
-            </div>
+            </DialogHeader>
 
             {/* Step Indicators */}
             <div className="flex items-center gap-2">
@@ -181,54 +178,61 @@ export function BriefModal({ isOpen, onClose, onPlanCreated }: BriefModalProps) 
             {/* Actions Bar */}
             <div className="flex items-center justify-between border-t border-royal-plum/10 pt-4">
               {step > 1 ? (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3)}
-                  className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-royal-plum/80 hover:bg-royal-plum/5 transition"
+                  className="gap-1.5 text-xs font-semibold text-royal-plum/80"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>Back</span>
-                </button>
+                </Button>
               ) : (
                 <div />
               )}
 
               <div className="flex items-center gap-2">
                 {step === 3 && (
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={handleGenerate}
-                    className="rounded-full border border-royal-plum/20 px-4 py-2 text-xs font-medium text-royal-plum hover:bg-royal-plum/5 transition"
+                    className="text-xs font-medium text-royal-plum"
                   >
                     Skip & Generate
-                  </button>
+                  </Button>
                 )}
 
                 {step < 3 ? (
-                  <button
+                  <Button
                     type="button"
+                    variant="default"
+                    size="sm"
                     onClick={() => setStep((s) => (s + 1) as 1 | 2 | 3)}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-royal-plum px-5 py-2 text-xs font-semibold text-warm-ivory shadow-sm hover:bg-royal-plum/90 active:scale-95 transition"
+                    className="gap-1.5 bg-royal-plum text-warm-ivory shadow-xs hover:bg-royal-plum/90"
                   >
                     <span>Next</span>
                     <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                  </Button>
                 ) : (
-                  <button
+                  <Button
                     type="button"
+                    variant="default"
+                    size="sm"
                     onClick={handleGenerate}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-royal-plum px-6 py-2 text-xs font-semibold text-warm-ivory shadow-sm hover:bg-royal-plum/90 active:scale-95 transition"
+                    className="gap-1.5 bg-royal-plum text-warm-ivory shadow-xs hover:bg-royal-plum/90"
                   >
                     <span>Generate Celebration Plan</span>
                     <Sparkles className="w-3.5 h-3.5 text-marigold" />
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
           </div>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
-
