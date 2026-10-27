@@ -153,7 +153,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 05-02: Idea Curator catalog and budget-neutral displacement engine with donor-line visual feedback and undo.
+- [x] 05-02: Pure UTC environmental date risks, dynamic lead-time buffers, and curated celebration catalog with Style DNA personalization.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 

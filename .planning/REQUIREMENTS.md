@@ -28,8 +28,8 @@
 ### Timeline & Compressed Scheduling
 
 - [ ] **TIME-01**: Engine calculates backwards schedule from event date based on task lead-times, guest scale multipliers, and predecessor dependencies.
-- [ ] **TIME-02**: Engine detects environmental date risks (peak wedding seasons, national holidays, seasonal weather) and inserts lead-time advisories.
-- [ ] **TIME-03**: For short-notice events with standard milestones in the past, engine activates Compressed Mode, elevating a prioritized Critical Path triage queue (ADR-0005).
+- [x] **TIME-02**: Engine detects environmental date risks (peak wedding seasons, national holidays, seasonal weather) and inserts lead-time advisories.
+- [x] **TIME-03**: For short-notice events with standard milestones in the past, engine activates Compressed Mode, elevating a prioritized Critical Path triage queue (ADR-0005).
 - [ ] **TIME-04**: User can export the backwards timeline as a local `.ics` iCalendar file for import into Google Calendar or Apple Calendar.
 
 ### Protected Moment Floor
@@ -49,7 +49,7 @@
 
 ### Personalized Idea Curation & Displacement
 
-- [ ] **IDEA-01**: Idea Curator proposes personalized enhancements matching Style DNA and event type, each carrying cost ranges and lead times.
+- [x] **IDEA-01**: Idea Curator proposes personalized enhancements matching Style DNA and event type, each carrying cost ranges and lead times.
 - [x] **IDEA-02**: Adopting an idea calculates deterministic budget-neutral displacement from elastic lines without touching the Protected Moment (ADR-0004).
 - [x] **IDEA-03**: User can toggle adopted ideas off with one-click undo, cleanly restoring displaced funds to donor lines.
 
