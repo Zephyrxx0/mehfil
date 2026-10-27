@@ -36,7 +36,7 @@
 
 - [ ] **MOMENT-01**: User can designate one budget line as their Protected Moment, locking a raised non-negotiable monetary floor.
 - [x] **MOMENT-02**: The Protected Moment allocation is strictly immune to downward re-balancing and idea displacement (ADR-0004).
-- [ ] **MOMENT-03**: UI renders a distinct Gulabi Rose highlight, lock icon, and micro-haptic feedback when the Protected Moment holds against changes.
+- [x] **MOMENT-03**: UI renders a distinct Gulabi Rose highlight, lock icon, and micro-haptic feedback when the Protected Moment holds against changes.
 
 ### Quote Check & Quarantine
 

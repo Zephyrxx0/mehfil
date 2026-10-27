@@ -157,7 +157,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 05-03: Date-risk environmental advisory adapters and Compressed Mode topological critical-path scheduler.
+- [x] 05-03: Reactive Workspace UI — Curated Ideas tab, Protected Moment tactile highlights, permissive remedies & instant undo.
 
 ### Phase 6: Quarantined Quote Check & Closed Registry Generative UI
 
