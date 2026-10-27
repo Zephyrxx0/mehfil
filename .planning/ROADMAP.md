@@ -147,9 +147,16 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 05-01: Protected Moment floor immunity algebra and Permissive Shortfall calculation solver with 3 deterministic remedies.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 05-02: Idea Curator catalog and budget-neutral displacement engine with donor-line visual feedback and undo.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 05-03: Date-risk environmental advisory adapters and Compressed Mode topological critical-path scheduler.
 
 ### Phase 6: Quarantined Quote Check & Closed Registry Generative UI
