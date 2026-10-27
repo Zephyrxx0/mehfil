@@ -107,3 +107,4 @@ Phase 4 delivers the aesthetic personalization pipeline and zero-failure multi-m
 - `src/lib/engine/style.ts`: Style DNA dimension mapping and bounded weight modulation engine.
 
 </code_context>
+
