@@ -1,4 +1,13 @@
-import type { Paise, Plan, BudgetLine, BudgetCategory, ShortfallRemedy } from './types'
+import type {
+  Paise,
+  Plan,
+  BudgetLine,
+  BudgetCategory,
+  ShortfallRemedy,
+  CuratedIdea,
+  IdeaDisplacementRecord,
+  DisplacedDonor,
+} from './types'
 
 /**
  * Hare-Niemeyer largest-remainder apportionment.
@@ -230,4 +239,153 @@ export function setProtectedMoment(plan: Plan, category: BudgetCategory): Plan {
   }))
 
   return { ...plan, lines: newLines, brief: { ...plan.brief, protectedCategory: category } }
+}
+
+/**
+ * Adopt a curated celebration idea via zero-sum displacement (IDEA-02, BUDGET-04, ADR-0004).
+ * - Target category receives idea.costPaise
+ * - Flexible donor lines are drained in strict elasticity order (Misc=1 -> Entertainment=2 -> Decor=3)
+ * - Donor lines are never drained below 40% of their baselinePaise (D-11, D-06)
+ * - Protected Moment is mathematically immune to displacement (!line.isProtected) (MOMENT-02)
+ * - Permissive shortfall: if flexible capacity is exhausted, lines clamp to 40% floor,
+ *   plan becomes infeasible with shortfallPaise, and deterministic remedies are computed (D-04, ADR-0002).
+ */
+export function adoptIdea(plan: Plan, idea: CuratedIdea): Plan {
+  const lines = plan.lines.map(l => ({ ...l }))
+  const targetLine = lines.find(l => l.category === idea.category)
+  if (!targetLine) {
+    throw new Error(`Target category ${idea.category} not found in plan`)
+  }
+
+  // Identify flexible donor candidate lines: flexible, not protected, and not the target category
+  const donorCandidates = lines
+    .filter(l => l.lineType === 'flexible' && !l.isProtected && l.category !== idea.category)
+    .sort((a, b) => (a.elasticityRank ?? 99) - (b.elasticityRank ?? 99))
+
+  let neededPaise = idea.costPaise
+  const displacedDonors: DisplacedDonor[] = []
+
+  for (const donor of donorCandidates) {
+    if (neededPaise <= 0) break
+    const floor = Math.round(donor.baselinePaise * 0.40 / 100) * 100
+    const available = Math.max(0, donor.currentPaise - floor)
+    if (available > 0) {
+      const deduction = Math.min(neededPaise, available)
+      donor.currentPaise -= deduction
+      neededPaise -= deduction
+      displacedDonors.push({
+        lineId: donor.id,
+        category: donor.category,
+        displacedPaise: deduction,
+      })
+    }
+  }
+
+  // Target category line receives full idea.costPaise (permissive model, D-04)
+  targetLine.currentPaise += idea.costPaise
+
+  const record: IdeaDisplacementRecord = {
+    ideaId: idea.id,
+    title: idea.title,
+    targetCategory: idea.category,
+    costPaise: idea.costPaise,
+    displacedDonors,
+    shortfallPaise: neededPaise > 0 ? neededPaise : undefined,
+    adoptedAt: new Date().toISOString(),
+  }
+
+  const adoptedIdeas = [...(plan.adoptedIdeas ?? []), record]
+
+  const newPlan: Plan = {
+    ...plan,
+    lines,
+    adoptedIdeas,
+  }
+
+  const existingShortfall = plan.shortfallPaise ?? 0
+  const totalShortfall = existingShortfall + neededPaise
+
+  if (totalShortfall > 0) {
+    newPlan.isInfeasible = true
+    newPlan.shortfallPaise = totalShortfall
+    newPlan.remedies = calculateShortfallRemedies(newPlan, totalShortfall)
+  } else {
+    newPlan.isInfeasible = false
+    newPlan.shortfallPaise = undefined
+    newPlan.remedies = undefined
+  }
+
+  // Verify invariant for feasible plans
+  if (!newPlan.isInfeasible) {
+    const sum = newPlan.lines.reduce((s, l) => s + l.currentPaise, 0)
+    if (sum !== newPlan.totalBudgetPaise) {
+      const diff = newPlan.totalBudgetPaise - sum
+      const adjustTarget = donorCandidates[0] ?? newPlan.lines[newPlan.lines.length - 1]
+      adjustTarget.currentPaise += diff
+    }
+  }
+
+  return newPlan
+}
+
+/**
+ * Retract an adopted idea via exact inverse reversion (IDEA-03, D-07, ADR-0004).
+ * - Debits idea.costPaise from target category
+ * - Restores exact recorded displaced paise to donor lines in reverse order
+ * - Cleanses shortfall and infeasible status if the idea caused shortfall
+ */
+export function retractIdea(plan: Plan, ideaId: string): Plan {
+  const record = plan.adoptedIdeas?.find(r => r.ideaId === ideaId)
+  if (!record) {
+    return plan
+  }
+
+  const lines = plan.lines.map(l => ({ ...l }))
+  const targetLine = lines.find(l => l.category === record.targetCategory)
+  if (targetLine) {
+    targetLine.currentPaise -= record.costPaise
+  }
+
+  // Reverse restore displaced paise: iterate record.displacedDonors in reverse order
+  const reversedDonors = [...record.displacedDonors].reverse()
+  for (const donor of reversedDonors) {
+    const line = lines.find(l => l.id === donor.lineId)
+    if (line) {
+      line.currentPaise += donor.displacedPaise
+    }
+  }
+
+  const remainingAdoptedIdeas = (plan.adoptedIdeas ?? []).filter(r => r.ideaId !== ideaId)
+
+  const newPlan: Plan = {
+    ...plan,
+    lines,
+    adoptedIdeas: remainingAdoptedIdeas.length > 0 ? remainingAdoptedIdeas : undefined,
+  }
+
+  const ideaShortfall = record.shortfallPaise ?? 0
+  const remainingShortfall = Math.max(0, (plan.shortfallPaise ?? 0) - ideaShortfall)
+
+  if (remainingShortfall > 0) {
+    newPlan.isInfeasible = true
+    newPlan.shortfallPaise = remainingShortfall
+    newPlan.remedies = calculateShortfallRemedies(newPlan, remainingShortfall)
+  } else {
+    newPlan.isInfeasible = false
+    newPlan.shortfallPaise = undefined
+    newPlan.remedies = undefined
+  }
+
+  // Verify invariant for feasible plans
+  if (!newPlan.isInfeasible) {
+    const sum = newPlan.lines.reduce((s, l) => s + l.currentPaise, 0)
+    if (sum !== newPlan.totalBudgetPaise) {
+      const diff = newPlan.totalBudgetPaise - sum
+      const adjustTarget = newPlan.lines.find(l => l.lineType === 'flexible' && !l.isProtected)
+        ?? newPlan.lines[newPlan.lines.length - 1]
+      adjustTarget.currentPaise += diff
+    }
+  }
+
+  return newPlan
 }

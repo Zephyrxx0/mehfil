@@ -73,6 +73,72 @@ export interface Plan {
   shortfallPaise?: Paise      // how much is unaccounted for
   remedies?: ShortfallRemedy[]
   styleDNA?: StyleDNA
+  adoptedIdeas?: IdeaDisplacementRecord[]
+  environmentalAnalysis?: EnvironmentalAnalysis
+}
+
+// Idea Displacement Domain Types (Phase 5: IDEA-01, IDEA-02, IDEA-03, BUDGET-04, MOMENT-02)
+
+export interface DisplacedDonor {
+  lineId: string
+  category: BudgetCategory
+  displacedPaise: Paise
+}
+
+export interface IdeaDisplacementRecord {
+  ideaId: string
+  title: string
+  targetCategory: BudgetCategory
+  costPaise: Paise
+  displacedDonors: DisplacedDonor[]
+  shortfallPaise?: Paise
+  adoptedAt: string
+}
+
+export interface CuratedIdea {
+  id: string
+  title: string
+  devanagariTitle?: string
+  tagline: string
+  description: string
+  category: BudgetCategory
+  eventTypes: EventType[]
+  costPaise: Paise
+  leadDays: number
+  styleTags: string[]
+  culturalNuance: string
+  timelineTask?: {
+    title: string
+    notes: string
+  }
+}
+
+// Environmental Risk Domain Types (Phase 5: TIME-02, TIME-03, ADR-0005)
+
+export type EnvironmentalRiskId =
+  | 'peak_saya_winter'
+  | 'peak_saya_summer'
+  | 'monsoon_outdoor'
+  | 'extreme_summer_heat'
+  | 'holiday_clash'
+
+export interface EnvironmentalRiskAdvisory {
+  id: EnvironmentalRiskId
+  title: string
+  severity: 'advisory' | 'warning'
+  description: string
+  affectedCategories: BudgetCategory[]
+  leadTimeBufferDays?: number
+  recommendation: string
+}
+
+export interface EnvironmentalAnalysis {
+  detectedRisks: EnvironmentalRiskAdvisory[]
+  isPeakSayaSeason: boolean
+  hasWeatherHazards: boolean
+  hasHolidayClash: boolean
+  seasonalSummaryTitle: string
+  seasonalSummaryText: string
 }
 
 // Timeline Domain Types (D-13, D-14, D-16, TIME-01)
@@ -94,6 +160,10 @@ export interface TimelineTask {
   isCriticalPath: boolean
   dependencies?: string[]
   notes?: string
+  appliedBufferDays?: number
+  environmentalRiskId?: EnvironmentalRiskId
+  environmentalAdvisory?: string
+  originIdeaId?: string
 }
 
 export interface MilestoneBand {
