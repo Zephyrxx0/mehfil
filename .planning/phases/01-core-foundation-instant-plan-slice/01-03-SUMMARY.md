@@ -102,3 +102,4 @@ actuals:
 - `92e744c`: `feat(01-03): implement 3-step intake micro-wizard with 1-click starter chips and nuance tags`
 - `61619c0`: `feat(01-03): implement interactive plan workspace with budget scaling, Gulabi Rose protected moments, and milestone roadmap`
 - `f768640`: `feat(01-03): wire root page with brief modal, plan workspace, and design tokens`
+
