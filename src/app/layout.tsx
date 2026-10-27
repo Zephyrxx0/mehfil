@@ -1,5 +1,25 @@
 import type { Metadata } from 'next'
+import { Fraunces, Plus_Jakarta_Sans, Tiro_Devanagari_Hindi } from 'next/font/google'
 import './globals.css'
+
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-fraunces',
+  display: 'swap',
+})
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-jakarta',
+  display: 'swap',
+})
+
+const tiroDevanagariHindi = Tiro_Devanagari_Hindi({
+  weight: '400',
+  subsets: ['devanagari', 'latin'],
+  variable: '--font-tiro',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'Mehfil (महफ़िल) — Celebration Planning with Mathematical Integrity',
@@ -13,19 +33,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="min-h-screen bg-warm-ivory text-royal-plum font-sans selection:bg-marigold selection:text-royal-plum">
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${plusJakartaSans.variable} ${tiroDevanagariHindi.variable}`}
+    >
+      <body className="min-h-screen bg-warm-ivory text-royal-plum antialiased font-sans selection:bg-marigold/30 selection:text-royal-plum">
         {children}
       </body>
     </html>
   )
 }
-
