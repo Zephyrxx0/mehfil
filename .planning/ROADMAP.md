@@ -149,7 +149,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 05-01: Protected Moment floor immunity algebra and Permissive Shortfall calculation solver with 3 deterministic remedies.
+- [x] 05-01: Protected Moment floor immunity algebra and Permissive Shortfall calculation solver with 3 deterministic remedies.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 

@@ -22,8 +22,8 @@
 
 - [ ] **BUDGET-01**: Engine computes all allocations in integer paise using the largest-remainder method, guaranteeing line totals sum exactly to total budget.
 - [ ] **BUDGET-02**: Adjusting guest count dynamically scales per-guest lines (catering, favors) while preserving fixed lines and minimum floors.
-- [ ] **BUDGET-03**: When allocations or quotes exceed budget, engine enters an explicit Infeasible State and calculates three deterministic remedies (increase budget, reduce guests, trim elastic lines) without blocking user input (ADR-0002).
-- [ ] **BUDGET-04**: Downward re-balancing strictly respects Line Elasticity rankings, trimming flexible lines (decor, entertainment) first.
+- [x] **BUDGET-03**: When allocations or quotes exceed budget, engine enters an explicit Infeasible State and calculates three deterministic remedies (increase budget, reduce guests, trim elastic lines) without blocking user input (ADR-0002).
+- [x] **BUDGET-04**: Downward re-balancing strictly respects Line Elasticity rankings, trimming flexible lines (decor, entertainment) first.
 
 ### Timeline & Compressed Scheduling
 
@@ -35,7 +35,7 @@
 ### Protected Moment Floor
 
 - [ ] **MOMENT-01**: User can designate one budget line as their Protected Moment, locking a raised non-negotiable monetary floor.
-- [ ] **MOMENT-02**: The Protected Moment allocation is strictly immune to downward re-balancing and idea displacement (ADR-0004).
+- [x] **MOMENT-02**: The Protected Moment allocation is strictly immune to downward re-balancing and idea displacement (ADR-0004).
 - [ ] **MOMENT-03**: UI renders a distinct Gulabi Rose highlight, lock icon, and micro-haptic feedback when the Protected Moment holds against changes.
 
 ### Quote Check & Quarantine
@@ -50,8 +50,8 @@
 ### Personalized Idea Curation & Displacement
 
 - [ ] **IDEA-01**: Idea Curator proposes personalized enhancements matching Style DNA and event type, each carrying cost ranges and lead times.
-- [ ] **IDEA-02**: Adopting an idea calculates deterministic budget-neutral displacement from elastic lines without touching the Protected Moment (ADR-0004).
-- [ ] **IDEA-03**: User can toggle adopted ideas off with one-click undo, cleanly restoring displaced funds to donor lines.
+- [x] **IDEA-02**: Adopting an idea calculates deterministic budget-neutral displacement from elastic lines without touching the Protected Moment (ADR-0004).
+- [x] **IDEA-03**: User can toggle adopted ideas off with one-click undo, cleanly restoring displaced funds to donor lines.
 
 ### Anonymous Access & Dual-Link Collaboration
 
@@ -117,13 +117,13 @@ Which phases cover which requirements.
 | VIBE-03 | Phase 4 | Complete |
 | VIBE-04 | Phase 4 | Complete |
 | GENUI-03 | Phase 4 | Complete |
-| BUDGET-03 | Phase 5 | Pending |
-| BUDGET-04 | Phase 5 | Pending |
-| MOMENT-02 | Phase 5 | Pending |
+| BUDGET-03 | Phase 5 | Complete |
+| BUDGET-04 | Phase 5 | Complete |
+| MOMENT-02 | Phase 5 | Complete |
 | MOMENT-03 | Phase 5 | Pending |
 | IDEA-01 | Phase 5 | Pending |
-| IDEA-02 | Phase 5 | Pending |
-| IDEA-03 | Phase 5 | Pending |
+| IDEA-02 | Phase 5 | Complete |
+| IDEA-03 | Phase 5 | Complete |
 | TIME-02 | Phase 5 | Pending |
 | TIME-03 | Phase 5 | Pending |
 | QUOTE-01 | Phase 6 | Pending |
