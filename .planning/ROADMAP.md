@@ -92,9 +92,16 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 03-01: Supabase database schema migrations for events, plan_versions, change_records, and RLS policies.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 03-02: Capability URL router (`/plan/[id]` with secret token claim and `/share/[token]` read-only view).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 03-03: Immutable version history manager with change log records and one-click undo API.
 
 ### Phase 4: Multi-Agent Style DNA & Resilient Fallback Ladder
