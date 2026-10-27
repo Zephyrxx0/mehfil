@@ -82,21 +82,53 @@
 
 ## Traceability
 
-Which phases cover which requirements. (Populated during roadmap creation).
+Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BRIEF-01..03 | Phase 1 | Pending |
-| BUDGET-01..04 | Phase 1 | Pending |
-| TIME-01..04 | Phase 1 | Pending |
-| MOMENT-01..03 | Phase 1 | Pending |
-| COLLAB-01..04 | Phase 2 | Pending |
-| DESIGN-01..03 | Phase 3 | Pending |
-| VIBE-01..04 | Phase 4 | Pending |
-| IDEA-01..03 | Phase 4 | Pending |
+| BRIEF-01 | Phase 1 | Pending |
+| BRIEF-02 | Phase 1 | Pending |
+| BRIEF-03 | Phase 1 | Pending |
+| BUDGET-01 | Phase 1 | Pending |
+| BUDGET-02 | Phase 1 | Pending |
+| TIME-01 | Phase 1 | Pending |
+| TIME-04 | Phase 1 | Pending |
+| MOMENT-01 | Phase 1 | Pending |
+| DESIGN-01 | Phase 2 | Pending |
+| DESIGN-02 | Phase 2 | Pending |
+| DESIGN-03 | Phase 2 | Pending |
+| COLLAB-01 | Phase 3 | Pending |
+| COLLAB-02 | Phase 3 | Pending |
+| COLLAB-03 | Phase 3 | Pending |
+| COLLAB-04 | Phase 3 | Pending |
+| VIBE-01 | Phase 4 | Pending |
+| VIBE-02 | Phase 4 | Pending |
+| VIBE-03 | Phase 4 | Pending |
+| VIBE-04 | Phase 4 | Pending |
 | GENUI-03 | Phase 4 | Pending |
-| QUOTE-01..06 | Phase 5 | Pending |
-| GENUI-01..02 | Phase 6 | Pending |
+| BUDGET-03 | Phase 5 | Pending |
+| BUDGET-04 | Phase 5 | Pending |
+| MOMENT-02 | Phase 5 | Pending |
+| MOMENT-03 | Phase 5 | Pending |
+| IDEA-01 | Phase 5 | Pending |
+| IDEA-02 | Phase 5 | Pending |
+| IDEA-03 | Phase 5 | Pending |
+| TIME-02 | Phase 5 | Pending |
+| TIME-03 | Phase 5 | Pending |
+| QUOTE-01 | Phase 6 | Pending |
+| QUOTE-02 | Phase 6 | Pending |
+| QUOTE-03 | Phase 6 | Pending |
+| QUOTE-04 | Phase 6 | Pending |
+| QUOTE-05 | Phase 6 | Pending |
+| QUOTE-06 | Phase 6 | Pending |
+| GENUI-01 | Phase 6 | Pending |
+| GENUI-02 | Phase 6 | Pending |
+
+**Coverage:**
+- v1 requirements: 37 total
+- Mapped to phases: 37
+- Unmapped: 0 ✓
+
 
 ---
 *Requirements defined: 2026-10-27*
