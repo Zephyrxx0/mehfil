@@ -112,14 +112,26 @@ export function BudgetSection({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {lines.map((line) => (
-            <BudgetLineCard
-              key={line.id}
-              line={line}
-              totalBudgetPaise={totalBudgetPaise}
-              onSetProtected={onSetProtected}
-            />
-          ))}
+          {lines.map((line) => {
+            const displacedRecords = plan.adoptedIdeas?.flatMap((idea) =>
+              idea.displacedDonors
+                .filter((d) => d.lineId === line.id || d.category === line.category)
+                .map((d) => ({
+                  ideaTitle: idea.title,
+                  displacedPaise: d.displacedPaise,
+                }))
+            )
+
+            return (
+              <BudgetLineCard
+                key={line.id}
+                line={line}
+                totalBudgetPaise={totalBudgetPaise}
+                onSetProtected={onSetProtected}
+                displacedRecords={displacedRecords}
+              />
+            )
+          })}
         </div>
       </div>
     </div>

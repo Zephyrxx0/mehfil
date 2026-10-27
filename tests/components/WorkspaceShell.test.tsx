@@ -66,15 +66,16 @@ describe('WorkspaceShell Component', () => {
     expect(explainerPane.className).toContain('overflow-y-auto')
   })
 
-  it('renders a 4-tab mobile navigation bar with [Budget, Timeline, Style, Summary]', () => {
+  it('renders a 5-tab mobile navigation bar with [Budget, Timeline, Ideas, Style, Summary]', () => {
     render(<WorkspaceShell {...defaultProps} />)
 
     const tabs = screen.getAllByRole('tab')
-    expect(tabs).toHaveLength(4)
+    expect(tabs).toHaveLength(5)
 
     const tabLabels = tabs.map((tab) => tab.textContent)
     expect(tabLabels).toContain('Budget')
     expect(tabLabels).toContain('Timeline')
+    expect(tabLabels).toContain('Ideas')
     expect(tabLabels).toContain('Style')
     expect(tabLabels).toContain('Summary')
   })
@@ -91,6 +92,12 @@ describe('WorkspaceShell Component', () => {
     fireEvent.click(timelineTab)
     expect(screen.getByTestId('mobile-pane-timeline')).toBeInTheDocument()
     expect(screen.queryByTestId('mobile-pane-budget')).not.toBeInTheDocument()
+
+    // Click Ideas tab
+    const ideasTab = screen.getByRole('tab', { name: /Ideas/i })
+    fireEvent.click(ideasTab)
+    expect(screen.getByTestId('mobile-pane-ideas')).toBeInTheDocument()
+    expect(screen.queryByTestId('mobile-pane-timeline')).not.toBeInTheDocument()
 
     // Click Style tab
     const styleTab = screen.getByRole('tab', { name: /Style/i })
