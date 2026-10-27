@@ -218,14 +218,80 @@ export function calculateShortfallRemedies(plan: Plan, deficitPaise: Paise): Sho
     .filter(l => l.currentPaise > Math.round(l.baselinePaise * 0.40 / 100) * 100)
     .sort((a, b) => (a.elasticityRank ?? 99) - (b.elasticityRank ?? 99))
 
+  const trimDescription = trimableLines.length > 0
+    ? `Trim ${trimableLines.map(l => l.name).join(', ')} to their minimum floors to free up ₹${Math.ceil(totalElasticCapacity / 100).toLocaleString('en-IN')}`
+    : 'No additional flexible trim capacity available'
+
   const trimRemedy: ShortfallRemedy = {
     type: 'trim_elastic',
     title: 'Trim Flexible Lines',
-    description: `Trim ${trimableLines.map(l => l.name).join(', ')} to their minimum floors to free up ₹${Math.ceil(totalElasticCapacity / 100).toLocaleString('en-IN')}`,
+    description: trimDescription,
     deltaValue: totalElasticCapacity,
   }
 
   return [increaseBudgetRemedy, reduceGuestsRemedy, trimRemedy]
+}
+
+/**
+ * Targeted Sequential Elasticity Trim Remedy (BUDGET-03, BUDGET-04, ADR-0002).
+ * Trims flexible lines in strict elasticity order (Rank 1 -> 2 -> 3) only until
+ * the deficit is absorbed, stopping immediately when covered (D-15).
+ * Flexible lines are protected by their 40% baseline floor.
+ * Protected Moment is strictly immune to trimming (!line.isProtected).
+ */
+export function applyTrimElasticRemedy(plan: Plan, deficitPaise?: Paise): Plan {
+  const deficit = deficitPaise !== undefined ? deficitPaise : (plan.shortfallPaise ?? 0)
+  if (deficit <= 0) {
+    return {
+      ...plan,
+      isInfeasible: false,
+      shortfallPaise: undefined,
+      remedies: undefined,
+    }
+  }
+
+  const lines = plan.lines.map(l => ({ ...l }))
+  const elasticLines = lines
+    .filter(l => l.lineType === 'flexible' && !l.isProtected)
+    .sort((a, b) => (a.elasticityRank ?? 99) - (b.elasticityRank ?? 99))
+
+  let remainingDeficit = deficit
+
+  for (const line of elasticLines) {
+    if (remainingDeficit <= 0) break
+    const floor = Math.round(line.baselinePaise * 0.40 / 100) * 100
+    const available = Math.max(0, line.currentPaise - floor)
+    if (available > 0) {
+      const trimAmount = Math.min(remainingDeficit, available)
+      line.currentPaise -= trimAmount
+      remainingDeficit -= trimAmount
+    }
+  }
+
+  const newPlan: Plan = {
+    ...plan,
+    lines,
+  }
+
+  if (remainingDeficit <= 0) {
+    newPlan.isInfeasible = false
+    newPlan.shortfallPaise = undefined
+    newPlan.remedies = undefined
+
+    // Verify invariant for feasible plan
+    const sum = newPlan.lines.reduce((s, l) => s + l.currentPaise, 0)
+    if (sum !== newPlan.totalBudgetPaise) {
+      const diff = newPlan.totalBudgetPaise - sum
+      const adjustTarget = elasticLines[0] ?? newPlan.lines[newPlan.lines.length - 1]
+      adjustTarget.currentPaise += diff
+    }
+  } else {
+    newPlan.isInfeasible = true
+    newPlan.shortfallPaise = remainingDeficit
+    newPlan.remedies = calculateShortfallRemedies(newPlan, remainingDeficit)
+  }
+
+  return newPlan
 }
 
 /**
