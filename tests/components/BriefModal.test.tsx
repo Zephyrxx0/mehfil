@@ -9,7 +9,7 @@ describe('BriefModal Component', () => {
     render(<BriefModal isOpen={true} onClose={() => {}} onPlanCreated={() => {}} />)
 
     expect(screen.getByText('Plan Your Celebration')).toBeInTheDocument()
-    expect(screen.getByText('Step 1 of 3 — Instant mathematical plan generation')).toBeInTheDocument()
+    expect(screen.getByText(/Step 1 of 5/)).toBeInTheDocument()
     expect(screen.getByText('1-Click Celebration Starters')).toBeInTheDocument()
   })
 

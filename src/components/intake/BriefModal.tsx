@@ -8,6 +8,8 @@ import { StarterChips } from './StarterChips'
 import { StepEventBasics } from './StepEventBasics'
 import { StepScaleBudget } from './StepScaleBudget'
 import { StepNuances } from './StepNuances'
+import { StepVibeSwatches } from './StepVibeSwatches'
+import { StepVibeTradeoffs, type VibeTradeoffs } from './StepVibeTradeoffs'
 import { ArrowRight, ArrowLeft, Sparkles } from 'lucide-react'
 import {
   Dialog,
@@ -31,7 +33,7 @@ export function BriefModal({
   onPlanCreated,
   initialBrief,
 }: BriefModalProps) {
-  const [step, setStep] = useState<1 | 2 | 3>(1)
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1)
   const [isRevealing, setIsRevealing] = useState(false)
 
   // Form State
@@ -49,6 +51,21 @@ export function BriefModal({
   const [nuances, setNuances] = useState<string[]>(initialBrief?.nuances ?? [])
   const [customNotes, setCustomNotes] = useState(initialBrief?.customNotes ?? '')
 
+  // Vibe & Style DNA State (D-01, D-03, D-04)
+  const [selectedSwatchIds, setSelectedSwatchIds] = useState<string[]>(
+    initialBrief?.vibeSwatches ?? []
+  )
+  const [protectedMoment, setProtectedMoment] = useState<string>(
+    initialBrief?.protectedMomentQuote ?? ''
+  )
+  const [tradeoffs, setTradeoffs] = useState<VibeTradeoffs>(
+    initialBrief?.tradeoffs ?? {
+      feastVsSpectacle: 'feast',
+      intimateVsGrand: 'intimate',
+      heritageVsModern: 'heritage',
+    }
+  )
+
   if (!isOpen) return null
 
   const handleStarterSelect = (starterBrief: EventBrief) => {
@@ -61,7 +78,7 @@ export function BriefModal({
     }, 300)
   }
 
-  const handleGenerate = () => {
+  const handleGenerate = (withVibes = false) => {
     let budgetPaise = 250_000_000
     try {
       budgetPaise = parseINRInput(rawBudgetInput)
@@ -79,20 +96,48 @@ export function BriefModal({
       protectedCategory,
       nuances,
       customNotes,
+      ...(withVibes || selectedSwatchIds.length >= 6
+        ? {
+            vibeSwatches: selectedSwatchIds,
+            protectedMomentQuote: protectedMoment.trim() || undefined,
+            tradeoffs,
+          }
+        : {}),
     }
 
     setIsRevealing(true)
     setTimeout(() => {
       const plan = instantiatePlanFromBrief(brief)
+      if (withVibes && protectedMoment.trim()) {
+        plan.brief.protectedMomentQuote = protectedMoment.trim()
+      }
+
+      // Background asynchronous trigger to /api/style-dna (D-09)
+      if (selectedSwatchIds.length >= 6) {
+        fetch('/api/style-dna', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            selectedSwatchIds,
+            protectedMomentQuote: protectedMoment.trim(),
+            tradeoffs,
+          }),
+        }).catch((err) => {
+          console.warn('[BriefModal] Background style DNA dispatch error:', err)
+        })
+      }
+
       setIsRevealing(false)
       onPlanCreated(plan)
       onClose()
     }, 300)
   }
 
+  const isSwatchesValid = selectedSwatchIds.length >= 6 && selectedSwatchIds.length <= 8
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto">
         {isRevealing ? (
           /* 300ms Reveal State (D-04) */
           <div className="flex flex-col items-center justify-center py-16 text-center animate-pulse">
@@ -107,13 +152,13 @@ export function BriefModal({
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-5">
             {/* Header & 1-Click Starters */}
-            <DialogHeader className="gap-4 border-b border-royal-plum/10 pb-5">
+            <DialogHeader className="gap-3 border-b border-royal-plum/10 pb-4">
               <div>
                 <DialogTitle>Plan Your Celebration</DialogTitle>
                 <DialogDescription className="text-xs text-royal-plum/60 mt-0.5">
-                  Step {step} of 3 — Instant mathematical plan generation
+                  Step {step} of 5 — Instant mathematical plan generation
                 </DialogDescription>
               </div>
 
@@ -122,8 +167,8 @@ export function BriefModal({
             </DialogHeader>
 
             {/* Step Indicators */}
-            <div className="flex items-center gap-2">
-              {[1, 2, 3].map((s) => (
+            <div className="flex items-center gap-1.5">
+              {[1, 2, 3, 4, 5].map((s) => (
                 <div
                   key={s}
                   className={`h-1.5 flex-1 rounded-full transition-all ${
@@ -183,6 +228,22 @@ export function BriefModal({
                   }}
                 />
               )}
+
+              {step === 4 && (
+                <StepVibeSwatches
+                  selectedSwatchIds={selectedSwatchIds}
+                  onChange={setSelectedSwatchIds}
+                />
+              )}
+
+              {step === 5 && (
+                <StepVibeTradeoffs
+                  protectedMoment={protectedMoment}
+                  onProtectedMomentChange={setProtectedMoment}
+                  tradeoffs={tradeoffs}
+                  onTradeoffsChange={setTradeoffs}
+                />
+              )}
             </div>
 
             {/* Actions Bar */}
@@ -192,7 +253,7 @@ export function BriefModal({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3)}
+                  onClick={() => setStep((s) => (s - 1) as 1 | 2 | 3 | 4 | 5)}
                   className="gap-1.5 text-xs font-semibold text-royal-plum/80"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
@@ -208,34 +269,55 @@ export function BriefModal({
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={handleGenerate}
+                    onClick={() => handleGenerate(false)}
                     className="text-xs font-medium text-royal-plum"
                   >
                     Skip & Generate
                   </Button>
                 )}
 
-                {step < 3 ? (
+                {step < 4 && (
                   <Button
                     type="button"
                     variant="default"
                     size="sm"
-                    onClick={() => setStep((s) => (s + 1) as 1 | 2 | 3)}
+                    onClick={() => setStep((s) => (s + 1) as 1 | 2 | 3 | 4 | 5)}
                     className="gap-1.5 bg-royal-plum text-warm-ivory shadow-xs hover:bg-royal-plum/90"
                   >
                     <span>Next</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Button>
-                ) : (
+                )}
+
+                {step === 4 && (
                   <Button
                     type="button"
                     variant="default"
                     size="sm"
-                    onClick={handleGenerate}
-                    className="gap-1.5 bg-royal-plum text-warm-ivory shadow-xs hover:bg-royal-plum/90"
+                    disabled={!isSwatchesValid}
+                    aria-disabled={!isSwatchesValid}
+                    onClick={() => setStep(5)}
+                    className={`gap-1.5 text-xs font-semibold ${
+                      isSwatchesValid
+                        ? 'bg-marigold text-royal-plum hover:bg-marigold/90 shadow-xs'
+                        : 'bg-royal-plum/20 text-royal-plum/50 cursor-not-allowed'
+                    }`}
                   >
-                    <span>Generate Celebration Plan</span>
-                    <Sparkles className="w-3.5 h-3.5 text-marigold" />
+                    <span>Confirm 6 to 8 Vibes</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Button>
+                )}
+
+                {step === 5 && (
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="sm"
+                    onClick={() => handleGenerate(true)}
+                    className="gap-1.5 bg-marigold text-royal-plum hover:bg-marigold/90 font-semibold shadow-xs"
+                  >
+                    <span>Infuse Style DNA</span>
+                    <Sparkles className="w-3.5 h-3.5 text-royal-plum" />
                   </Button>
                 )}
               </div>

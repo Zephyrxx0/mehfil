@@ -46,6 +46,12 @@ export interface EventBrief {
   customNotes?: string
   vibeStatement?: string
   protectedMomentQuote?: string
+  vibeSwatches?: string[]
+  tradeoffs?: {
+    feastVsSpectacle: 'feast' | 'spectacle'
+    intimateVsGrand: 'intimate' | 'grand'
+    heritageVsModern: 'heritage' | 'modern'
+  }
 }
 
 export type ShortfallRemedyType = 'increase_budget' | 'reduce_guests' | 'trim_elastic'
