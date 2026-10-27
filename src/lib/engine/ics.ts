@@ -1,4 +1,4 @@
-import type { Plan, TimelineSchedule } from './types'
+import type { Plan, TimelineSchedule, SanitizedSharedPlan } from './types'
 import { formatINR } from './currency'
 
 /**
@@ -28,6 +28,66 @@ function escapeICSText(text: string): string {
     .replace(/,/g, '\\,')
     .replace(/\n/g, '\\n')
 }
+
+/**
+ * Pure RFC 5545 iCalendar (.ics) generator for family guest ceremony export (D-07).
+ * Strictly includes celebration ceremonies only, omitting vendor deposits and deadlines.
+ */
+export function generatePublicCeremoniesICS(sanitized: SanitizedSharedPlan): string {
+  const lines: string[] = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Mehfil//Celebration Ceremonies//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+  ]
+
+  const nowUTC = new Date()
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .slice(0, 15) + 'Z'
+
+  for (const milestone of sanitized.publicMilestones) {
+    const dtStart = toICSDate(milestone.targetDate)
+    const dtEnd = nextDayICSDate(milestone.targetDate)
+    const uid = `mehfil-guest-${sanitized.id}-${milestone.id}@mehfil.app`
+    const summary = `${sanitized.title}: ${milestone.title}`
+
+    const descParts: string[] = [
+      `Celebration Event: ${milestone.title}`,
+      `Date: ${milestone.targetDate}`,
+      `City: ${sanitized.city}`,
+      '',
+      `Join us in celebrating ${sanitized.title}!`,
+      '',
+      'Shared via Mehfil (महफ़िल) — Mathematical Planning for Milestone Celebrations',
+    ]
+
+    const escapedDesc = escapeICSText(descParts.join('\n'))
+
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:${uid}`,
+      `DTSTAMP:${nowUTC}`,
+      `DTSTART;VALUE=DATE:${dtStart}`,
+      `DTEND;VALUE=DATE:${dtEnd}`,
+      `SUMMARY:${escapeICSText(summary)}`,
+      `DESCRIPTION:${escapedDesc}`,
+      'STATUS:CONFIRMED',
+      'TRANSP:TRANSPARENT',
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:${escapeICSText(summary)}`,
+      'TRIGGER:PT9H',
+      'END:VALARM',
+      'END:VEVENT'
+    )
+  }
+
+  lines.push('END:VCALENDAR')
+  return lines.join('\r\n') + '\r\n'
+}
+
 
 /**
  * Pure RFC 5545 iCalendar (.ics) generator.
