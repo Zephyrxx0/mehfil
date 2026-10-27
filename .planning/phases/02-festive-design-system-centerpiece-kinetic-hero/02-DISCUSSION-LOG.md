@@ -226,3 +226,4 @@
 ## Deferred Ideas
 
 - None — discussion stayed strictly within Phase 2 scope.
+
