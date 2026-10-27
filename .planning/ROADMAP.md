@@ -12,7 +12,7 @@ Mehfil delivers a production-grade, mathematically verified celebration planning
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 1: Core Foundation & Instant Plan Slice** - Brief intake, deterministic template archetypes, integer paise budget engine, and backwards topological timeline.
-- [ ] **Phase 2: Festive Design System & Centerpiece Kinetic Hero** - 3-hue palette tokens, shadcn/ui primitives, and big bold Fraunces animated typography hero with celebration micro-motion.
+- [x] **Phase 2: Festive Design System & Centerpiece Kinetic Hero** - 3-hue palette tokens, shadcn/ui primitives, and big bold Fraunces animated typography hero with celebration micro-motion.
 - [ ] **Phase 3: Anonymous Persistence & Dual-Link Collaboration** - Supabase RLS migrations, immutable version snapshots, Organizer Edit Keys, and sanitized Family Share Links.
 - [ ] **Phase 4: Multi-Agent Style DNA & Resilient Fallback Ladder** - 24-swatch vibe intake, vision extraction, bounded Planner modulation diffs, and 3-tier zero-failure fallback ladder.
 - [ ] **Phase 5: Budget Invariants, Protected Moments & Idea Displacement** - Protected Moment immunity, Permissive Shortfall remedies, budget-neutral idea displacement, and Compressed Mode scheduling.
@@ -66,15 +66,15 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 02-01: Tailwind configuration, Google fonts setup (Fraunces, Plus Jakarta Sans, Tiro Devanagari Hindi), and CSS variable tokens in `globals.css`.
+- [x] 02-01: Tailwind configuration, Google fonts setup (Fraunces, Plus Jakarta Sans, Tiro Devanagari Hindi), and CSS variable tokens in `globals.css`.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02: shadcn/ui components installation and custom Mehfil token styling (buttons, cards, badges, dialogs, sliders, sheets).
+- [x] 02-02: shadcn/ui components installation and custom Mehfil token styling (buttons, cards, badges, dialogs, sliders, sheets).
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-03: Center-stage kinetic headline with spring physics, ambient festive particles, and minimalist app launch CTA.
+- [x] 02-03: Center-stage kinetic headline with spring physics, ambient festive particles, and minimalist app launch CTA.
 
 ### Phase 3: Anonymous Persistence & Dual-Link Collaboration
 
