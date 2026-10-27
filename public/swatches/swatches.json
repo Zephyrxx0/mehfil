@@ -1,0 +1,631 @@
+[
+  {
+    "id": "royal-amber-courtyard",
+    "title": "Royal Amber Courtyard",
+    "description": "Sandstone colonnades bathed in warm amber uplighting, cascading yellow marigolds, and rich zardozi fabric drapes.",
+    "image": "/swatches/royal-amber-courtyard.webp",
+    "svgFallback": "/swatches/royal-amber-courtyard.svg",
+    "tags": [
+      "Royal Heritage"
+    ],
+    "palette": [
+      "#F7C873",
+      "#8B263E",
+      "#3A2442",
+      "#FFF8EE"
+    ],
+    "dimensions": {
+      "formality": 85,
+      "energy": 60,
+      "scale": 80,
+      "heritageVsModern": 15,
+      "feastVsSpectacle": 70,
+      "music": 65,
+      "decorDensity": 85,
+      "indoorVsOutdoor": 75
+    }
+  },
+  {
+    "id": "marigold-cascade",
+    "title": "Marigold Cascade",
+    "description": "Vibrant yellow and orange genda phool garlands falling from raw wooden canopies, accented by brass urli bowls.",
+    "image": "/swatches/marigold-cascade.webp",
+    "svgFallback": "/swatches/marigold-cascade.svg",
+    "tags": [
+      "High Energy Mela"
+    ],
+    "palette": [
+      "#FF9F1C",
+      "#FFE49E",
+      "#E71D36",
+      "#2EC4B6"
+    ],
+    "dimensions": {
+      "formality": 40,
+      "energy": 90,
+      "scale": 70,
+      "heritageVsModern": 25,
+      "feastVsSpectacle": 75,
+      "music": 85,
+      "decorDensity": 80,
+      "indoorVsOutdoor": 85
+    }
+  },
+  {
+    "id": "gulabi-rose-palace",
+    "title": "Gulabi Rose Palace",
+    "description": "Blush pink silk drapes, fragrant rose petal carpets, and intricate jaali screen backdrops with soft golden candlelight.",
+    "image": "/swatches/gulabi-rose-palace.webp",
+    "svgFallback": "/swatches/gulabi-rose-palace.svg",
+    "tags": [
+      "Royal Heritage",
+      "Garden Pastel"
+    ],
+    "palette": [
+      "#F2A7B8",
+      "#9B2242",
+      "#FFF8EE",
+      "#F7C873"
+    ],
+    "dimensions": {
+      "formality": 80,
+      "energy": 55,
+      "scale": 75,
+      "heritageVsModern": 20,
+      "feastVsSpectacle": 60,
+      "music": 60,
+      "decorDensity": 80,
+      "indoorVsOutdoor": 40
+    }
+  },
+  {
+    "id": "chandni-chowk-night",
+    "title": "Chandni Chowk Night",
+    "description": "Festive night bazaar aesthetic with strings of Edison bulbs, vibrant handloom textiles, and lively street-style food carts.",
+    "image": "/swatches/chandni-chowk-night.webp",
+    "svgFallback": "/swatches/chandni-chowk-night.svg",
+    "tags": [
+      "High Energy Mela"
+    ],
+    "palette": [
+      "#3A2442",
+      "#FF9F1C",
+      "#E63946",
+      "#F1FAEE"
+    ],
+    "dimensions": {
+      "formality": 35,
+      "energy": 95,
+      "scale": 80,
+      "heritageVsModern": 30,
+      "feastVsSpectacle": 85,
+      "music": 90,
+      "decorDensity": 75,
+      "indoorVsOutdoor": 80
+    }
+  },
+  {
+    "id": "mogra-minimalist-canopy",
+    "title": "Mogra Minimalist Canopy",
+    "description": "Monochromatic white mogra florals suspended over sheer ivory organza, accompanied by subtle acoustic sitar tones.",
+    "image": "/swatches/mogra-minimalist-canopy.webp",
+    "svgFallback": "/swatches/mogra-minimalist-canopy.svg",
+    "tags": [
+      "Minimalist Festive"
+    ],
+    "palette": [
+      "#FFF8EE",
+      "#D8E2DC",
+      "#9D8189",
+      "#F4ACB7"
+    ],
+    "dimensions": {
+      "formality": 70,
+      "energy": 35,
+      "scale": 40,
+      "heritageVsModern": 65,
+      "feastVsSpectacle": 35,
+      "music": 45,
+      "decorDensity": 40,
+      "indoorVsOutdoor": 50
+    }
+  },
+  {
+    "id": "jaipur-terracotta-arch",
+    "title": "Jaipur Terracotta Arch",
+    "description": "Earthy terracotta archways draped in bougainvillea, woven jute accents, and warm sunset-toned clay diyas.",
+    "image": "/swatches/jaipur-terracotta-arch.webp",
+    "svgFallback": "/swatches/jaipur-terracotta-arch.svg",
+    "tags": [
+      "Royal Heritage"
+    ],
+    "palette": [
+      "#C85A32",
+      "#F7C873",
+      "#4A2810",
+      "#F9EBE0"
+    ],
+    "dimensions": {
+      "formality": 70,
+      "energy": 65,
+      "scale": 65,
+      "heritageVsModern": 20,
+      "feastVsSpectacle": 55,
+      "music": 60,
+      "decorDensity": 70,
+      "indoorVsOutdoor": 80
+    }
+  },
+  {
+    "id": "sufi-lantern-glow",
+    "title": "Sufi Lantern Glow",
+    "description": "Perforated Moroccan brass lanterns casting starry light patterns across deep jewel-toned velvet floor cushions.",
+    "image": "/swatches/sufi-lantern-glow.webp",
+    "svgFallback": "/swatches/sufi-lantern-glow.svg",
+    "tags": [
+      "Intimate Classic"
+    ],
+    "palette": [
+      "#D4A373",
+      "#3A2442",
+      "#CCD5AE",
+      "#FAEDCD"
+    ],
+    "dimensions": {
+      "formality": 60,
+      "energy": 50,
+      "scale": 45,
+      "heritageVsModern": 30,
+      "feastVsSpectacle": 50,
+      "music": 80,
+      "decorDensity": 65,
+      "indoorVsOutdoor": 30
+    }
+  },
+  {
+    "id": "sheesh-mahal-mirror",
+    "title": "Sheesh Mahal Mirror",
+    "description": "Faceted glass mosaic pavilions sparkling under chandeliers, silver brocade furnishings, and crystalline accents.",
+    "image": "/swatches/sheesh-mahal-mirror.webp",
+    "svgFallback": "/swatches/sheesh-mahal-mirror.svg",
+    "tags": [
+      "Royal Heritage"
+    ],
+    "palette": [
+      "#E0E1DD",
+      "#778DA9",
+      "#1B263B",
+      "#F7C873"
+    ],
+    "dimensions": {
+      "formality": 90,
+      "energy": 60,
+      "scale": 85,
+      "heritageVsModern": 25,
+      "feastVsSpectacle": 80,
+      "music": 55,
+      "decorDensity": 90,
+      "indoorVsOutdoor": 20
+    }
+  },
+  {
+    "id": "lotus-pond-mandap",
+    "title": "Lotus Pond Mandap",
+    "description": "Floating pink lotus blossoms, water-reflection mirrors, and natural wooden pillars entwined with tender jasmine vines.",
+    "image": "/swatches/lotus-pond-mandap.webp",
+    "svgFallback": "/swatches/lotus-pond-mandap.svg",
+    "tags": [
+      "Garden Pastel"
+    ],
+    "palette": [
+      "#F4A261",
+      "#2A9D8F",
+      "#E76F51",
+      "#E9C46A"
+    ],
+    "dimensions": {
+      "formality": 75,
+      "energy": 50,
+      "scale": 60,
+      "heritageVsModern": 40,
+      "feastVsSpectacle": 65,
+      "music": 50,
+      "decorDensity": 65,
+      "indoorVsOutdoor": 90
+    }
+  },
+  {
+    "id": "banarasi-zari-crimson",
+    "title": "Banarasi Zari Crimson",
+    "description": "Opulent crimson silk woven with intricate golden zari motifs, heavy brass tall lamps, and fresh tuberoses.",
+    "image": "/swatches/banarasi-zari-crimson.webp",
+    "svgFallback": "/swatches/banarasi-zari-crimson.svg",
+    "tags": [
+      "Royal Heritage",
+      "Intimate Classic"
+    ],
+    "palette": [
+      "#800E13",
+      "#D4AF37",
+      "#38040E",
+      "#FFF8EE"
+    ],
+    "dimensions": {
+      "formality": 85,
+      "energy": 65,
+      "scale": 70,
+      "heritageVsModern": 10,
+      "feastVsSpectacle": 60,
+      "music": 60,
+      "decorDensity": 85,
+      "indoorVsOutdoor": 30
+    }
+  },
+  {
+    "id": "kerala-monsoon-greens",
+    "title": "Kerala Monsoon Greens",
+    "description": "Deep banana leaf table mats, polished brass urulis with floating jasmine, and natural rain-washed teakwood.",
+    "image": "/swatches/kerala-monsoon-greens.webp",
+    "svgFallback": "/swatches/kerala-monsoon-greens.svg",
+    "tags": [
+      "Garden Pastel",
+      "Minimalist Festive"
+    ],
+    "palette": [
+      "#2D6A4F",
+      "#74C69D",
+      "#D8F3DC",
+      "#B7E4C7"
+    ],
+    "dimensions": {
+      "formality": 55,
+      "energy": 45,
+      "scale": 50,
+      "heritageVsModern": 35,
+      "feastVsSpectacle": 65,
+      "music": 40,
+      "decorDensity": 50,
+      "indoorVsOutdoor": 70
+    }
+  },
+  {
+    "id": "haveli-courtyard-baithak",
+    "title": "Haveli Courtyard Baithak",
+    "description": "Traditional low-seating bolsters, hand-block-printed quilts, carved wooden pillars, and gentle sitar acoustics.",
+    "image": "/swatches/haveli-courtyard-baithak.webp",
+    "svgFallback": "/swatches/haveli-courtyard-baithak.svg",
+    "tags": [
+      "Intimate Classic"
+    ],
+    "palette": [
+      "#8B4513",
+      "#D4AF37",
+      "#FFF8EE",
+      "#3A2442"
+    ],
+    "dimensions": {
+      "formality": 65,
+      "energy": 40,
+      "scale": 35,
+      "heritageVsModern": 15,
+      "feastVsSpectacle": 45,
+      "music": 65,
+      "decorDensity": 60,
+      "indoorVsOutdoor": 45
+    }
+  },
+  {
+    "id": "boho-marigold-fair",
+    "title": "Boho Marigold Fair",
+    "description": "Rattan furniture, macrame hangings interwoven with bright marigolds, and colorful sun-drenched shamiana tents.",
+    "image": "/swatches/boho-marigold-fair.webp",
+    "svgFallback": "/swatches/boho-marigold-fair.svg",
+    "tags": [
+      "High Energy Mela",
+      "Garden Pastel"
+    ],
+    "palette": [
+      "#F3722C",
+      "#F8961E",
+      "#F9C74F",
+      "#90BE6D"
+    ],
+    "dimensions": {
+      "formality": 30,
+      "energy": 85,
+      "scale": 60,
+      "heritageVsModern": 70,
+      "feastVsSpectacle": 70,
+      "music": 75,
+      "decorDensity": 70,
+      "indoorVsOutdoor": 90
+    }
+  },
+  {
+    "id": "udaivilas-waterfront",
+    "title": "Udaivilas Waterfront",
+    "description": "Serene lakeside palace terrace with marble cupolas, floating candle bowls, and royal indigo silks.",
+    "image": "/swatches/udaivilas-waterfront.webp",
+    "svgFallback": "/swatches/udaivilas-waterfront.svg",
+    "tags": [
+      "Royal Heritage"
+    ],
+    "palette": [
+      "#1D3557",
+      "#457B9D",
+      "#A8DADC",
+      "#F1FAEE"
+    ],
+    "dimensions": {
+      "formality": 90,
+      "energy": 50,
+      "scale": 80,
+      "heritageVsModern": 25,
+      "feastVsSpectacle": 75,
+      "music": 50,
+      "decorDensity": 75,
+      "indoorVsOutdoor": 85
+    }
+  },
+  {
+    "id": "contemporary-terrace-cocktail",
+    "title": "Contemporary Terrace Cocktail",
+    "description": "Sleek matte-black steel arches with neon script, architectural tropical foliage, and modern lounge seating.",
+    "image": "/swatches/contemporary-terrace-cocktail.webp",
+    "svgFallback": "/swatches/contemporary-terrace-cocktail.svg",
+    "tags": [
+      "Minimalist Festive"
+    ],
+    "palette": [
+      "#2B2D42",
+      "#8D99AE",
+      "#EDF2F4",
+      "#EF233C"
+    ],
+    "dimensions": {
+      "formality": 60,
+      "energy": 80,
+      "scale": 55,
+      "heritageVsModern": 90,
+      "feastVsSpectacle": 70,
+      "music": 85,
+      "decorDensity": 45,
+      "indoorVsOutdoor": 70
+    }
+  },
+  {
+    "id": "genda-phool-mela",
+    "title": "Genda Phool Mela",
+    "description": "A riot of sunshine yellow and burnt orange marigold flower balls, fairground pinwheels, and colorful bandhani canopies.",
+    "image": "/swatches/genda-phool-mela.webp",
+    "svgFallback": "/swatches/genda-phool-mela.svg",
+    "tags": [
+      "High Energy Mela"
+    ],
+    "palette": [
+      "#F48C06",
+      "#FAA307",
+      "#FFBA08",
+      "#DC2F02"
+    ],
+    "dimensions": {
+      "formality": 25,
+      "energy": 95,
+      "scale": 75,
+      "heritageVsModern": 30,
+      "feastVsSpectacle": 80,
+      "music": 95,
+      "decorDensity": 85,
+      "indoorVsOutdoor": 95
+    }
+  },
+  {
+    "id": "royal-darbar-velvet",
+    "title": "Royal Darbar Velvet",
+    "description": "Deep midnight purple and crimson velvet drapes, antique gold throne chairs, and crystal candelabras.",
+    "image": "/swatches/royal-darbar-velvet.webp",
+    "svgFallback": "/swatches/royal-darbar-velvet.svg",
+    "tags": [
+      "Royal Heritage"
+    ],
+    "palette": [
+      "#4A0E17",
+      "#C69214",
+      "#1A0B2E",
+      "#FDF8ED"
+    ],
+    "dimensions": {
+      "formality": 95,
+      "energy": 55,
+      "scale": 90,
+      "heritageVsModern": 10,
+      "feastVsSpectacle": 70,
+      "music": 55,
+      "decorDensity": 90,
+      "indoorVsOutdoor": 15
+    }
+  },
+  {
+    "id": "pastel-floral-shamiana",
+    "title": "Pastel Floral Shamiana",
+    "description": "Hydrangeas, peonies, and baby's breath tucked under breezy mint and lavender voiles for an ethereal garden feel.",
+    "image": "/swatches/pastel-floral-shamiana.webp",
+    "svgFallback": "/swatches/pastel-floral-shamiana.svg",
+    "tags": [
+      "Garden Pastel"
+    ],
+    "palette": [
+      "#FFC6FF",
+      "#BDB2FF",
+      "#CAFFBF",
+      "#FDFFB6"
+    ],
+    "dimensions": {
+      "formality": 65,
+      "energy": 50,
+      "scale": 65,
+      "heritageVsModern": 60,
+      "feastVsSpectacle": 55,
+      "music": 50,
+      "decorDensity": 75,
+      "indoorVsOutdoor": 85
+    }
+  },
+  {
+    "id": "brass-diya-constellation",
+    "title": "Brass Diya Constellation",
+    "description": "Hundreds of flickering handcrafted brass oil lamps tiered on stone steps, casting a golden ceremonial luminescence.",
+    "image": "/swatches/brass-diya-constellation.webp",
+    "svgFallback": "/swatches/brass-diya-constellation.svg",
+    "tags": [
+      "Intimate Classic"
+    ],
+    "palette": [
+      "#B8860B",
+      "#3A2442",
+      "#DAA520",
+      "#FFF8EE"
+    ],
+    "dimensions": {
+      "formality": 75,
+      "energy": 45,
+      "scale": 50,
+      "heritageVsModern": 15,
+      "feastVsSpectacle": 40,
+      "music": 55,
+      "decorDensity": 70,
+      "indoorVsOutdoor": 65
+    }
+  },
+  {
+    "id": "vintage-radio-sangeet",
+    "title": "Vintage Radio Sangeet",
+    "description": "Retro gramophone centerpieces, warm sepia lighting, vinyl record coasters, and cozy velvet armchairs.",
+    "image": "/swatches/vintage-radio-sangeet.webp",
+    "svgFallback": "/swatches/vintage-radio-sangeet.svg",
+    "tags": [
+      "Intimate Classic"
+    ],
+    "palette": [
+      "#6F4E37",
+      "#E6BE8A",
+      "#A0522D",
+      "#FDF5E6"
+    ],
+    "dimensions": {
+      "formality": 50,
+      "energy": 75,
+      "scale": 50,
+      "heritageVsModern": 50,
+      "feastVsSpectacle": 60,
+      "music": 90,
+      "decorDensity": 60,
+      "indoorVsOutdoor": 35
+    }
+  },
+  {
+    "id": "himalayan-cedar-grove",
+    "title": "Himalayan Cedar Grove",
+    "description": "Rustic cedar wood beams draped in pine garlands, fairy lights in pinecones, and open fire pits under starlit hills.",
+    "image": "/swatches/himalayan-cedar-grove.webp",
+    "svgFallback": "/swatches/himalayan-cedar-grove.svg",
+    "tags": [
+      "Garden Pastel",
+      "Intimate Classic"
+    ],
+    "palette": [
+      "#355070",
+      "#6D597A",
+      "#B56576",
+      "#E56B6F"
+    ],
+    "dimensions": {
+      "formality": 50,
+      "energy": 55,
+      "scale": 45,
+      "heritageVsModern": 45,
+      "feastVsSpectacle": 50,
+      "music": 60,
+      "decorDensity": 55,
+      "indoorVsOutdoor": 95
+    }
+  },
+  {
+    "id": "dusk-fairy-forest",
+    "title": "Dusk Fairy Forest",
+    "description": "Twinkling micro-fairy lights wrapped around ancient banyan branches with hanging glass orbs and wild greenery.",
+    "image": "/swatches/dusk-fairy-forest.webp",
+    "svgFallback": "/swatches/dusk-fairy-forest.svg",
+    "tags": [
+      "Garden Pastel"
+    ],
+    "palette": [
+      "#2E1C44",
+      "#7B4B94",
+      "#E3A857",
+      "#FDE8C7"
+    ],
+    "dimensions": {
+      "formality": 60,
+      "energy": 60,
+      "scale": 65,
+      "heritageVsModern": 55,
+      "feastVsSpectacle": 60,
+      "music": 65,
+      "decorDensity": 80,
+      "indoorVsOutdoor": 95
+    }
+  },
+  {
+    "id": "art-deco-bombay",
+    "title": "Art Deco Bombay",
+    "description": "Geometric brass grills, jade green marble inlays, sleek linear fluting, and warm incandescent globe pendants.",
+    "image": "/swatches/art-deco-bombay.webp",
+    "svgFallback": "/swatches/art-deco-bombay.svg",
+    "tags": [
+      "Minimalist Festive"
+    ],
+    "palette": [
+      "#1F2421",
+      "#216869",
+      "#9CC5A1",
+      "#DCE1DE"
+    ],
+    "dimensions": {
+      "formality": 80,
+      "energy": 65,
+      "scale": 60,
+      "heritageVsModern": 75,
+      "feastVsSpectacle": 65,
+      "music": 70,
+      "decorDensity": 50,
+      "indoorVsOutdoor": 30
+    }
+  },
+  {
+    "id": "kashmiri-chinar-autumn",
+    "title": "Kashmiri Chinar Autumn",
+    "description": "Rich amber and copper chinar foliage, papier-mâché decorative accents, and fine pashmina-textured runners.",
+    "image": "/swatches/kashmiri-chinar-autumn.webp",
+    "svgFallback": "/swatches/kashmiri-chinar-autumn.svg",
+    "tags": [
+      "Intimate Classic"
+    ],
+    "palette": [
+      "#9E2A2B",
+      "#E09F3E",
+      "#FFF3B0",
+      "#540B0E"
+    ],
+    "dimensions": {
+      "formality": 75,
+      "energy": 50,
+      "scale": 55,
+      "heritageVsModern": 20,
+      "feastVsSpectacle": 55,
+      "music": 50,
+      "decorDensity": 75,
+      "indoorVsOutdoor": 60
+    }
+  }
+]
