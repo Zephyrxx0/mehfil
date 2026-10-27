@@ -4,7 +4,7 @@ import React from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import type { BudgetCategory, BudgetLine } from '@/lib/engine/types'
 import { formatINR } from '@/lib/engine/currency'
-import { Lock, Star, Quote } from 'lucide-react'
+import { Lock, Star, Quote, ShieldCheck } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -16,10 +16,16 @@ import {
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
-interface BudgetLineCardProps {
+export interface DisplacedDonorRecord {
+  ideaTitle: string
+  displacedPaise: number
+}
+
+export interface BudgetLineCardProps {
   line: BudgetLine
   totalBudgetPaise: number
   onSetProtected: (category: BudgetCategory) => void
+  displacedRecords?: DisplacedDonorRecord[]
 }
 
 const LINE_TYPE_LABELS: Record<string, string> = {
@@ -33,6 +39,7 @@ export function BudgetLineCard({
   line,
   totalBudgetPaise,
   onSetProtected,
+  displacedRecords,
 }: BudgetLineCardProps) {
   const shouldReduceMotion = useReducedMotion()
 
@@ -43,14 +50,27 @@ export function BudgetLineCard({
   const percentageStr = rawPercentage.toFixed(1)
   const percentageClamped = Math.min(100, Math.max(0, rawPercentage))
   const delta = line.currentPaise - line.baselinePaise
+  const floorAmount = Math.round(line.baselinePaise * 0.40 / 100) * 100
+
+  const handleToggleProtected = () => {
+    // Micro-haptic pulse on user tap (MOMENT-03, T-05-09)
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate(50)
+      } catch {
+        // Safe fallback in unsupported or restricted iframe contexts
+      }
+    }
+    onSetProtected(line.category)
+  }
 
   return (
     <Card
       id={`category-${line.category}`}
       className={cn(
-        'relative transition-all duration-200',
+        'relative transition-all duration-200 overflow-hidden',
         line.isProtected
-          ? 'border-gulabi-rose bg-gulabi-rose/15 shadow-sm ring-1 ring-gulabi-rose/50'
+          ? 'border-gulabi-rose bg-gulabi-rose/15 shadow-sm ring-1 ring-gulabi-rose/50 animate-shimmer-rose'
           : 'border-royal-plum/10 bg-warm-ivory hover:border-royal-plum/25 hover:shadow-xs'
       )}
     >
@@ -62,13 +82,29 @@ export function BudgetLineCard({
               <h4 className="font-semibold text-sm text-royal-plum truncate">{line.name}</h4>
 
               {line.isProtected ? (
-                <Badge
-                  variant="protected"
-                  className="gap-1 bg-gulabi-rose text-royal-plum border-gulabi-rose shadow-2xs"
-                >
-                  <Lock className="w-2.5 h-2.5 fill-royal-plum text-royal-plum" />
-                  <span>Protected Moment</span>
-                </Badge>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="protected"
+                        data-testid="protected-moment-badge"
+                        className="gap-1 bg-gulabi-rose text-royal-plum border-gulabi-rose shadow-2xs cursor-help"
+                      >
+                        <Lock className="w-2.5 h-2.5 fill-royal-plum text-royal-plum" />
+                        <span>Protected Moment</span>
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs">
+                      <p className="font-semibold text-royal-plum flex items-center gap-1">
+                        <ShieldCheck className="w-3.5 h-3.5 text-gulabi-rose" />
+                        Inviolable Protection
+                      </p>
+                      <p className="text-3xs text-royal-plum/80 mt-0.5">
+                        Protected Moment is mathematically immune to displacement (ADR-0004)
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               ) : (
                 <Badge
                   variant="outline"
@@ -79,15 +115,22 @@ export function BudgetLineCard({
               )}
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-royal-plum/60">
+            <div className="flex items-center gap-2 text-xs text-royal-plum/60 flex-wrap">
               <span className="tabular-nums font-medium">{percentageStr}% of total budget</span>
-              {line.lineType === 'flexible' && (
-                <span className="text-2xs text-royal-plum/40">• 40% floor protected</span>
+              {line.lineType === 'flexible' && !line.isProtected && (
+                <span className="text-2xs text-royal-plum/50" data-testid="floor-indicator">
+                  • 40% floor: {formatINR(floorAmount)} protected
+                </span>
+              )}
+              {line.isProtected && (
+                <span className="text-2xs text-gulabi-rose font-medium">
+                  • Immune to displacement (ADR-0004)
+                </span>
               )}
             </div>
           </div>
 
-          {/* Amount & Delta Pill */}
+          {/* Amount & Delta Pill & Donor Tags */}
           <div className="flex flex-col items-end gap-1 shrink-0">
             <span className="font-serif font-bold text-base text-royal-plum tabular-nums">
               {formatINR(line.currentPaise)}
@@ -105,6 +148,29 @@ export function BudgetLineCard({
               >
                 {delta > 0 ? `+${formatINR(delta)}` : `-${formatINR(Math.abs(delta))}`}
               </Badge>
+            )}
+
+            {/* Inline donor tags if line contributed funds to adopted ideas (D-05, BUDGET-04) */}
+            {displacedRecords && displacedRecords.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1 justify-end mt-1 max-w-[200px]" data-testid="donor-tags">
+                {displacedRecords.map((record, idx) => (
+                  <TooltipProvider key={idx}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge
+                          variant="outline"
+                          className="bg-amber-100/80 text-amber-900 border-amber-300 text-2xs font-medium cursor-help text-right truncate max-w-full"
+                        >
+                          -{formatINR(record.displacedPaise)} for {record.ideaTitle}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="text-xs">
+                        Donated {formatINR(record.displacedPaise)} to fund &ldquo;{record.ideaTitle}&rdquo;
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ))}
+              </div>
             )}
           </div>
         </div>
@@ -156,10 +222,10 @@ export function BudgetLineCard({
             type="button"
             variant={line.isProtected ? 'secondary' : 'outline'}
             size="sm"
-            onClick={() => onSetProtected(line.category)}
+            onClick={handleToggleProtected}
             title={
               line.isProtected
-                ? 'Currently Protected Moment (ADR-0004)'
+                ? 'Protected Moment is mathematically immune to displacement (ADR-0004)'
                 : 'Make this category your Protected Moment'
             }
             className={cn(
