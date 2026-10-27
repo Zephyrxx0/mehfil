@@ -96,3 +96,57 @@ export interface TimelineSchedule {
   isCompressedMode: boolean
 }
 
+// Collaboration & Versioning Domain Types (Phase 3: COLLAB-01, COLLAB-02, COLLAB-03, COLLAB-04)
+
+export interface PlanChangeDelta {
+  category: string
+  deltaPaise: Paise
+}
+
+export interface ChangeRecord {
+  id: string
+  planVersionId: string
+  deltas: PlanChangeDelta[]
+  explanation: string
+  isFloorProtected: boolean
+  createdAt: string
+}
+
+export interface PlanVersionRecord {
+  id: string
+  eventId: string
+  versionNumber: number
+  parentVersionId?: string | null
+  reason: string
+  createdAt: string
+  snapshot: Plan
+  isAccepted?: boolean
+}
+
+export interface SanitizedSharedPlan {
+  id: string
+  title: string
+  eventType: EventType
+  eventDate: string
+  city: string
+  guestCount: number
+  totalBudgetPaise: Paise
+  categoryTotals: Record<BudgetCategory, Paise>
+  categoryPercentages: Record<BudgetCategory, number>
+  protectedMoment: {
+    category: BudgetCategory
+    name: string
+    isProtected: boolean
+  }
+  publicMilestones: Array<{
+    id: string
+    title: string
+    budgetCategory: BudgetCategory
+    targetDate: string
+    leadDays: number
+    isCeremony: boolean
+  }>
+  isExpired?: boolean
+}
+
+
