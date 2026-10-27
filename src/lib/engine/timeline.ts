@@ -1,10 +1,21 @@
 import type {
   BudgetCategory,
+  EnvironmentalAnalysis,
+  EnvironmentalRiskId,
+  IdeaDisplacementRecord,
   MilestoneBand,
   MilestoneBandId,
   TimelineSchedule,
   TimelineTask,
 } from './types'
+
+export type AdoptedIdeaTimelineInput = IdeaDisplacementRecord & {
+  leadDays?: number
+  timelineTask?: {
+    title: string
+    notes: string
+  }
+}
 
 interface TaskTemplate {
   id: string
@@ -159,17 +170,33 @@ function subtractDaysUTC(dateStr: string, days: number): string {
 }
 
 /**
- * Calculate backwards milestone timeline from event date with guest scale adjustments
- * and ADR-0005 Immediate Action sprint triage.
+ * Map an adopted idea's leadDays to the most appropriate milestone band.
+ */
+function getTargetBandIdForLeadDays(leadDays: number): MilestoneBandId {
+  if (leadDays >= 120) return 'milestone_t6m'
+  if (leadDays >= 45) return 'milestone_t3m'
+  if (leadDays >= 20) return 'milestone_t1m'
+  if (leadDays >= 5) return 'milestone_t2w'
+  return 'milestone_day0'
+}
+
+/**
+ * Calculate backwards milestone timeline from event date with guest scale adjustments,
+ * environmental peak Saya season buffers (+30d/+15d), seasonal weather advisories,
+ * adopted idea timeline task injections, and ADR-0005 Compressed Mode triage.
  *
  * @param eventDateStr - 'YYYY-MM-DD'
  * @param guestCount - total guests
  * @param todayStr - optional 'YYYY-MM-DD' anchor (defaults to current UTC date)
+ * @param environmentalAnalysis - optional environmental date risks and peak Saya flags
+ * @param adoptedIdeas - optional list of adopted celebration enhancements to inject
  */
 export function calculateBackwardsTimeline(
   eventDateStr: string,
   guestCount: number,
-  todayStr?: string
+  todayStr?: string,
+  environmentalAnalysis?: EnvironmentalAnalysis,
+  adoptedIdeas?: AdoptedIdeaTimelineInput[]
 ): TimelineSchedule {
   const today = todayStr || new Date().toISOString().slice(0, 10)
 
@@ -187,6 +214,29 @@ export function calculateBackwardsTimeline(
     t3mOffset = 60
   }
 
+  // Peak Saya season dynamic buffer expansion (TIME-02, TIME-03, D-11)
+  let venueBufferDays = 0
+  let photoBufferDays = 0
+  const winterSayaRisk = environmentalAnalysis?.detectedRisks.find(
+    r => r.id === 'peak_saya_winter'
+  )
+  const summerSayaRisk = environmentalAnalysis?.detectedRisks.find(
+    r => r.id === 'peak_saya_summer'
+  )
+
+  if (winterSayaRisk?.leadTimeBufferDays) {
+    venueBufferDays = winterSayaRisk.leadTimeBufferDays // +30d
+    photoBufferDays = 30
+    t6mOffset += venueBufferDays
+  } else if (summerSayaRisk?.leadTimeBufferDays) {
+    venueBufferDays = summerSayaRisk.leadTimeBufferDays // +15d
+    t6mOffset += venueBufferDays
+  }
+
+  const monsoonRisk = environmentalAnalysis?.detectedRisks.find(r => r.id === 'monsoon_outdoor')
+  const heatRisk = environmentalAnalysis?.detectedRisks.find(r => r.id === 'extreme_summer_heat')
+  const holidayRisk = environmentalAnalysis?.detectedRisks.find(r => r.id === 'holiday_clash')
+
   const offsetMap: Record<MilestoneBandId, number> = {
     milestone_immediate: 0,
     milestone_t6m: t6mOffset,
@@ -199,7 +249,12 @@ export function calculateBackwardsTimeline(
   const pastTasks: (TimelineTask & { criticalityRank: number })[] = []
   const futureBands: MilestoneBand[] = []
 
-  let isCompressedMode = false
+  // Check days until event to evaluate short-notice / Compressed Mode
+  const [ey, em, ed] = eventDateStr.split('-').map(Number)
+  const [ty, tm, td] = today.split('-').map(Number)
+  const daysUntilEvent = Math.round(
+    (Date.UTC(ey, em - 1, ed) - Date.UTC(ty, tm - 1, td)) / 86_400_000
+  )
 
   for (const template of BAND_TEMPLATES) {
     const leadDays = offsetMap[template.id]
@@ -207,8 +262,54 @@ export function calculateBackwardsTimeline(
 
     const remainingBandTasks: TimelineTask[] = []
 
+    // 1. Process standard tasks for this band
     for (const t of template.tasks) {
       const taskTargetDate = bandTargetDate
+      let appliedBufferDays: number | undefined
+      let environmentalRiskId: EnvironmentalRiskId | undefined
+      let environmentalAdvisory: string | undefined
+
+      // Annotate peak Saya season buffers on T-6M tasks
+      if (template.id === 'milestone_t6m' && t.budgetCategory === 'venue' && venueBufferDays > 0) {
+        appliedBufferDays = venueBufferDays
+        environmentalRiskId = winterSayaRisk ? 'peak_saya_winter' : 'peak_saya_summer'
+        environmentalAdvisory = winterSayaRisk
+          ? 'Peak Winter Saya season: venues book 7-8 months in advance.'
+          : 'Peak Summer Saya season: air-conditioned banquets in high demand.'
+      } else if (
+        template.id === 'milestone_t6m' &&
+        t.budgetCategory === 'photo_film' &&
+        photoBufferDays > 0
+      ) {
+        appliedBufferDays = photoBufferDays
+        environmentalRiskId = 'peak_saya_winter'
+        environmentalAdvisory =
+          'Peak Winter Saya season: top photo & cinema teams book 8+ months out.'
+      }
+
+      // Annotate seasonal weather hazards
+      if (
+        monsoonRisk &&
+        (t.budgetCategory === 'decor' || t.budgetCategory === 'venue') &&
+        !environmentalRiskId
+      ) {
+        environmentalRiskId = 'monsoon_outdoor'
+        environmentalAdvisory =
+          'Monsoon season: secure waterproof shamiana and covered backup staging.'
+      } else if (
+        heatRisk &&
+        (t.budgetCategory === 'catering' || t.budgetCategory === 'decor') &&
+        !environmentalRiskId
+      ) {
+        environmentalRiskId = 'extreme_summer_heat'
+        environmentalAdvisory =
+          'Extreme summer heat: schedule ceremonies post-sunset and provide hydration counters.'
+      } else if (holidayRisk && t.budgetCategory === 'entertainment' && !environmentalRiskId) {
+        environmentalRiskId = 'holiday_clash'
+        environmentalAdvisory =
+          'Holiday / dry day: sound limits past 10 PM and civic transport restrictions apply.'
+      }
+
       const task: TimelineTask = {
         id: t.id,
         title: t.title,
@@ -218,14 +319,46 @@ export function calculateBackwardsTimeline(
         isCompleted: false,
         isCriticalPath: t.isCriticalPath,
         notes: t.notes,
+        appliedBufferDays,
+        environmentalRiskId,
+        environmentalAdvisory,
       }
 
       // Check if task date is in the past compared to today
       if (taskTargetDate < today && template.id !== 'milestone_day0') {
-        isCompressedMode = true
         pastTasks.push({ ...task, criticalityRank: t.criticalityRank })
       } else {
         remainingBandTasks.push(task)
+      }
+    }
+
+    // 2. Inject adopted idea timeline tasks mapped to this band
+    if (adoptedIdeas && adoptedIdeas.length > 0) {
+      for (const idea of adoptedIdeas) {
+        if (!idea.timelineTask) continue
+        const ideaLeadDays = idea.leadDays ?? 30
+        const targetBandId = getTargetBandIdForLeadDays(ideaLeadDays)
+
+        if (targetBandId === template.id) {
+          const ideaTaskTargetDate = subtractDaysUTC(eventDateStr, ideaLeadDays)
+          const ideaTask: TimelineTask = {
+            id: `task_idea_${idea.ideaId}`,
+            title: idea.timelineTask.title,
+            budgetCategory: idea.targetCategory,
+            leadDays: ideaLeadDays,
+            targetDate: ideaTaskTargetDate,
+            isCompleted: false,
+            isCriticalPath: false,
+            notes: idea.timelineTask.notes,
+            originIdeaId: idea.ideaId,
+          }
+
+          if (ideaTaskTargetDate < today && template.id !== 'milestone_day0') {
+            pastTasks.push({ ...ideaTask, criticalityRank: 5 })
+          } else {
+            remainingBandTasks.push(ideaTask)
+          }
+        }
       }
     }
 
@@ -239,6 +372,7 @@ export function calculateBackwardsTimeline(
     }
   }
 
+  const isCompressedMode = daysUntilEvent < 60 || pastTasks.length > 0
   const resultBands: MilestoneBand[] = []
 
   // If past tasks exist, bundle them into Immediate Action (This Week) triage group (ADR-0005)
@@ -267,4 +401,3 @@ export function calculateBackwardsTimeline(
     isCompressedMode,
   }
 }
-
