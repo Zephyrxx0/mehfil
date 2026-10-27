@@ -64,9 +64,16 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 02-01: Tailwind configuration, Google fonts setup (Fraunces, Plus Jakarta Sans, Tiro Devanagari Hindi), and CSS variable tokens in `globals.css`.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 02-02: shadcn/ui components installation and custom Mehfil token styling (buttons, cards, badges, dialogs, sliders, sheets).
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 02-03: Center-stage kinetic headline with spring physics, ambient festive particles, and minimalist app launch CTA.
 
 ### Phase 3: Anonymous Persistence & Dual-Link Collaboration
