@@ -13,7 +13,7 @@ Mehfil delivers a production-grade, mathematically verified celebration planning
 
 - [x] **Phase 1: Core Foundation & Instant Plan Slice** - Brief intake, deterministic template archetypes, integer paise budget engine, and backwards topological timeline.
 - [x] **Phase 2: Festive Design System & Centerpiece Kinetic Hero** - 3-hue palette tokens, shadcn/ui primitives, and big bold Fraunces animated typography hero with celebration micro-motion.
-- [ ] **Phase 3: Anonymous Persistence & Dual-Link Collaboration** - Supabase RLS migrations, immutable version snapshots, Organizer Edit Keys, and sanitized Family Share Links.
+- [x] **Phase 3: Anonymous Persistence & Dual-Link Collaboration** - Supabase RLS migrations, immutable version snapshots, Organizer Edit Keys, and sanitized Family Share Links.
 - [ ] **Phase 4: Multi-Agent Style DNA & Resilient Fallback Ladder** - 24-swatch vibe intake, vision extraction, bounded Planner modulation diffs, and 3-tier zero-failure fallback ladder.
 - [ ] **Phase 5: Budget Invariants, Protected Moments & Idea Displacement** - Protected Moment immunity, Permissive Shortfall remedies, budget-neutral idea displacement, and Compressed Mode scheduling.
 - [ ] **Phase 6: Quarantined Quote Check & Closed Registry Generative UI** - Tool-less Quote Analyst, verbatim source anchor validation, interactive Quote Check cards, and entity-ID-bound closed registry UI.
@@ -94,15 +94,15 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 03-01: Supabase database schema migrations for events, plan_versions, change_records, and RLS policies.
+- [x] 03-01: Supabase database schema migrations for events, plan_versions, change_records, and RLS policies.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02: Capability URL router (`/plan/[id]` with secret token claim and `/share/[token]` read-only view).
+- [x] 03-02: Capability URL router (`/plan/[id]` with secret token claim and `/share/[token]` read-only view).
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 03-03: Immutable version history manager with change log records and one-click undo API.
+- [x] 03-03: Immutable version history manager with change log records and one-click undo API.
 
 ### Phase 4: Multi-Agent Style DNA & Resilient Fallback Ladder
 
