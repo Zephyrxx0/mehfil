@@ -119,9 +119,16 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 04-01: Curated 24 Style Swatches gallery component and Vibe Intake interactive questionnaire.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 04-02: Vercel AI SDK pipeline for Style Analyst (vision) and Planner (weights & rationale) with strict Zod schemas.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 04-03: Three-tier fallback orchestrator (repair retry -> Gemini Flash escalation -> static template fallback) with run records logging.
 
 ### Phase 5: Budget Invariants, Protected Moments & Idea Displacement
