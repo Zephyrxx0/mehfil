@@ -110,7 +110,11 @@ export function PlanWorkspace({
 
   // Core commit worker: computes diff and commits to persistence
   const commitPlan = useCallback(
-    async (nextPlan: Plan, prevPlan: Plan, actionType: 'scale_guests' | 'adjust_budget' | 'remedy' | 'restore') => {
+    async (
+      nextPlan: Plan,
+      prevPlan: Plan,
+      actionType?: 'guest_scale' | 'budget_change' | 'protected_lock' | 'restore' | 'manual'
+    ) => {
       if (isReadOnly) return
 
       const diffResult = computePlanDiff({
@@ -156,7 +160,11 @@ export function PlanWorkspace({
 
   // Debounced queue trigger (800ms) for high-frequency slider/stepper edits
   const scheduleDebouncedCommit = useCallback(
-    (nextPlan: Plan, prevPlan: Plan, actionType: 'scale_guests' | 'adjust_budget' | 'remedy' | 'restore') => {
+    (
+      nextPlan: Plan,
+      prevPlan: Plan,
+      actionType?: 'guest_scale' | 'budget_change' | 'protected_lock' | 'restore' | 'manual'
+    ) => {
       if (isReadOnly) return
 
       setSyncStatus('syncing')
@@ -212,7 +220,7 @@ export function PlanWorkspace({
     setSnapshotStack((prev) => [record, ...prev])
     setPlan(nextPlan)
 
-    scheduleDebouncedCommit(nextPlan, prevPlan, 'scale_guests')
+    scheduleDebouncedCommit(nextPlan, prevPlan, 'guest_scale')
   }
 
   // Handle 1-click Undo (legacy or single step)
@@ -226,7 +234,7 @@ export function PlanWorkspace({
       if (idx !== -1) {
         setSnapshotStack((prev) => prev.slice(idx + 1))
       }
-      scheduleDebouncedCommit(nextPlan, prevPlan, 'scale_guests')
+      scheduleDebouncedCommit(nextPlan, prevPlan, 'guest_scale')
       return
     }
 
@@ -238,7 +246,7 @@ export function PlanWorkspace({
         setPlan(nextPlan)
         setPreviousGuestCount(latest.previousSnapshot.brief.guestCount)
         setSnapshotStack(rest)
-        scheduleDebouncedCommit(nextPlan, prevPlan, 'scale_guests')
+        scheduleDebouncedCommit(nextPlan, prevPlan, 'guest_scale')
         return
       }
     }
@@ -247,7 +255,7 @@ export function PlanWorkspace({
       const prevPlan = plan
       const restored = rebalanceGuestCount(plan, previousGuestCount)
       setPlan(restored)
-      scheduleDebouncedCommit(restored, prevPlan, 'scale_guests')
+      scheduleDebouncedCommit(restored, prevPlan, 'guest_scale')
     }
   }
 
@@ -282,7 +290,7 @@ export function PlanWorkspace({
     setSnapshotStack((prev) => [record, ...prev])
     setPlan(nextPlan)
 
-    scheduleDebouncedCommit(nextPlan, prevPlan, 'adjust_budget')
+    scheduleDebouncedCommit(nextPlan, prevPlan, 'protected_lock')
   }
 
   // Handle ADR-0002 shortfall remedies
@@ -308,12 +316,12 @@ export function PlanWorkspace({
       }
       setSnapshotStack((prev) => [record, ...prev])
       setPlan(nextPlan)
-      scheduleDebouncedCommit(nextPlan, prevPlan, 'remedy')
+      scheduleDebouncedCommit(nextPlan, prevPlan, 'budget_change')
     } else if (remedy.type === 'trim_elastic') {
       const prevPlan = plan
       const nextPlan = rebalanceGuestCount(plan, plan.brief.guestCount)
       setPlan(nextPlan)
-      scheduleDebouncedCommit(nextPlan, prevPlan, 'remedy')
+      scheduleDebouncedCommit(nextPlan, prevPlan, 'budget_change')
     }
   }
 

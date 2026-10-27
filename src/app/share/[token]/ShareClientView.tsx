@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import type { SanitizedSharedPlan } from '@/lib/engine/types'
+import type { SanitizedSharedPlan, BudgetCategory } from '@/lib/engine/types'
 import { formatINR } from '@/lib/engine/currency'
 import { generatePublicCeremoniesICS, downloadICS } from '@/lib/engine/ics'
 import { Button } from '@/components/ui/button'
@@ -187,7 +187,8 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {Object.entries(sanitizedPlan.categoryTotals).map(([cat, paise]) => {
-              const pct = sanitizedPlan.categoryPercentages[cat as any] || 0
+              const categoryKey = cat as BudgetCategory
+              const pct = sanitizedPlan.categoryPercentages[categoryKey] || 0
               const label = cat.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 
               return (
