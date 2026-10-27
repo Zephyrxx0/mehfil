@@ -120,6 +120,7 @@ export interface PlanVersionRecord {
   reason: string
   createdAt: string
   snapshot: Plan
+  isFloorProtected?: boolean
   isAccepted?: boolean
 }
 

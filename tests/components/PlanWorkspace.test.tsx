@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import React from 'react'
 import { PlanWorkspace } from '@/components/workspace/PlanWorkspace'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
@@ -110,5 +111,54 @@ describe('PlanWorkspace Component', () => {
     expect(screen.getAllByText(/Short-Notice Celebration Triage/).length).toBeGreaterThanOrEqual(1)
     const triageHeadings = screen.getAllByText('Immediate Action (This Week)')
     expect(triageHeadings.length).toBeGreaterThanOrEqual(1)
+  })
+
+  describe('Phase 3 Collaboration & Orchestration (D-01, D-09, D-14, D-15, COLLAB-04)', () => {
+    it('renders top-bar SyncStatusBadge and Share & Save trigger button', () => {
+      render(<PlanWorkspace initialPlan={initialPlan} />)
+
+      expect(screen.getByTestId('sync-status-badge')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Share & Save/i })).toBeInTheDocument()
+    })
+
+    it('opens ShareSaveModal when clicking Share & Save button', async () => {
+      const user = userEvent.setup()
+      render(<PlanWorkspace initialPlan={initialPlan} />)
+
+      const shareBtn = screen.getByRole('button', { name: /Share & Save/i })
+      await user.click(shareBtn)
+
+      expect(await screen.findByText('Share & Save Celebration')).toBeInTheDocument()
+      expect(screen.getByRole('tab', { name: /Family Share Link/i })).toBeInTheDocument()
+    })
+
+    it('renders Read-Only View banner and unlock button when isReadOnly is true', () => {
+      const handleUnlock = vi.fn()
+      render(
+        <PlanWorkspace
+          initialPlan={initialPlan}
+          isReadOnly={true}
+          onUnlockEdit={handleUnlock}
+        />
+      )
+
+      expect(screen.getByText('Read-Only View')).toBeInTheDocument()
+      const unlockBtn = screen.getByRole('button', { name: /Unlock Organizer Editing/i })
+      expect(unlockBtn).toBeInTheDocument()
+      fireEvent.click(unlockBtn)
+      expect(handleUnlock).toHaveBeenCalledTimes(1)
+    })
+
+    it('orchestrates 800ms debounced save on guest scaling', async () => {
+      render(<PlanWorkspace initialPlan={initialPlan} />)
+
+      const plusButton = screen.getAllByText('+10')[0]
+      fireEvent.click(plusButton)
+
+      // UI updates immediately (<10ms)
+      expect(screen.getAllByText('310').length).toBeGreaterThanOrEqual(1)
+      // Status badge transitions to syncing
+      expect(screen.getByText('Syncing...')).toBeInTheDocument()
+    })
   })
 })

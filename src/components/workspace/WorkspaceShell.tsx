@@ -1,27 +1,39 @@
 'use client'
 
 import React, { useState } from 'react'
-import type { Plan, BudgetCategory, ShortfallRemedy } from '@/lib/engine/types'
+import type { Plan, BudgetCategory, ShortfallRemedy, PlanVersionRecord } from '@/lib/engine/types'
 import { calculateBackwardsTimeline } from '@/lib/engine/timeline'
 import { formatINR } from '@/lib/engine/currency'
 import { BudgetSection } from './BudgetSection'
 import { TimelineSection } from './TimelineSection'
 import { ChangeExplainer, type PlanChangeRecord } from './ChangeExplainer'
 import { ShortfallBanner } from './ShortfallBanner'
+import { SyncStatusBadge, type SyncState } from './SyncStatusBadge'
+import { ShareSaveModal } from './ShareSaveModal'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Coins, Calendar, Palette, FileText, ChevronUp } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Coins, Calendar, Palette, History, ChevronUp, Share2, Lock, KeyRound } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface WorkspaceShellProps {
   plan: Plan
   changes?: PlanChangeRecord[]
   history?: PlanChangeRecord[]
+  versions?: PlanVersionRecord[]
+  currentVersionNumber?: number
   previousGuestCount?: number
+  syncStatus?: SyncState
+  isReadOnly?: boolean
+  editKey?: string
+  initialShareToken?: string
   onGuestCountChange: (count: number) => void
   onSetProtected: (category: BudgetCategory) => void
   onApplyRemedy: (remedy: ShortfallRemedy) => void
   onUndo?: (item?: PlanChangeRecord, index?: number) => void
+  onRestoreVersion?: (targetVersion: number) => void
+  onUnlockEdit?: () => void
 }
 
 export type MobileTab = 'budget' | 'timeline' | 'style' | 'summary'
@@ -30,17 +42,29 @@ export function WorkspaceShell({
   plan,
   changes,
   history,
+  versions,
+  currentVersionNumber,
   previousGuestCount,
+  syncStatus,
+  isReadOnly = false,
+  editKey,
+  initialShareToken,
   onGuestCountChange,
   onSetProtected,
   onApplyRemedy,
   onUndo,
+  onRestoreVersion,
+  onUnlockEdit,
 }: WorkspaceShellProps) {
   const [mobileTab, setMobileTab] = useState<MobileTab>('budget')
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
   const changeList = changes ?? history ?? []
-  const changeCount = changeList.length
+  const hasExplicitVersions = Boolean(versions && versions.length > 0)
+  const countDisplay = hasExplicitVersions
+    ? `${versions!.length} ${versions!.length === 1 ? 'version' : 'versions'}`
+    : `${changeList.length} ${changeList.length === 1 ? 'change' : 'changes'}`
 
   const schedule = calculateBackwardsTimeline(
     plan.brief.eventDate,
@@ -49,6 +73,47 @@ export function WorkspaceShell({
 
   return (
     <div className="flex flex-col gap-6 w-full">
+      {/* Workspace Top Action Bar: Sync Status, Read-Only Pill & Share & Save trigger (D-01, D-14) */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-royal-plum/10 bg-warm-ivory px-4 py-2.5 shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          {syncStatus && <SyncStatusBadge status={syncStatus} />}
+          {isReadOnly && (
+            <Badge
+              variant="outline"
+              className="flex items-center gap-1.5 border-royal-plum/20 bg-marigold/15 text-royal-plum text-xs px-2.5 py-1"
+            >
+              <Lock className="h-3 w-3 text-royal-plum/70" />
+              <span>Read-Only View</span>
+            </Badge>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {isReadOnly && onUnlockEdit && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onUnlockEdit}
+              className="h-8 border-royal-plum/20 bg-transparent text-xs font-semibold text-royal-plum hover:bg-royal-plum/5"
+            >
+              <KeyRound className="mr-1.5 h-3.5 w-3.5" />
+              Unlock Organizer Editing
+            </Button>
+          )}
+
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => setIsShareModalOpen(true)}
+            className="h-8 bg-marigold text-xs font-semibold text-royal-plum hover:bg-marigold/90 shadow-2xs flex items-center gap-1.5"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            <span>Share & Save</span>
+          </Button>
+        </div>
+      </div>
+
       {/* Shortfall Banner (ADR-0002 Permissive Balancing) */}
       <ShortfallBanner
         plan={plan}
@@ -90,6 +155,10 @@ export function WorkspaceShell({
           <ChangeExplainer
             plan={plan}
             changes={changeList}
+            versions={versions}
+            currentVersionNumber={currentVersionNumber}
+            onRestoreVersion={onRestoreVersion}
+            isReadOnly={isReadOnly}
             previousGuestCount={previousGuestCount}
             onUndo={onUndo}
           />
@@ -161,20 +230,30 @@ export function WorkspaceShell({
         )}
 
         {mobileTab === 'summary' && (
-          <div
-            data-testid="mobile-pane-summary"
-            className="rounded-2xl border border-royal-plum/10 bg-warm-ivory p-6 text-center shadow-xs flex flex-col gap-3"
-          >
-            <h3 className="font-serif font-bold text-lg text-royal-plum">Plan Summary</h3>
-            <p className="text-xs text-royal-plum/60">
-              {plan.brief.title} • {plan.brief.city} • {plan.brief.eventDate}
-            </p>
-            <div className="text-lg font-bold text-royal-plum tabular-nums">
-              {formatINR(plan.totalBudgetPaise)}
+          <div data-testid="mobile-pane-summary" className="flex flex-col gap-4">
+            <div className="rounded-2xl border border-royal-plum/10 bg-warm-ivory p-6 text-center shadow-xs flex flex-col gap-3">
+              <h3 className="font-serif font-bold text-lg text-royal-plum">Plan Summary</h3>
+              <p className="text-xs text-royal-plum/60">
+                {plan.brief.title} • {plan.brief.city} • {plan.brief.eventDate}
+              </p>
+              <div className="text-lg font-bold text-royal-plum tabular-nums">
+                {formatINR(plan.totalBudgetPaise)}
+              </div>
+              <div className="text-xs text-royal-plum/70">
+                Protected Floor Locked: <span className="font-semibold capitalize">{plan.brief.protectedCategory}</span>
+              </div>
             </div>
-            <div className="text-xs text-royal-plum/70">
-              Protected Floor Locked: <span className="font-semibold capitalize">{plan.brief.protectedCategory}</span>
-            </div>
+
+            <ChangeExplainer
+              plan={plan}
+              changes={changeList}
+              versions={versions}
+              currentVersionNumber={currentVersionNumber}
+              onRestoreVersion={onRestoreVersion}
+              isReadOnly={isReadOnly}
+              previousGuestCount={previousGuestCount}
+              onUndo={onUndo}
+            />
           </div>
         )}
 
@@ -191,7 +270,7 @@ export function WorkspaceShell({
             </span>
             <div className="flex items-center gap-1.5 text-marigold">
               <span className="tabular-nums font-bold">
-                ⚡ {changeCount} {changeCount === 1 ? 'change' : 'changes'}
+                ⚡ {countDisplay}
               </span>
               <ChevronUp className="w-4 h-4" />
             </div>
@@ -207,6 +286,10 @@ export function WorkspaceShell({
             <ChangeExplainer
               plan={plan}
               changes={changeList}
+              versions={versions}
+              currentVersionNumber={currentVersionNumber}
+              onRestoreVersion={onRestoreVersion}
+              isReadOnly={isReadOnly}
               previousGuestCount={previousGuestCount}
               onUndo={onUndo}
             />
@@ -223,7 +306,7 @@ export function WorkspaceShell({
             { id: 'budget', label: 'Budget', icon: Coins },
             { id: 'timeline', label: 'Timeline', icon: Calendar },
             { id: 'style', label: 'Style', icon: Palette },
-            { id: 'summary', label: 'Summary', icon: FileText },
+            { id: 'summary', label: 'Summary', icon: History },
           ].map(({ id, label, icon: Icon }) => {
             const isActive = mobileTab === id
             return (
@@ -232,7 +315,9 @@ export function WorkspaceShell({
                 type="button"
                 role="tab"
                 aria-selected={isActive}
-                onClick={() => setMobileTab(id as MobileTab)}
+                onClick={() => {
+                  setMobileTab(id as MobileTab)
+                }}
                 className={cn(
                   'flex flex-col items-center gap-1 py-1 px-4 rounded-full text-xs font-semibold transition',
                   isActive
@@ -247,6 +332,16 @@ export function WorkspaceShell({
           })}
         </nav>
       </div>
+
+      {/* Share & Save Modal */}
+      <ShareSaveModal
+        open={isShareModalOpen}
+        onOpenChange={setIsShareModalOpen}
+        planId={plan.id}
+        planTitle={plan.brief.title}
+        editKey={editKey}
+        initialShareToken={initialShareToken}
+      />
     </div>
   )
 }

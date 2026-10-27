@@ -1,10 +1,14 @@
 'use client'
 
-import React, { useState } from 'react'
-import type { BudgetCategory, Plan, ShortfallRemedy } from '@/lib/engine/types'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import type { BudgetCategory, Plan, ShortfallRemedy, PlanVersionRecord } from '@/lib/engine/types'
 import { rebalanceGuestCount, setProtectedMoment } from '@/lib/engine/budget'
 import { formatINR } from '@/lib/engine/currency'
+import { computePlanDiff } from '@/lib/engine/diff'
+import { persistence } from '@/lib/storage/persistence'
 import { WorkspaceShell } from './WorkspaceShell'
+import { ConcurrencyConflictBanner } from './ConcurrencyConflictBanner'
+import type { SyncState } from './SyncStatusBadge'
 import type { PlanChangeRecord, PlanChangeDelta } from './ChangeExplainer'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -15,24 +19,168 @@ export interface PlanWorkspaceProps {
   onResetPlan?: () => void
   isReadOnly?: boolean
   editKey?: string
+  initialVersions?: PlanVersionRecord[]
+  initialShareToken?: string
+  onUnlockEdit?: () => void
 }
 
-export function PlanWorkspace({ initialPlan, onResetPlan, isReadOnly, editKey }: PlanWorkspaceProps) {
+export function PlanWorkspace({
+  initialPlan,
+  onResetPlan,
+  isReadOnly = false,
+  editKey,
+  initialVersions,
+  initialShareToken,
+  onUnlockEdit,
+}: PlanWorkspaceProps) {
   const [plan, setPlan] = useState<Plan>(initialPlan)
   const [previousGuestCount, setPreviousGuestCount] = useState<number | undefined>(
     initialPlan.baselineGuestCount
   )
   const [snapshotStack, setSnapshotStack] = useState<PlanChangeRecord[]>([])
+  
+  // Versions & Sync state (D-09, D-10, D-14, D-15)
+  const [versions, setVersions] = useState<PlanVersionRecord[]>(() => {
+    if (initialVersions && initialVersions.length > 0) return initialVersions
+    return [
+      {
+        id: `ver-${initialPlan.id}-1`,
+        eventId: initialPlan.id,
+        versionNumber: 1,
+        reason: 'Initial plan created from archetype',
+        isFloorProtected: Boolean(initialPlan.brief.protectedCategory),
+        snapshot: initialPlan,
+        createdAt: new Date().toISOString(),
+      },
+    ]
+  })
+  
+  const [currentVersionNumber, setCurrentVersionNumber] = useState<number>(() => {
+    if (initialVersions && initialVersions.length > 0) {
+      return Math.max(...initialVersions.map((v) => v.versionNumber))
+    }
+    return 1
+  })
+  const [currentVersionId, setCurrentVersionId] = useState<string | undefined>(() => {
+    if (initialVersions && initialVersions.length > 0) {
+      return initialVersions[0]?.id
+    }
+    return `ver-${initialPlan.id}-1`
+  })
+
+  const [syncStatus, setSyncStatus] = useState<SyncState>(editKey ? 'cloud_saved' : 'local_saved')
+  const [concurrencyConflict, setConcurrencyConflict] = useState<Plan | null>(null)
+
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const activePlanRef = useRef<Plan>(plan)
+  activePlanRef.current = plan
+
+  // Fetch cloud version history on mount if available
+  useEffect(() => {
+    let isMounted = true
+    async function loadHistory() {
+      try {
+        const history = await persistence.getVersionHistory(initialPlan.id)
+        if (isMounted && history && history.length > 0) {
+          setVersions(history)
+          const latest = history[0]
+          if (latest) {
+            setCurrentVersionNumber(latest.versionNumber)
+            setCurrentVersionId(latest.id)
+          }
+        }
+      } catch (err) {
+        console.warn('[PlanWorkspace] Failed to fetch version history:', err)
+      }
+    }
+    loadHistory()
+    return () => {
+      isMounted = false
+    }
+  }, [initialPlan.id])
+
+  // Clear debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+    }
+  }, [])
+
+  // Core commit worker: computes diff and commits to persistence
+  const commitPlan = useCallback(
+    async (nextPlan: Plan, prevPlan: Plan, actionType: 'scale_guests' | 'adjust_budget' | 'remedy' | 'restore') => {
+      if (isReadOnly) return
+
+      const diffResult = computePlanDiff({
+        prevPlan,
+        nextPlan,
+        actionType,
+      })
+
+      const saveResult = await persistence.savePlan(
+        nextPlan,
+        currentVersionId,
+        diffResult.summary,
+        editKey
+      )
+
+      if (saveResult.status === 'conflict') {
+        setConcurrencyConflict(saveResult.conflictPlan || nextPlan)
+        return
+      }
+
+      const nextVerNum = saveResult.versionNumber ?? (currentVersionNumber + 1)
+      const nextVerId = saveResult.versionId ?? `ver-${nextPlan.id}-${nextVerNum}`
+
+      const newRecord: PlanVersionRecord = {
+        id: nextVerId,
+        eventId: nextPlan.id,
+        versionNumber: nextVerNum,
+        parentVersionId: currentVersionId,
+        reason: diffResult.summary,
+        isFloorProtected: Boolean(nextPlan.brief.protectedCategory),
+        snapshot: nextPlan,
+        createdAt: new Date().toISOString(),
+      }
+
+      setVersions((prev) => [newRecord, ...prev.filter((v) => v.versionNumber !== nextVerNum)])
+      setCurrentVersionNumber(nextVerNum)
+      setCurrentVersionId(nextVerId)
+      setSyncStatus(saveResult.status === 'saved_cloud' ? 'cloud_saved' : 'local_saved')
+      setConcurrencyConflict(null)
+    },
+    [currentVersionId, currentVersionNumber, editKey, isReadOnly]
+  )
+
+  // Debounced queue trigger (800ms) for high-frequency slider/stepper edits
+  const scheduleDebouncedCommit = useCallback(
+    (nextPlan: Plan, prevPlan: Plan, actionType: 'scale_guests' | 'adjust_budget' | 'remedy' | 'restore') => {
+      if (isReadOnly) return
+
+      setSyncStatus('syncing')
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
+
+      debounceTimerRef.current = setTimeout(() => {
+        commitPlan(nextPlan, prevPlan, actionType)
+      }, 800)
+    },
+    [commitPlan, isReadOnly]
+  )
 
   // Handle guest count scaling
   const handleGuestCountChange = (newCount: number) => {
     if (newCount === plan.brief.guestCount) return
 
+    const prevPlan = plan
     const prevGuest = plan.brief.guestCount
     setPreviousGuestCount(prevGuest)
     const nextPlan = rebalanceGuestCount(plan, newCount)
 
-    // Calculate line-level deltas
+    // Calculate line-level deltas for legacy stack
     const deltas: PlanChangeDelta[] = []
     for (const nextLine of nextPlan.lines) {
       const prevLine = plan.lines.find((l) => l.id === nextLine.id)
@@ -63,38 +211,49 @@ export function PlanWorkspace({ initialPlan, onResetPlan, isReadOnly, editKey }:
 
     setSnapshotStack((prev) => [record, ...prev])
     setPlan(nextPlan)
+
+    scheduleDebouncedCommit(nextPlan, prevPlan, 'scale_guests')
   }
 
-  // Handle 1-click Undo (D-12, D-15)
+  // Handle 1-click Undo (legacy or single step)
   const handleUndo = (item?: PlanChangeRecord, index?: number) => {
     if (item?.previousSnapshot) {
-      setPlan(item.previousSnapshot)
+      const nextPlan = item.previousSnapshot
+      const prevPlan = plan
+      setPlan(nextPlan)
       setPreviousGuestCount(item.previousSnapshot.brief.guestCount)
       const idx = index ?? snapshotStack.findIndex((s) => s.id === item.id)
       if (idx !== -1) {
         setSnapshotStack((prev) => prev.slice(idx + 1))
       }
+      scheduleDebouncedCommit(nextPlan, prevPlan, 'scale_guests')
       return
     }
 
     if (snapshotStack.length > 0) {
       const [latest, ...rest] = snapshotStack
       if (latest.previousSnapshot) {
-        setPlan(latest.previousSnapshot)
+        const nextPlan = latest.previousSnapshot
+        const prevPlan = plan
+        setPlan(nextPlan)
         setPreviousGuestCount(latest.previousSnapshot.brief.guestCount)
         setSnapshotStack(rest)
+        scheduleDebouncedCommit(nextPlan, prevPlan, 'scale_guests')
         return
       }
     }
 
     if (previousGuestCount !== undefined) {
+      const prevPlan = plan
       const restored = rebalanceGuestCount(plan, previousGuestCount)
       setPlan(restored)
+      scheduleDebouncedCommit(restored, prevPlan, 'scale_guests')
     }
   }
 
   // Handle Protected Moment category reassignment (D-07, MOMENT-01)
   const handleSetProtected = (category: BudgetCategory) => {
+    const prevPlan = plan
     const updated = setProtectedMoment(plan, category)
     const nextPlan = rebalanceGuestCount(updated, updated.brief.guestCount)
 
@@ -122,6 +281,8 @@ export function PlanWorkspace({ initialPlan, onResetPlan, isReadOnly, editKey }:
 
     setSnapshotStack((prev) => [record, ...prev])
     setPlan(nextPlan)
+
+    scheduleDebouncedCommit(nextPlan, prevPlan, 'adjust_budget')
   }
 
   // Handle ADR-0002 shortfall remedies
@@ -129,6 +290,7 @@ export function PlanWorkspace({ initialPlan, onResetPlan, isReadOnly, editKey }:
     if (remedy.type === 'reduce_guests') {
       handleGuestCountChange(remedy.deltaValue)
     } else if (remedy.type === 'increase_budget') {
+      const prevPlan = plan
       const increasedBudget = plan.totalBudgetPaise + remedy.deltaValue
       const updatedPlan: Plan = {
         ...plan,
@@ -146,9 +308,95 @@ export function PlanWorkspace({ initialPlan, onResetPlan, isReadOnly, editKey }:
       }
       setSnapshotStack((prev) => [record, ...prev])
       setPlan(nextPlan)
+      scheduleDebouncedCommit(nextPlan, prevPlan, 'remedy')
     } else if (remedy.type === 'trim_elastic') {
+      const prevPlan = plan
       const nextPlan = rebalanceGuestCount(plan, plan.brief.guestCount)
       setPlan(nextPlan)
+      scheduleDebouncedCommit(nextPlan, prevPlan, 'remedy')
+    }
+  }
+
+  // Handle Forward Restore Undo (D-10, D-11, COLLAB-04)
+  const handleRestoreVersion = async (targetVersionNumber: number) => {
+    if (isReadOnly) return
+
+    const targetVersion = versions.find((v) => v.versionNumber === targetVersionNumber)
+    if (!targetVersion) return
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    const prevPlan = plan
+    const restoredPlan: Plan = targetVersion.snapshot ? { ...targetVersion.snapshot } : {
+      ...plan,
+      lines: (targetVersion as any).lines || plan.lines,
+      totalBudgetPaise: (targetVersion as any).totals?.totalBudgetPaise || plan.totalBudgetPaise,
+    }
+
+    setPlan(restoredPlan)
+    setSyncStatus('syncing')
+
+    // Commit immediately as new forward version
+    const saveResult = await persistence.savePlan(
+      restoredPlan,
+      currentVersionId,
+      `Reverted to v${targetVersionNumber}`,
+      editKey
+    )
+
+    if (saveResult.status === 'conflict') {
+      setConcurrencyConflict(saveResult.conflictPlan || restoredPlan)
+      return
+    }
+
+    const nextVerNum = saveResult.versionNumber ?? (currentVersionNumber + 1)
+    const nextVerId = saveResult.versionId ?? `ver-${restoredPlan.id}-${nextVerNum}`
+
+    const newRecord: PlanVersionRecord = {
+      id: nextVerId,
+      eventId: restoredPlan.id,
+      versionNumber: nextVerNum,
+      parentVersionId: currentVersionId,
+      reason: `Reverted to v${targetVersionNumber}`,
+      isFloorProtected: Boolean(restoredPlan.brief.protectedCategory),
+      snapshot: restoredPlan,
+      createdAt: new Date().toISOString(),
+    }
+
+    setVersions((prev) => [newRecord, ...prev])
+    setCurrentVersionNumber(nextVerNum)
+    setCurrentVersionId(nextVerId)
+    setSyncStatus(saveResult.status === 'saved_cloud' ? 'cloud_saved' : 'local_saved')
+    setConcurrencyConflict(null)
+  }
+
+  // Concurrency conflict handlers (D-15)
+  const handleRefreshToLatest = () => {
+    if (concurrencyConflict) {
+      setPlan(concurrencyConflict)
+      setConcurrencyConflict(null)
+      setSyncStatus('cloud_saved')
+    }
+  }
+
+  const handleCommitAsNewSnapshot = async () => {
+    if (concurrencyConflict) {
+      setSyncStatus('syncing')
+      // Save without parentVersionId or using conflict plan's version to bypass conflict check
+      const saveResult = await persistence.savePlan(
+        plan,
+        undefined,
+        'Force saved local draft snapshot',
+        editKey
+      )
+      setConcurrencyConflict(null)
+      if (saveResult.status === 'saved_cloud') {
+        setSyncStatus('cloud_saved')
+      } else {
+        setSyncStatus('local_saved')
+      }
     }
   }
 
@@ -189,15 +437,31 @@ export function PlanWorkspace({ initialPlan, onResetPlan, isReadOnly, editKey }:
         )}
       </div>
 
+      {/* Optimistic Concurrency Conflict Banner (D-15, COLLAB-04) */}
+      {concurrencyConflict && (
+        <ConcurrencyConflictBanner
+          onRefresh={handleRefreshToLatest}
+          onCommitNewSnapshot={handleCommitAsNewSnapshot}
+        />
+      )}
+
       {/* Responsive Workspace Shell */}
       <WorkspaceShell
         plan={plan}
         changes={snapshotStack}
+        versions={versions}
+        currentVersionNumber={currentVersionNumber}
         previousGuestCount={previousGuestCount}
+        syncStatus={syncStatus}
+        isReadOnly={isReadOnly}
+        editKey={editKey}
+        initialShareToken={initialShareToken}
         onGuestCountChange={handleGuestCountChange}
         onSetProtected={handleSetProtected}
         onApplyRemedy={handleApplyRemedy}
         onUndo={handleUndo}
+        onRestoreVersion={handleRestoreVersion}
+        onUnlockEdit={onUnlockEdit}
       />
     </div>
   )
