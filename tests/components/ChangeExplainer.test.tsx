@@ -6,9 +6,9 @@ import {
   type PlanChangeRecord,
 } from '@/components/workspace/ChangeExplainer'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
-import type { EventBrief } from '@/lib/engine/types'
+import type { EventBrief, PlanVersionRecord } from '@/lib/engine/types'
 
-describe('ChangeExplainer Component', () => {
+describe('ChangeExplainer Component (D-10, D-11, COLLAB-04)', () => {
   const sampleBrief: EventBrief = {
     title: 'Ananya & Rohan Sangeet',
     eventType: 'wedding',
@@ -113,5 +113,95 @@ describe('ChangeExplainer Component', () => {
     const deltaChip = screen.getByText('-₹500 from Favors')
     expect(deltaChip).toBeInTheDocument()
     expect(deltaChip.className).toContain('tabular-nums')
+  })
+
+  describe('Phase 3 Version History & Forward Restore (D-10, D-11)', () => {
+    const mockVersions: PlanVersionRecord[] = [
+      {
+        id: 'ver-2',
+        eventId: 'event-1',
+        versionNumber: 2,
+        reason: 'Scaled guest count to 320 (+20 guests); Protected Moment held firm.',
+        createdAt: new Date().toISOString(),
+        snapshot: samplePlan,
+      },
+      {
+        id: 'ver-1',
+        eventId: 'event-1',
+        versionNumber: 1,
+        reason: 'Initial plan created from archetype',
+        createdAt: new Date(Date.now() - 3600000).toISOString(),
+        snapshot: samplePlan,
+      },
+    ]
+
+    it('renders reverse-chronological version cards with Current badge and relative timestamps', () => {
+      render(
+        <ChangeExplainer
+          plan={samplePlan}
+          versions={mockVersions}
+          currentVersionNumber={2}
+        />
+      )
+
+      expect(screen.getByText('Revision History')).toBeInTheDocument()
+      expect(screen.getAllByText('v2').length).toBeGreaterThan(0)
+      expect(screen.getByText('v1')).toBeInTheDocument()
+      expect(screen.getByText('Current')).toBeInTheDocument()
+      expect(
+        screen.getByText('Scaled guest count to 320 (+20 guests); Protected Moment held firm.')
+      ).toBeInTheDocument()
+    })
+
+    it('renders "Restore Version {k}" button on past versions and triggers onRestoreVersion', () => {
+      const handleRestore = vi.fn()
+
+      render(
+        <ChangeExplainer
+          plan={samplePlan}
+          versions={mockVersions}
+          currentVersionNumber={2}
+          onRestoreVersion={handleRestore}
+        />
+      )
+
+      // Active v2 should NOT have a restore button
+      expect(screen.queryByRole('button', { name: /Restore Version 2/i })).not.toBeInTheDocument()
+
+      // Past v1 should have Restore Version 1 button
+      const restoreBtn = screen.getByRole('button', { name: /Restore Version 1/i })
+      expect(restoreBtn).toBeInTheDocument()
+
+      fireEvent.click(restoreBtn)
+      expect(handleRestore).toHaveBeenCalledWith(1)
+    })
+
+    it('displays Gulabi Rose Protected Moment held firm tag on version cards', () => {
+      render(
+        <ChangeExplainer
+          plan={samplePlan}
+          versions={mockVersions}
+          currentVersionNumber={2}
+        />
+      )
+
+      const protectedTag = screen.getAllByText('Protected Moment held firm')[0]
+      expect(protectedTag).toBeInTheDocument()
+      expect(protectedTag.parentElement?.className).toContain('bg-gulabi-rose/20')
+    })
+
+    it('omits restore buttons when in read-only mode', () => {
+      render(
+        <ChangeExplainer
+          plan={samplePlan}
+          versions={mockVersions}
+          currentVersionNumber={2}
+          onRestoreVersion={vi.fn()}
+          isReadOnly={true}
+        />
+      )
+
+      expect(screen.queryByRole('button', { name: /Restore Version 1/i })).not.toBeInTheDocument()
+    })
   })
 })
