@@ -175,9 +175,16 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
+**Wave 1**
 
 - [ ] 06-01: Tool-less Quote Analyst prompt quarantine pipeline and verbatim evidence anchor validator.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 06-02: Interactive Quote Check comparison card with omission warnings and committed budget locking.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 06-03: Closed Component Registry renderer with Entity ID Binding for dynamic layouts and scenario comparisons.
 
 ---
