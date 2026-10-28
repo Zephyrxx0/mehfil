@@ -4,7 +4,7 @@ import React from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import type { BudgetCategory, BudgetLine } from '@/lib/engine/types'
 import { formatINR } from '@/lib/engine/currency'
-import { Lock, Star, Quote, ShieldCheck } from 'lucide-react'
+import { Lock, Star, Quote, ShieldCheck, Unlock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
 
 export interface DisplacedDonorRecord {
@@ -26,6 +37,8 @@ export interface BudgetLineCardProps {
   totalBudgetPaise: number
   onSetProtected: (category: BudgetCategory) => void
   displacedRecords?: DisplacedDonorRecord[]
+  onCheckQuote?: (category: BudgetCategory) => void
+  onUnlockQuote?: (category: BudgetCategory) => void
 }
 
 const LINE_TYPE_LABELS: Record<string, string> = {
@@ -40,6 +53,8 @@ export function BudgetLineCard({
   totalBudgetPaise,
   onSetProtected,
   displacedRecords,
+  onCheckQuote,
+  onUnlockQuote,
 }: BudgetLineCardProps) {
   const shouldReduceMotion = useReducedMotion()
 
@@ -71,6 +86,8 @@ export function BudgetLineCard({
         'relative transition-all duration-200 overflow-hidden',
         line.isProtected
           ? 'border-gulabi-rose bg-gulabi-rose/15 shadow-sm ring-1 ring-gulabi-rose/50 animate-shimmer-rose'
+          : line.isCommitted
+          ? 'border-marigold/50 bg-warm-ivory shadow-xs'
           : 'border-royal-plum/10 bg-warm-ivory hover:border-royal-plum/25 hover:shadow-xs'
       )}
     >
@@ -80,6 +97,19 @@ export function BudgetLineCard({
           <div className="flex flex-col gap-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h4 className="font-semibold text-sm text-royal-plum truncate">{line.name}</h4>
+
+              {line.isCommitted && (
+                <Badge
+                  data-testid="committed-quote-badge"
+                  className="gap-1 bg-marigold text-royal-plum border-marigold/60 shadow-2xs font-semibold text-2xs"
+                >
+                  <Lock className="w-2.5 h-2.5 fill-royal-plum text-royal-plum" />
+                  <span>
+                    Committed: {line.committedVendor}
+                    {line.committedTierName ? ` (${line.committedTierName})` : ''}
+                  </span>
+                </Badge>
+              )}
 
               {line.isProtected ? (
                 <TooltipProvider>
@@ -105,14 +135,14 @@ export function BudgetLineCard({
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-              ) : (
+              ) : !line.isCommitted ? (
                 <Badge
                   variant="outline"
                   className="text-2xs font-medium text-royal-plum/60 border-royal-plum/15"
                 >
                   {LINE_TYPE_LABELS[line.lineType] || line.lineType}
                 </Badge>
-              )}
+              ) : null}
             </div>
 
             <div className="flex items-center gap-2 text-xs text-royal-plum/60 flex-wrap">
@@ -136,7 +166,27 @@ export function BudgetLineCard({
               {formatINR(line.currentPaise)}
             </span>
 
-            {delta !== 0 && (
+            {/* Committed Variance Pill (D-10) */}
+            {line.isCommitted && line.variancePaise !== undefined ? (
+              <Badge
+                variant="outline"
+                data-testid="committed-variance-badge"
+                className={cn(
+                  'font-bold text-2xs tabular-nums',
+                  line.variancePaise > 0
+                    ? 'bg-[#4A7C59]/15 text-[#4A7C59] border-[#4A7C59]/40'
+                    : line.variancePaise < 0
+                    ? 'bg-amber-100/80 text-amber-900 border-amber-300'
+                    : 'bg-royal-plum/5 text-royal-plum border-royal-plum/15'
+                )}
+              >
+                {line.variancePaise > 0
+                  ? `Saved ${formatINR(line.variancePaise)}`
+                  : line.variancePaise < 0
+                  ? `+${formatINR(Math.abs(line.variancePaise))} actual`
+                  : 'Exact to allocation'}
+              </Badge>
+            ) : delta !== 0 ? (
               <Badge
                 variant="outline"
                 className={cn(
@@ -148,7 +198,7 @@ export function BudgetLineCard({
               >
                 {delta > 0 ? `+${formatINR(delta)}` : `-${formatINR(Math.abs(delta))}`}
               </Badge>
-            )}
+            ) : null}
 
             {/* Inline donor tags if line contributed funds to adopted ideas (D-05, BUDGET-04) */}
             {displacedRecords && displacedRecords.length > 0 && (
@@ -212,39 +262,93 @@ export function BudgetLineCard({
           </TooltipProvider>
         )}
 
-        {/* Action Footer: Category & Lock toggle */}
+        {/* Action Footer: Category, Check/Unlock Quote & Lock toggle */}
         <div className="flex items-center justify-between border-t border-royal-plum/8 pt-2.5">
           <span className="text-2xs uppercase tracking-wider text-royal-plum/40 font-mono">
             {line.category}
           </span>
 
-          <Button
-            type="button"
-            variant={line.isProtected ? 'secondary' : 'outline'}
-            size="sm"
-            onClick={handleToggleProtected}
-            title={
-              line.isProtected
-                ? 'Protected Moment is mathematically immune to displacement (ADR-0004)'
-                : 'Make this category your Protected Moment'
-            }
-            className={cn(
-              'h-7 gap-1 px-2.5 text-2xs font-semibold',
-              line.isProtected ? 'bg-gulabi-rose/40 text-royal-plum hover:bg-gulabi-rose/50' : ''
-            )}
-          >
-            {line.isProtected ? (
-              <>
-                <Lock className="w-2.5 h-2.5 fill-royal-plum" />
-                <span>Protected</span>
-              </>
-            ) : (
-              <>
-                <Star className="w-2.5 h-2.5" />
-                <span>Set as Protected</span>
-              </>
-            )}
-          </Button>
+          <div className="flex items-center gap-1.5">
+            {line.isCommitted ? (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 gap-1 px-2.5 text-2xs font-semibold rounded-full border-royal-plum/15 text-royal-plum hover:bg-royal-plum/5"
+                  >
+                    <Unlock className="w-2.5 h-2.5" />
+                    <span>Unlock / Replace Quote</span>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-warm-ivory border-royal-plum/10 text-royal-plum">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="font-serif text-lg font-bold">
+                      Unlock / Replace Quote
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-xs text-royal-plum/70 leading-relaxed">
+                      Unlock this committed quote? This will release the locked{' '}
+                      <strong className="text-royal-plum font-semibold">
+                        {formatINR(line.committedPaise ?? line.currentPaise)}
+                      </strong>{' '}
+                      allocation and re-open the category&apos;s primary booking task on your
+                      timeline. Your existing plan snapshot remains safely preserved.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-full border-royal-plum/15 text-xs">
+                      Keep Quote
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onUnlockQuote?.(line.category)}
+                      className="rounded-full bg-[#D95D39] text-white hover:bg-[#c44e2b] text-xs font-semibold"
+                    >
+                      Unlock Quote
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : onCheckQuote ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onCheckQuote(line.category)}
+                className="h-7 gap-1 px-2.5 text-2xs font-semibold rounded-full border-royal-plum/15 text-royal-plum hover:bg-royal-plum/5"
+              >
+                <span>Check Quote</span>
+              </Button>
+            ) : null}
+
+            <Button
+              type="button"
+              variant={line.isProtected ? 'secondary' : 'outline'}
+              size="sm"
+              onClick={handleToggleProtected}
+              title={
+                line.isProtected
+                  ? 'Protected Moment is mathematically immune to displacement (ADR-0004)'
+                  : 'Make this category your Protected Moment'
+              }
+              className={cn(
+                'h-7 gap-1 px-2.5 text-2xs font-semibold',
+                line.isProtected ? 'bg-gulabi-rose/40 text-royal-plum hover:bg-gulabi-rose/50' : ''
+              )}
+            >
+              {line.isProtected ? (
+                <>
+                  <Lock className="w-2.5 h-2.5 fill-royal-plum" />
+                  <span>Protected</span>
+                </>
+              ) : (
+                <>
+                  <Star className="w-2.5 h-2.5" />
+                  <span>Set as Protected</span>
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
