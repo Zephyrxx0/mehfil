@@ -15,7 +15,7 @@ Mehfil delivers a production-grade, mathematically verified celebration planning
 - [x] **Phase 2: Festive Design System & Centerpiece Kinetic Hero** - 3-hue palette tokens, shadcn/ui primitives, and big bold Fraunces animated typography hero with celebration micro-motion.
 - [x] **Phase 3: Anonymous Persistence & Dual-Link Collaboration** - Supabase RLS migrations, immutable version snapshots, Organizer Edit Keys, and sanitized Family Share Links.
 - [x] **Phase 4: Multi-Agent Style DNA & Resilient Fallback Ladder** - 24-swatch vibe intake, vision extraction, bounded Planner modulation diffs, and 3-tier zero-failure fallback ladder. (completed 2026-10-27)
-- [ ] **Phase 5: Budget Invariants, Protected Moments & Idea Displacement** - Protected Moment immunity, Permissive Shortfall remedies, budget-neutral idea displacement, and Compressed Mode scheduling.
+- [x] **Phase 5: Budget Invariants, Protected Moments & Idea Displacement** - Protected Moment immunity, Permissive Shortfall remedies, budget-neutral idea displacement, and Compressed Mode scheduling. (completed 2026-10-28)
 - [ ] **Phase 6: Quarantined Quote Check & Closed Registry Generative UI** - Tool-less Quote Analyst, verbatim source anchor validation, interactive Quote Check cards, and entity-ID-bound closed registry UI.
 
 ---
