@@ -58,3 +58,4 @@ All test suites passed with 100% success across the entire workspace:
 1. `bde95e2` — `feat(06-03): closed registry generative UI schemas, entity ID binding and fallback layout generation`
 2. `1cb8508` — `feat(06-03): implement 4 allowlisted generative UI primitives with pure entity ID binding`
 3. `fecddda` — `feat(06-03): contextual smart inspector sheet, 3-tier fallback and workspace shell coordination`
+

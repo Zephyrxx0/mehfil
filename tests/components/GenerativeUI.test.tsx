@@ -279,3 +279,4 @@ describe('Generative UI Primitives with Pure Entity ID Binding (GENUI-01, GENUI-
     expect(container.textContent).toContain('Royal Caterers & Feast')
   })
 })
+
