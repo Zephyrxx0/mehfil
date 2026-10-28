@@ -18,7 +18,7 @@ describe('BudgetLineCard Component (MOMENT-03, BUDGET-04, D-05, D-08)', () => {
 
   const protectedLine: BudgetLine = {
     id: 'photo-1',
-    category: 'photography',
+    category: 'photo_film',
     name: 'Photography & Cinema',
     baselinePaise: 300_000_00, // ₹3,00,000
     currentPaise: 375_000_00,  // ₹3,75,000
@@ -27,7 +27,7 @@ describe('BudgetLineCard Component (MOMENT-03, BUDGET-04, D-05, D-08)', () => {
     protectedQuote: 'Candid golden hour portraits with Dadi and Nani',
   }
 
-  let originalVibrate: ((pattern: number | number[]) => boolean) | undefined
+  let originalVibrate: any
 
   beforeEach(() => {
     originalVibrate = navigator.vibrate
@@ -62,7 +62,7 @@ describe('BudgetLineCard Component (MOMENT-03, BUDGET-04, D-05, D-08)', () => {
     expect(badge).toBeInTheDocument()
     expect(badge).toHaveTextContent('Protected Moment')
 
-    const card = document.getElementById('category-photography')
+    const card = document.getElementById('category-photo_film')
     expect(card).toHaveClass('border-gulabi-rose')
     expect(card).toHaveClass('animate-shimmer-rose')
 

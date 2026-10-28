@@ -120,12 +120,12 @@ Which phases cover which requirements.
 | BUDGET-03 | Phase 5 | Complete |
 | BUDGET-04 | Phase 5 | Complete |
 | MOMENT-02 | Phase 5 | Complete |
-| MOMENT-03 | Phase 5 | Pending |
-| IDEA-01 | Phase 5 | Pending |
+| MOMENT-03 | Phase 5 | Complete |
+| IDEA-01 | Phase 5 | Complete |
 | IDEA-02 | Phase 5 | Complete |
 | IDEA-03 | Phase 5 | Complete |
-| TIME-02 | Phase 5 | Pending |
-| TIME-03 | Phase 5 | Pending |
+| TIME-02 | Phase 5 | Complete |
+| TIME-03 | Phase 5 | Complete |
 | QUOTE-01 | Phase 6 | Pending |
 | QUOTE-02 | Phase 6 | Pending |
 | QUOTE-03 | Phase 6 | Pending |

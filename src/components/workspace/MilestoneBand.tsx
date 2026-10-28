@@ -92,14 +92,14 @@ export function MilestoneBand({ band }: MilestoneBandProps) {
                       Critical Path
                     </span>
                   )}
-                  {task.bufferDays !== undefined && task.bufferDays > 0 && (
+                  {task.appliedBufferDays !== undefined && task.appliedBufferDays > 0 && (
                     <span className="rounded-full bg-marigold/20 border border-marigold/50 px-2 py-0.5 text-3xs font-bold text-royal-plum">
-                      +{task.bufferDays}d peak buffer
+                      +{task.appliedBufferDays}d peak buffer
                     </span>
                   )}
-                  {task.environmentalRisk && (
+                  {task.environmentalRiskId && (
                     <span className="rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-3xs font-medium text-amber-900">
-                      [ {task.environmentalRisk} ]
+                      [ {task.environmentalRiskId} ]
                     </span>
                   )}
                 </div>

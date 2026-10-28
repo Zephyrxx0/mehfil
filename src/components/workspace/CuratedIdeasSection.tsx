@@ -22,7 +22,7 @@ const CATEGORIES: Array<{ label: string; value: BudgetCategory | 'all' }> = [
   { label: 'Entertainment', value: 'entertainment' },
   { label: 'Decor', value: 'decor' },
   { label: 'Favors', value: 'favors' },
-  { label: 'Photography', value: 'photography' },
+  { label: 'Photography', value: 'photo_film' },
 ]
 
 export function CuratedIdeasSection({

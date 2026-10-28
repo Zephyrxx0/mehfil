@@ -48,7 +48,11 @@ export function PlanWorkspace({
 }: PlanWorkspaceProps) {
   const [plan, setPlan] = useState<Plan>(() => {
     if (initialPlan.environmentalAnalysis) return initialPlan
-    const analysis = detectEnvironmentalRisks(initialPlan.brief.eventDate, initialPlan.brief.city)
+    const analysis = detectEnvironmentalRisks(
+      initialPlan.brief.eventDate,
+      initialPlan.brief.city,
+      initialPlan.brief.eventType
+    )
     return { ...initialPlan, environmentalAnalysis: analysis }
   })
   const [previousGuestCount, setPreviousGuestCount] = useState<number | undefined>(
