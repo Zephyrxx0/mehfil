@@ -82,7 +82,7 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
       const result = await extractQuoteWithModel(fakeModel, sampleRawQuote)
 
       expect(mockGenerateObject).toHaveBeenCalledTimes(1)
-      const callArgs = mockGenerateObject.mock.calls[0][0]
+      const callArgs = mockGenerateObject.mock.calls[0][0] as any
       expect(callArgs.tools).toEqual({}) // Strict zero tool binding
       expect(callArgs.temperature).toBe(0.2)
       expect(callArgs.schema).toBe(QuoteExtractionSchema)
@@ -100,7 +100,7 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
       await extractQuoteWithModel(fakeModel, sampleRawQuote, fakeImage)
 
       expect(mockGenerateObject).toHaveBeenCalledTimes(1)
-      const callArgs = mockGenerateObject.mock.calls[0][0]
+      const callArgs = mockGenerateObject.mock.calls[0][0] as any
       const messages = callArgs.messages as any[]
       expect(messages[0].content).toHaveLength(2)
       expect(messages[0].content[0].type).toBe('image')
@@ -120,7 +120,7 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
       const result = await extractQuoteWithModel(fakeModel, sampleRawQuote)
 
       expect(mockGenerateObject).toHaveBeenCalledTimes(2)
-      const repairCall = mockGenerateObject.mock.calls[1][0]
+      const repairCall = mockGenerateObject.mock.calls[1][0] as any
       expect(repairCall.temperature).toBe(0)
       expect(repairCall.tools).toEqual({})
       expect(result.tiers).toHaveLength(1)

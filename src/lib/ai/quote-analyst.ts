@@ -40,7 +40,7 @@ export async function extractQuoteWithModel(
       tools: {}, // Strict Zero Tool Binding
       abortSignal: AbortSignal.timeout(timeoutMs),
       temperature: 0.2,
-    })
+    } as any)
 
     return QuoteExtractionSchema.parse(object)
   } catch (err: any) {
@@ -70,7 +70,7 @@ export async function extractQuoteWithModel(
       tools: {}, // Strict Zero Tool Binding
       abortSignal: AbortSignal.timeout(remainingTimeout),
       temperature: 0,
-    })
+    } as any)
 
     return QuoteExtractionSchema.parse(repaired)
   }
