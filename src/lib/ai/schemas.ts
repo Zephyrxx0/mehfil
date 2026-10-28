@@ -146,3 +146,8 @@ export type QuoteExtractionInput = z.infer<typeof QuoteExtractionSchema>
 export type GenerativeUISectionInput = z.infer<typeof GenerativeUISectionSchema>
 export type GenerativeUILayoutInput = z.infer<typeof GenerativeUILayoutSchema>
 
+export type GenerativeUIComponent = z.infer<typeof GenerativeUIComponentEnum>
+export type LayoutVariant = z.infer<typeof LayoutVariantEnum>
+export type GenerativeUISection = GenerativeUISectionInput
+export type GenerativeUILayout = GenerativeUILayoutInput
+

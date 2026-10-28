@@ -1,11 +1,19 @@
 import { google } from '@ai-sdk/google'
-import { extractStyleDNAWithModel } from './style-analyst'
+import { generateObject } from 'ai'
+import { extractStyleDNAWithModel, isTimeoutOrAbortError } from './style-analyst'
 import { extractQuoteWithModel } from './quote-analyst'
 import { extractDeterministicStyleDNA, type VibeTradeoffs } from './heuristic'
 import { getSwatchById } from '@/data/swatches'
 import { parseAnchorNumber } from '@/lib/engine/quote-guard'
-import type { StyleDNA, AgentRunRecord, QuoteExtractionInput } from './schemas'
-import type { BudgetCategory } from '@/lib/engine/types'
+import {
+  GenerativeUILayoutSchema,
+  type StyleDNA,
+  type AgentRunRecord,
+  type QuoteExtractionInput,
+  type GenerativeUILayout,
+  type GenerativeUISection,
+} from './schemas'
+import type { BudgetCategory, Plan } from '@/lib/engine/types'
 
 export interface FallbackLadderOptions {
   timeoutMs?: number
@@ -528,5 +536,302 @@ export async function analyzeQuoteWithFallbackLadder(
   }
   console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
   return { extraction, runRecord }
+}
+
+// ---------------------------------------------------------------------------
+// Closed Registry Generative UI Fallback Ladder (Phase 6: GENUI-01, GENUI-02, GENUI-03, D-13, D-15, ADR-0008)
+// ---------------------------------------------------------------------------
+
+export interface LayoutFallbackLadderResult {
+  layout: GenerativeUILayout
+  runRecord: AgentRunRecord
+}
+
+export const GENERATIVE_UI_SYSTEM_PROMPT = `You are Mehfil's Closed Registry Generative UI Orchestrator.
+You curate celebration planning layouts for milestone celebrations (weddings, birthdays, community gatherings).
+
+CRITICAL ARCHITECTURAL CONSTRAINTS (ADR-0008, Entity ID Binding):
+1. CLOSED REGISTRY: You may ONLY use the 4 allowlisted components:
+   - 'VendorChecklist'
+   - 'IdeaGrid'
+   - 'QuoteReport'
+   - 'ScenarioComparison'
+2. ENTITY ID BINDING ONLY:
+   - You must NEVER generate amounts, prices, costs, paise, currencies, or dates in any section props.
+   - You must ONLY reference entity IDs: 'lineIds', 'quoteIds', 'ideaIds', 'highlightEntityId'.
+   - Pure client components resolve all numbers and dates from authoritative local plan state.
+3. ALLOWLISTED VARIANTS: 'compact', 'detailed', 'side_by_side'.
+4. SECTION LIMIT: Provide 1 to 4 sections maximum.
+5. EDITORIAL RATIONALE: Provide clear, plain-language rationale (10-500 chars) explaining why this layout helps the family organizer.`
+
+function formatCategoryLabel(cat: BudgetCategory): string {
+  const map: Record<BudgetCategory, string> = {
+    venue: 'Venue & Spaces',
+    catering: 'Catering & Feast',
+    decor: 'Decor & Ambience',
+    photo_film: 'Photo & Film',
+    entertainment: 'Music & Entertainment',
+    favors: 'Gifts & Favors',
+    misc: 'Logistics & Misc',
+    contingency: 'Contingency Reserve',
+  }
+  return map[cat] || cat
+}
+
+/**
+ * Constructs a deterministic static layout using active plan.lines and available quotes (D-15, ADR-0007).
+ * Guarantees 0% blank screens and full mathematical synchronization.
+ */
+export function generateDeterministicLayout(
+  plan: Plan,
+  contextCategory?: BudgetCategory
+): GenerativeUILayout {
+  const targetCategory = contextCategory || plan.brief.protectedCategory || 'catering'
+  const matchingQuotes = (plan.quotes || []).filter(
+    (q) => !contextCategory || q.category === targetCategory
+  )
+  const targetLine = plan.lines.find((l) => l.category === targetCategory)
+
+  const sections: GenerativeUISection[] = []
+
+  // Section 1: ScenarioComparison (if multiple quotes exist) or QuoteReport (if single quote exists)
+  if (matchingQuotes.length >= 2) {
+    sections.push({
+      id: `section-comparison-${targetCategory}`,
+      component: 'ScenarioComparison',
+      variant: 'side_by_side',
+      title: `${formatCategoryLabel(targetCategory)} Vendor Scenario Comparison`,
+      rationale:
+        'Compare multiple vendor quotes side-by-side across package tiers, guest rates, and statutory omissions.',
+      quoteIds: matchingQuotes.map((q) => q.id),
+      lineIds: targetLine ? [targetLine.id] : undefined,
+    })
+  } else if (matchingQuotes.length === 1) {
+    sections.push({
+      id: `section-report-${matchingQuotes[0].id}`,
+      component: 'QuoteReport',
+      variant: 'detailed',
+      title: `${matchingQuotes[0].vendorName} Quote Dossier & Breakdown`,
+      rationale:
+        'Verified breakdown of vendor deliverables, verbatim source anchors, and statutory omissions.',
+      quoteIds: [matchingQuotes[0].id],
+      lineIds: targetLine ? [targetLine.id] : undefined,
+    })
+  }
+
+  // Section 2 (or Section 1 if no quote): VendorChecklist mapping open and committed lines
+  sections.push({
+    id: 'section-vendor-checklist',
+    component: 'VendorChecklist',
+    variant: 'compact',
+    title: 'Celebration Vendor Checklist & Status',
+    rationale:
+      'Track open and committed celebration budget lines with variance tracking against initial baseline.',
+    lineIds: plan.lines.map((l) => l.id),
+    highlightEntityId: targetLine?.id,
+  })
+
+  // If room remains, add IdeaGrid as an inspirational exploration section
+  if (sections.length < 2) {
+    sections.push({
+      id: 'section-idea-grid',
+      component: 'IdeaGrid',
+      variant: 'compact',
+      title: 'Curated Milestone Enhancement Ideas',
+      rationale:
+        'Explore cultural and experiential enhancements with protected moment immunity and donor displacement.',
+      ideaIds: ['idea-royal-thali', 'idea-shehnai-welcome', 'idea-drone-photog', 'idea-mithai-favors'],
+    })
+  }
+
+  return {
+    layoutTitle: contextCategory
+      ? `${formatCategoryLabel(contextCategory)} Planning & Vendor Analysis`
+      : 'Celebration Vendor & Budget Analysis',
+    layoutSummary:
+      'Standard deterministic layout linking verified budget lines, vendor quotes, and timeline milestones.',
+    sections: sections.slice(0, 4),
+  }
+}
+
+/**
+ * Extracts structured Generative UI layout using a provided AI model instance with an 8s timeout
+ * and a 1-shot zero-temperature schema repair retry (GENUI-01, GENUI-02, ADR-0008).
+ */
+export async function generateLayoutWithModel(
+  modelInstance: any,
+  planContext: string,
+  userPrompt: string,
+  timeoutMs = 8000
+): Promise<GenerativeUILayout> {
+  const startTime = Date.now()
+  const content = `Plan Context:\n${planContext}\n\nOrganizer Request:\n${userPrompt}`
+
+  try {
+    const { object } = await generateObject({
+      model: modelInstance,
+      schema: GenerativeUILayoutSchema,
+      system: GENERATIVE_UI_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content }],
+      tools: {}, // Zero Tool Binding
+      abortSignal: AbortSignal.timeout(timeoutMs),
+      temperature: 0.2,
+    } as any)
+
+    return GenerativeUILayoutSchema.parse(object)
+  } catch (err: any) {
+    if (isTimeoutOrAbortError(err)) {
+      throw err
+    }
+
+    // 1-Shot Schema Repair Retry at temperature 0
+    const elapsed = Date.now() - startTime
+    const remainingTimeout = Math.max(2000, timeoutMs - elapsed)
+    const repairPrompt = `${content}\n\nThe previous layout failed schema validation: ${
+      err instanceof Error ? err.message : String(err)
+    }. Remember: NEVER output numeric amounts or dates. Use ONLY entity IDs (lineIds, quoteIds, ideaIds). Output valid JSON matching GenerativeUILayoutSchema.`
+
+    const { object: repaired } = await generateObject({
+      model: modelInstance,
+      schema: GenerativeUILayoutSchema,
+      system: GENERATIVE_UI_SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: repairPrompt }],
+      tools: {},
+      abortSignal: AbortSignal.timeout(remainingTimeout),
+      temperature: 0,
+    } as any)
+
+    return GenerativeUILayoutSchema.parse(repaired)
+  }
+}
+
+/**
+ * Three-tier resilient fallback ladder orchestrator for Generative UI Layout Curation (ADR-0007, ADR-0008, GENUI-01, GENUI-03).
+ *
+ * Tier 1: Gemma 4 (gemma-4-31b-it) with 8s timeout & 1-shot repair.
+ * Tier 2: Gemini 2.0 Flash (gemini-2.0-flash).
+ * Tier 3: Deterministic static template generator (generateDeterministicLayout).
+ */
+export async function generateLayoutWithFallbackLadder(
+  plan: Plan,
+  prompt: string,
+  contextCategory?: BudgetCategory,
+  options?: FallbackLadderOptions
+): Promise<LayoutFallbackLadderResult> {
+  const startTime = Date.now()
+
+  const hasApiKey = Boolean(
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() ||
+    process.env.GEMINI_API_KEY?.trim()
+  )
+
+  if (!hasApiKey && !options?.modelResolver) {
+    console.log(
+      '[Orchestrator] No Google AI API key detected. Seamlessly executing Tier 3 deterministic layout generator.'
+    )
+    const layout = generateDeterministicLayout(plan, contextCategory)
+    const durationMs = Math.max(0, Date.now() - startTime)
+    const runRecord: AgentRunRecord = {
+      activeTier: 3,
+      durationMs,
+      modelId: 'deterministic-heuristic-v1',
+      fallbackReason: 'api_key_missing',
+      timestamp: new Date().toISOString(),
+    }
+    console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+    return { layout, runRecord }
+  }
+
+  if (options?.forceTier === 3) {
+    const layout = generateDeterministicLayout(plan, contextCategory)
+    const durationMs = Math.max(0, Date.now() - startTime)
+    const runRecord: AgentRunRecord = {
+      activeTier: 3,
+      durationMs,
+      modelId: 'deterministic-heuristic-v1',
+      fallbackReason: 'forced_tier_3',
+      timestamp: new Date().toISOString(),
+    }
+    console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+    return { layout, runRecord }
+  }
+
+  const resolveModel = options?.modelResolver ?? ((modelId: string) => google(modelId))
+  const timeoutMs = options?.timeoutMs ?? 8000
+  const planSummary = `Celebration: ${plan.brief.title} (${plan.brief.eventType}), Guests: ${
+    plan.brief.guestCount
+  }, Categories: ${plan.lines.map((l) => `${l.category} (id: ${l.id})`).join(', ')}, Quotes: ${(
+    plan.quotes || []
+  )
+    .map((q) => `${q.vendorName} (id: ${q.id}, cat: ${q.category})`)
+    .join(', ')}`
+
+  let tier1Error: Error | undefined
+  let tier2Error: Error | undefined
+
+  // Tier 1: Gemma 4
+  if (options?.forceTier === undefined || options.forceTier === 1) {
+    try {
+      const model = resolveModel('gemma-4-31b-it')
+      const layout = await generateLayoutWithModel(model, planSummary, prompt, timeoutMs)
+      const durationMs = Math.max(0, Date.now() - startTime)
+      const runRecord: AgentRunRecord = {
+        activeTier: 1,
+        durationMs,
+        modelId: 'gemma-4-31b-it',
+        timestamp: new Date().toISOString(),
+      }
+      console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+      return { layout, runRecord }
+    } catch (err: any) {
+      tier1Error = err instanceof Error ? err : new Error(String(err))
+      console.warn(
+        `[Orchestrator] Tier 1 (gemma-4-31b-it) failed: ${tier1Error.message}. Escalating to Tier 2 (gemini-2.0-flash).`
+      )
+    }
+  }
+
+  // Tier 2: Gemini 2.0 Flash
+  if (options?.forceTier === undefined || options.forceTier <= 2) {
+    try {
+      const model = resolveModel('gemini-2.0-flash')
+      const layout = await generateLayoutWithModel(model, planSummary, prompt, timeoutMs)
+      const durationMs = Math.max(0, Date.now() - startTime)
+      const fallbackReason = tier1Error ? `Tier 1 failed: ${tier1Error.message}` : undefined
+      const runRecord: AgentRunRecord = {
+        activeTier: 2,
+        durationMs,
+        modelId: 'gemini-2.0-flash',
+        ...(fallbackReason ? { fallbackReason } : {}),
+        timestamp: new Date().toISOString(),
+      }
+      console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+      return { layout, runRecord }
+    } catch (err: any) {
+      tier2Error = err instanceof Error ? err : new Error(String(err))
+      console.warn(
+        `[Orchestrator] Tier 2 (gemini-2.0-flash) failed: ${tier2Error.message}. Escalating to Tier 3 (deterministic layout).`
+      )
+    }
+  }
+
+  // Tier 3: Deterministic Layout
+  const layout = generateDeterministicLayout(plan, contextCategory)
+  const durationMs = Math.max(0, Date.now() - startTime)
+  const fallbackReason = tier2Error
+    ? `Tier 1 & 2 failed: ${tier2Error.message}`
+    : tier1Error
+      ? `Tier 1 failed: ${tier1Error.message}`
+      : 'tier_3_fallback'
+
+  const runRecord: AgentRunRecord = {
+    activeTier: 3,
+    durationMs,
+    modelId: 'deterministic-heuristic-v1',
+    fallbackReason,
+    timestamp: new Date().toISOString(),
+  }
+  console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+  return { layout, runRecord }
 }
 
