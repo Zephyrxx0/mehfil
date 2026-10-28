@@ -32,6 +32,13 @@ export interface BudgetLine {
   elasticityRank?: number     // lower rank = trimmed first (1 = first to trim)
   isProtected?: boolean       // Protected Moment — immune to downward trimming (ADR-0004)
   protectedQuote?: string     // Protected Moment verbatim quote
+  isCommitted?: boolean
+  committedQuoteId?: string
+  committedVendor?: string
+  committedTierName?: string
+  committedPaise?: Paise
+  variancePaise?: Paise
+  committedAt?: string
 }
 
 export interface EventBrief {
@@ -75,6 +82,7 @@ export interface Plan {
   styleDNA?: StyleDNA
   adoptedIdeas?: IdeaDisplacementRecord[]
   environmentalAnalysis?: EnvironmentalAnalysis
+  quotes?: VendorQuote[]
 }
 
 // Idea Displacement Domain Types (Phase 5: IDEA-01, IDEA-02, IDEA-03, BUDGET-04, MOMENT-02)
@@ -164,6 +172,8 @@ export interface TimelineTask {
   environmentalRiskId?: EnvironmentalRiskId
   environmentalAdvisory?: string
   originIdeaId?: string
+  originQuoteId?: string
+  completedAt?: string
 }
 
 export interface MilestoneBand {
@@ -237,5 +247,90 @@ export interface SanitizedSharedPlan {
   }>
   isExpired?: boolean
 }
+
+// Vendor Quote & Quarantine Domain Types (Phase 6: QUOTE-01, QUOTE-02, QUOTE-03, QUOTE-04, QUOTE-05, QUOTE-06, ADR-0003)
+
+export interface ExtractedQuoteItem {
+  id: string
+  description: string
+  amountStated: number        // raw Rupee figure, e.g. 150000 or 950
+  pricingType: 'flat' | 'per_guest'
+  sourceAnchor: string        // verbatim substring match
+  itemPaise: Paise            // computed by pure TS: rate * 100, scaled by guestCount if per_guest
+  isVerified: boolean
+}
+
+export interface QuoteOmissionAdder {
+  id: string
+  name: string
+  category: BudgetCategory
+  rateType: 'percentage' | 'fixed'
+  percentageValue?: number    // e.g. 18 for 18% GST
+  fixedPaise?: Paise          // e.g. 1500000 for ₹15,000
+  amountPaise: Paise
+  rationale: string
+  isEnabled: boolean
+}
+
+export interface QuoteDroppedItem {
+  description: string
+  amountStated: number
+  sourceAnchor: string
+  reason: 'no_substring_match' | 'numeric_mismatch'
+}
+
+export interface PackageTier {
+  tierId: string
+  name: string
+  description?: string
+  lineItems: ExtractedQuoteItem[]
+  baseTierPaise: Paise        // sum of verified itemPaise
+  totalWithAddersPaise: Paise // baseTierPaise + enabled adders
+  tierTotalStated?: number
+  isStatedTotalConsistent: boolean
+}
+
+export interface VendorQuote {
+  id: string
+  vendorName: string
+  category: BudgetCategory
+  rawText: string
+  tiers: PackageTier[]
+  omissionAdders: QuoteOmissionAdder[]
+  droppedItems: QuoteDroppedItem[]
+  statedInclusions: string[]
+  statedExclusions: string[]
+  paymentTerms?: string
+  createdAt: string
+}
+
+// Generative UI Closed Registry Domain Types (Phase 6: GENUI-01, GENUI-02, GENUI-03, ADR-0008)
+
+export type GenerativeUIComponent =
+  | 'VendorChecklist'
+  | 'IdeaGrid'
+  | 'QuoteReport'
+  | 'ScenarioComparison'
+
+export type LayoutVariant = 'compact' | 'detailed' | 'side_by_side'
+
+export interface GenerativeUISection {
+  id: string
+  component: GenerativeUIComponent
+  variant: LayoutVariant
+  title: string
+  rationale: string
+  lineIds?: string[]
+  quoteIds?: string[]
+  ideaIds?: string[]
+  highlightEntityId?: string
+}
+
+export interface GenerativeUILayout {
+  layoutTitle: string
+  layoutSummary: string
+  sections: GenerativeUISection[]
+}
+
 
 
