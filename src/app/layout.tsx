@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Fraunces, Plus_Jakarta_Sans, Tiro_Devanagari_Hindi } from 'next/font/google'
+import { Agentation } from 'agentation'
 import './globals.css'
 
 const fraunces = Fraunces({
@@ -39,6 +40,9 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-warm-ivory text-royal-plum antialiased font-sans selection:bg-marigold/30 selection:text-royal-plum">
         {children}
+        {process.env.NODE_ENV === 'development' && (
+          <Agentation endpoint="http://localhost:4747" />
+        )}
       </body>
     </html>
   )

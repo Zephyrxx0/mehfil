@@ -19,6 +19,7 @@
     "@radix-ui/react-tooltip": "^1.4.1",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.118.0",
+    "agentation": "^3.1.2",
     "ai": "^7.0.153",
     "class-variance-authority": "^0.7.1",
     "clsx": "2.1.1",
