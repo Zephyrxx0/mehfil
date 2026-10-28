@@ -7,6 +7,7 @@ import type {
   CuratedIdea,
   IdeaDisplacementRecord,
   DisplacedDonor,
+  VendorQuote,
 } from './types'
 
 /**
@@ -454,4 +455,327 @@ export function retractIdea(plan: Plan, ideaId: string): Plan {
   }
 
   return newPlan
+}
+
+export interface QuoteDisplacementPreview {
+  committedPaise: Paise
+  deltaPaise: Paise
+  displacedDonors: DisplacedDonor[]
+  wouldTriggerShortfall: boolean
+  shortfallPaise: Paise
+}
+
+/**
+ * Preview the budget displacement and shortfall impact of committing a vendor quote tier (QUOTE-06, D-09, D-12).
+ * Pure calculation — does not mutate plan state.
+ */
+export function previewQuoteDisplacement(
+  plan: Plan,
+  quote: VendorQuote,
+  tierId: string,
+  activeAdderIds?: string[]
+): QuoteDisplacementPreview {
+  const tier = quote.tiers.find(t => t.tierId === tierId) ?? quote.tiers[0]
+  if (!tier) {
+    throw new Error(`Tier ${tierId} not found in quote ${quote.id}`)
+  }
+
+  // Calculate committedPaise: base tier paise + active omission adders
+  let committedPaise = tier.baseTierPaise
+  if (activeAdderIds !== undefined) {
+    const addersTotal = (quote.omissionAdders ?? [])
+      .filter(a => activeAdderIds.includes(a.id))
+      .reduce((sum, a) => sum + a.amountPaise, 0)
+    committedPaise += addersTotal
+  } else {
+    committedPaise = tier.totalWithAddersPaise ?? tier.baseTierPaise
+  }
+
+  const targetLine = plan.lines.find(l => l.category === quote.category)
+  if (!targetLine) {
+    throw new Error(`Target category line ${quote.category} not found in plan`)
+  }
+
+  const deltaPaise = committedPaise - targetLine.currentPaise
+
+  if (deltaPaise <= 0) {
+    return {
+      committedPaise,
+      deltaPaise,
+      displacedDonors: [],
+      wouldTriggerShortfall: false,
+      shortfallPaise: 0,
+    }
+  }
+
+  // Delta > 0: Need to fund excess outlay via flexible donor lines
+  const donorCandidates = plan.lines
+    .filter(l => l.lineType === 'flexible' && !l.isProtected && !l.isCommitted && l.id !== targetLine.id)
+    .sort((a, b) => (a.elasticityRank ?? 99) - (b.elasticityRank ?? 99))
+
+  let neededPaise = deltaPaise
+  const displacedDonors: DisplacedDonor[] = []
+
+  for (const donor of donorCandidates) {
+    if (neededPaise <= 0) break
+    const floor = Math.round(donor.baselinePaise * 0.40 / 100) * 100
+    const available = Math.max(0, donor.currentPaise - floor)
+    if (available > 0) {
+      const deduction = Math.min(neededPaise, available)
+      displacedDonors.push({
+        lineId: donor.id,
+        category: donor.category,
+        displacedPaise: deduction,
+      })
+      neededPaise -= deduction
+    }
+  }
+
+  return {
+    committedPaise,
+    deltaPaise,
+    displacedDonors,
+    wouldTriggerShortfall: neededPaise > 0,
+    shortfallPaise: neededPaise > 0 ? neededPaise : 0,
+  }
+}
+
+/**
+ * Commit a vendor quote to the plan (QUOTE-06, D-10, D-11, D-12).
+ * - Locks currentPaise at actuals and records variancePaise
+ * - If delta > 0: drains flexible donor lines (Misc -> Entertainment -> Decor) down to 40% floor
+ * - Protected Moment lines are strictly immune (!line.isProtected)
+ * - If donor capacity is exhausted, clamps to 40% floor and triggers Permissive Shortfall with 3 remedies
+ * - If delta < 0: restores trimmed flexible lines toward baseline, sends leftover surplus to contingency
+ * - Invariant: sum(lines.currentPaise) === plan.totalBudgetPaise for feasible plans
+ */
+export function commitQuote(
+  plan: Plan,
+  quote: VendorQuote,
+  tierId: string,
+  activeAdderIds?: string[]
+): Plan {
+  const tier = quote.tiers.find(t => t.tierId === tierId) ?? quote.tiers[0]
+  if (!tier) {
+    throw new Error(`Tier ${tierId} not found in quote ${quote.id}`)
+  }
+
+  let committedPaise = tier.baseTierPaise
+  if (activeAdderIds !== undefined) {
+    const addersTotal = (quote.omissionAdders ?? [])
+      .filter(a => activeAdderIds.includes(a.id))
+      .reduce((sum, a) => sum + a.amountPaise, 0)
+    committedPaise += addersTotal
+  } else {
+    committedPaise = tier.totalWithAddersPaise ?? tier.baseTierPaise
+  }
+
+  const lines = plan.lines.map(l => ({ ...l }))
+  const targetLine = lines.find(l => l.category === quote.category)
+  if (!targetLine) {
+    throw new Error(`Target category line ${quote.category} not found in plan`)
+  }
+
+  const deltaPaise = committedPaise - targetLine.currentPaise
+  let remainingShortfall = 0
+
+  if (deltaPaise > 0) {
+    // Excess outlay: drain flexible donor lines in elasticity order down to 40% floor
+    const donorCandidates = lines
+      .filter(l => l.lineType === 'flexible' && !l.isProtected && !l.isCommitted && l.id !== targetLine.id)
+      .sort((a, b) => (a.elasticityRank ?? 99) - (b.elasticityRank ?? 99))
+
+    let neededPaise = deltaPaise
+
+    for (const donor of donorCandidates) {
+      if (neededPaise <= 0) break
+      const floor = Math.round(donor.baselinePaise * 0.40 / 100) * 100
+      const available = Math.max(0, donor.currentPaise - floor)
+      if (available > 0) {
+        const deduction = Math.min(neededPaise, available)
+        donor.currentPaise -= deduction
+        neededPaise -= deduction
+      }
+    }
+
+    if (neededPaise > 0) {
+      remainingShortfall = neededPaise
+    }
+  } else if (deltaPaise < 0) {
+    // Under budget savings: restore previously trimmed flexible lines back toward baseline
+    let surplusPaise = -deltaPaise
+    const flexibleLinesToRestore = lines
+      .filter(l => l.lineType === 'flexible' && !l.isProtected && l.id !== targetLine.id)
+      .sort((a, b) => (b.elasticityRank ?? 99) - (a.elasticityRank ?? 99))
+
+    for (const line of flexibleLinesToRestore) {
+      if (surplusPaise <= 0) break
+      if (line.currentPaise < line.baselinePaise) {
+        const room = line.baselinePaise - line.currentPaise
+        const restore = Math.min(surplusPaise, room)
+        line.currentPaise += restore
+        surplusPaise -= restore
+      }
+    }
+
+    // Allocate any leftover surplus to contingency buffer
+    if (surplusPaise > 0) {
+      const contingency = lines.find(l => l.category === 'contingency')
+      if (contingency) {
+        contingency.currentPaise += surplusPaise
+      } else {
+        const bufferLine = lines.find(l => l.lineType === 'buffer')
+        if (bufferLine) {
+          bufferLine.currentPaise += surplusPaise
+        } else if (flexibleLinesToRestore.length > 0) {
+          flexibleLinesToRestore[0].currentPaise += surplusPaise
+        }
+      }
+    }
+  }
+
+  // Lock target line commitment metadata (D-10)
+  targetLine.isCommitted = true
+  targetLine.committedQuoteId = quote.id
+  targetLine.committedVendor = quote.vendorName
+  targetLine.committedTierName = tier.name
+  targetLine.committedPaise = committedPaise
+  targetLine.currentPaise = committedPaise
+  targetLine.variancePaise = targetLine.baselinePaise - committedPaise
+  targetLine.committedAt = new Date().toISOString()
+
+  // Track quote in plan
+  const existingQuotes = plan.quotes ?? []
+  const quotes = [...existingQuotes.filter(q => q.id !== quote.id), quote]
+
+  const newPlan: Plan = {
+    ...plan,
+    lines,
+    quotes,
+  }
+
+  const existingShortfall = plan.shortfallPaise ?? 0
+  const totalShortfall = existingShortfall + remainingShortfall
+
+  if (totalShortfall > 0) {
+    newPlan.isInfeasible = true
+    newPlan.shortfallPaise = totalShortfall
+    newPlan.remedies = calculateShortfallRemedies(newPlan, totalShortfall)
+  } else {
+    newPlan.isInfeasible = false
+    newPlan.shortfallPaise = undefined
+    newPlan.remedies = undefined
+  }
+
+  // Invariant verification for feasible plans
+  if (!newPlan.isInfeasible) {
+    const sum = newPlan.lines.reduce((s, l) => s + l.currentPaise, 0)
+    if (sum !== newPlan.totalBudgetPaise) {
+      const diff = newPlan.totalBudgetPaise - sum
+      const adjustTarget = newPlan.lines.find(l => l.category === 'contingency')
+        ?? newPlan.lines.find(l => l.lineType === 'flexible' && !l.isProtected && !l.isCommitted)
+        ?? newPlan.lines[newPlan.lines.length - 1]
+      adjustTarget.currentPaise += diff
+    }
+  }
+
+  return newPlan
+}
+
+/**
+ * Unlock and release a committed quote on a budget line (QUOTE-06, D-10).
+ * - Resets isCommitted = false and clears commitment metadata
+ * - Restores category line back to baselinePaise and rebalances flexible lines / contingency
+ */
+export function unlockQuote(plan: Plan, category: BudgetCategory): Plan {
+  const lines = plan.lines.map(l => ({ ...l }))
+  const targetLine = lines.find(l => l.category === category)
+  if (!targetLine || !targetLine.isCommitted) {
+    return plan
+  }
+
+  const prevCommitted = targetLine.committedPaise ?? targetLine.currentPaise
+
+  targetLine.isCommitted = false
+  targetLine.committedQuoteId = undefined
+  targetLine.committedVendor = undefined
+  targetLine.committedTierName = undefined
+  targetLine.committedPaise = undefined
+  targetLine.variancePaise = undefined
+  targetLine.committedAt = undefined
+
+  const delta = targetLine.baselinePaise - prevCommitted
+  targetLine.currentPaise = targetLine.baselinePaise
+
+  if (delta > 0) {
+    // Target was under baseline, returning to baseline requires more money
+    let needed = delta
+    const contingency = lines.find(l => l.category === 'contingency')
+    if (contingency && contingency.currentPaise > contingency.baselinePaise) {
+      const take = Math.min(needed, contingency.currentPaise - contingency.baselinePaise)
+      contingency.currentPaise -= take
+      needed -= take
+    }
+
+    const donors = lines
+      .filter(l => l.lineType === 'flexible' && !l.isProtected && !l.isCommitted && l.id !== targetLine.id)
+      .sort((a, b) => (a.elasticityRank ?? 99) - (b.elasticityRank ?? 99))
+
+    for (const donor of donors) {
+      if (needed <= 0) break
+      const floor = Math.round(donor.baselinePaise * 0.40 / 100) * 100
+      const avail = Math.max(0, donor.currentPaise - floor)
+      if (avail > 0) {
+        const take = Math.min(needed, avail)
+        donor.currentPaise -= take
+        needed -= take
+      }
+    }
+  } else if (delta < 0) {
+    // Target was over baseline, returning to baseline frees up money
+    let surplus = -delta
+    const flexibleLines = lines
+      .filter(l => l.lineType === 'flexible' && !l.isProtected && l.id !== targetLine.id)
+      .sort((a, b) => (b.elasticityRank ?? 99) - (a.elasticityRank ?? 99))
+
+    for (const line of flexibleLines) {
+      if (surplus <= 0) break
+      if (line.currentPaise < line.baselinePaise) {
+        const room = line.baselinePaise - line.currentPaise
+        const restore = Math.min(surplus, room)
+        line.currentPaise += restore
+        surplus -= restore
+      }
+    }
+
+    if (surplus > 0) {
+      const contingency = lines.find(l => l.category === 'contingency')
+      if (contingency) {
+        contingency.currentPaise += surplus
+      } else if (flexibleLines.length > 0) {
+        flexibleLines[0].currentPaise += surplus
+      }
+    }
+  }
+
+  const sum = lines.reduce((s, l) => s + l.currentPaise, 0)
+  let isInfeasible = false
+  let shortfallPaise: number | undefined = undefined
+
+  if (sum > plan.totalBudgetPaise) {
+    isInfeasible = true
+    shortfallPaise = sum - plan.totalBudgetPaise
+  } else if (sum < plan.totalBudgetPaise) {
+    const diff = plan.totalBudgetPaise - sum
+    const cont = lines.find(l => l.category === 'contingency') ?? lines.find(l => l.lineType === 'flexible') ?? lines[lines.length - 1]
+    cont.currentPaise += diff
+  }
+
+  return {
+    ...plan,
+    lines,
+    isInfeasible,
+    shortfallPaise,
+    remedies: isInfeasible && shortfallPaise ? calculateShortfallRemedies({ ...plan, lines }, shortfallPaise) : undefined,
+  }
 }

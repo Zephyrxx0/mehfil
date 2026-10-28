@@ -401,3 +401,79 @@ export function calculateBackwardsTimeline(
     isCompressedMode,
   }
 }
+
+export const CATEGORY_PRIMARY_TASK_MAP: Record<BudgetCategory, string> = {
+  venue: 'task_venue_contract',
+  catering: 'task_catering_tasting',
+  photo_film: 'task_photo_book',
+  decor: 'task_decor_concept',
+  entertainment: 'task_entertainment_permit',
+  favors: 'task_invites_dispatch',
+  misc: '',
+  contingency: '',
+}
+
+/**
+ * Complete the primary milestone booking task for a category upon vendor quote commitment (QUOTE-06, D-11).
+ */
+export function completePrimaryBookingTask(
+  schedule: TimelineSchedule,
+  category: BudgetCategory,
+  quoteId: string
+): TimelineSchedule {
+  const taskId = CATEGORY_PRIMARY_TASK_MAP[category]
+  if (!taskId) return schedule
+
+  const completedAt = new Date().toISOString()
+  const milestoneBands = schedule.milestoneBands.map(band => ({
+    ...band,
+    tasks: band.tasks.map(task => {
+      if (task.id === taskId) {
+        return {
+          ...task,
+          isCompleted: true,
+          originQuoteId: quoteId,
+          completedAt,
+        }
+      }
+      return task
+    }),
+  }))
+
+  return {
+    ...schedule,
+    milestoneBands,
+  }
+}
+
+/**
+ * Re-open the primary milestone booking task for a category when quote is unlocked (QUOTE-06, D-10).
+ */
+export function reopenPrimaryBookingTask(
+  schedule: TimelineSchedule,
+  category: BudgetCategory
+): TimelineSchedule {
+  const taskId = CATEGORY_PRIMARY_TASK_MAP[category]
+  if (!taskId) return schedule
+
+  const milestoneBands = schedule.milestoneBands.map(band => ({
+    ...band,
+    tasks: band.tasks.map(task => {
+      if (task.id === taskId) {
+        return {
+          ...task,
+          isCompleted: false,
+          originQuoteId: undefined,
+          completedAt: undefined,
+        }
+      }
+      return task
+    }),
+  }))
+
+  return {
+    ...schedule,
+    milestoneBands,
+  }
+}
+
