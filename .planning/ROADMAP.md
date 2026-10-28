@@ -16,7 +16,7 @@ Mehfil delivers a production-grade, mathematically verified celebration planning
 - [x] **Phase 3: Anonymous Persistence & Dual-Link Collaboration** - Supabase RLS migrations, immutable version snapshots, Organizer Edit Keys, and sanitized Family Share Links.
 - [x] **Phase 4: Multi-Agent Style DNA & Resilient Fallback Ladder** - 24-swatch vibe intake, vision extraction, bounded Planner modulation diffs, and 3-tier zero-failure fallback ladder. (completed 2026-10-27)
 - [x] **Phase 5: Budget Invariants, Protected Moments & Idea Displacement** - Protected Moment immunity, Permissive Shortfall remedies, budget-neutral idea displacement, and Compressed Mode scheduling. (completed 2026-10-28)
-- [ ] **Phase 6: Quarantined Quote Check & Closed Registry Generative UI** - Tool-less Quote Analyst, verbatim source anchor validation, interactive Quote Check cards, and entity-ID-bound closed registry UI.
+- [x] **Phase 6: Quarantined Quote Check & Closed Registry Generative UI** - Tool-less Quote Analyst, verbatim source anchor validation, interactive Quote Check cards, and entity-ID-bound closed registry UI. (completed 2026-10-28)
 
 ---
 
@@ -177,15 +177,15 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 06-01: Tool-less Quote Analyst prompt quarantine pipeline and verbatim evidence anchor validator.
+- [x] 06-01: Tool-less Quote Analyst prompt quarantine pipeline and verbatim evidence anchor validator.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 06-02: Interactive Quote Check comparison card with omission warnings and committed budget locking.
+- [x] 06-02: Interactive Quote Check comparison card with omission warnings and committed budget locking.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 06-03: Closed Component Registry renderer with Entity ID Binding for dynamic layouts and scenario comparisons.
+- [x] 06-03: Closed Component Registry renderer with Entity ID Binding for dynamic layouts and scenario comparisons.
 
 ---
 *Roadmap created: 2026-10-27*

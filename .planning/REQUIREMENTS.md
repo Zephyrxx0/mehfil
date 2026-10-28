@@ -97,21 +97,21 @@ Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BRIEF-01 | Phase 1 | Pending |
-| BRIEF-02 | Phase 1 | Pending |
-| BRIEF-03 | Phase 1 | Pending |
-| BUDGET-01 | Phase 1 | Pending |
-| BUDGET-02 | Phase 1 | Pending |
-| TIME-01 | Phase 1 | Pending |
-| TIME-04 | Phase 1 | Pending |
-| MOMENT-01 | Phase 1 | Pending |
-| DESIGN-01 | Phase 2 | Pending |
-| DESIGN-02 | Phase 2 | Pending |
-| DESIGN-03 | Phase 2 | Pending |
-| COLLAB-01 | Phase 3 | Pending |
-| COLLAB-02 | Phase 3 | Pending |
-| COLLAB-03 | Phase 3 | Pending |
-| COLLAB-04 | Phase 3 | Pending |
+| BRIEF-01 | Phase 1 | Complete |
+| BRIEF-02 | Phase 1 | Complete |
+| BRIEF-03 | Phase 1 | Complete |
+| BUDGET-01 | Phase 1 | Complete |
+| BUDGET-02 | Phase 1 | Complete |
+| TIME-01 | Phase 1 | Complete |
+| TIME-04 | Phase 1 | Complete |
+| MOMENT-01 | Phase 1 | Complete |
+| DESIGN-01 | Phase 2 | Complete |
+| DESIGN-02 | Phase 2 | Complete |
+| DESIGN-03 | Phase 2 | Complete |
+| COLLAB-01 | Phase 3 | Complete |
+| COLLAB-02 | Phase 3 | Complete |
+| COLLAB-03 | Phase 3 | Complete |
+| COLLAB-04 | Phase 3 | Complete |
 | VIBE-01 | Phase 4 | Complete |
 | VIBE-02 | Phase 4 | Complete |
 | VIBE-03 | Phase 4 | Complete |
@@ -126,14 +126,14 @@ Which phases cover which requirements.
 | IDEA-03 | Phase 5 | Complete |
 | TIME-02 | Phase 5 | Complete |
 | TIME-03 | Phase 5 | Complete |
-| QUOTE-01 | Phase 6 | Pending |
-| QUOTE-02 | Phase 6 | Pending |
-| QUOTE-03 | Phase 6 | Pending |
-| QUOTE-04 | Phase 6 | Pending |
-| QUOTE-05 | Phase 6 | Pending |
-| QUOTE-06 | Phase 6 | Pending |
-| GENUI-01 | Phase 6 | Pending |
-| GENUI-02 | Phase 6 | Pending |
+| QUOTE-01 | Phase 6 | Complete |
+| QUOTE-02 | Phase 6 | Complete |
+| QUOTE-03 | Phase 6 | Complete |
+| QUOTE-04 | Phase 6 | Complete |
+| QUOTE-05 | Phase 6 | Complete |
+| QUOTE-06 | Phase 6 | Complete |
+| GENUI-01 | Phase 6 | Complete |
+| GENUI-02 | Phase 6 | Complete |
 
 **Coverage:**
 
