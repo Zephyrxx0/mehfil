@@ -1,9 +1,23 @@
 'use client'
 
-import React, { useState } from 'react'
-import type { Plan, BudgetCategory, ShortfallRemedy, PlanVersionRecord, CuratedIdea } from '@/lib/engine/types'
+import React, { useState, useEffect } from 'react'
+import type {
+  Plan,
+  BudgetCategory,
+  ShortfallRemedy,
+  PlanVersionRecord,
+  CuratedIdea,
+  VendorQuote,
+  GenerativeUILayout,
+} from '@/lib/engine/types'
 import type { StyleDimensions } from '@/lib/ai/schemas'
-import { calculateBackwardsTimeline } from '@/lib/engine/timeline'
+import {
+  calculateBackwardsTimeline,
+  completePrimaryBookingTask,
+  reopenPrimaryBookingTask,
+} from '@/lib/engine/timeline'
+import { commitQuote, unlockQuote } from '@/lib/engine/budget'
+import { generateDeterministicLayout } from '@/lib/ai/orchestrator'
 import { formatINR } from '@/lib/engine/currency'
 import { BudgetSection } from './BudgetSection'
 import { TimelineSection } from './TimelineSection'
@@ -13,6 +27,8 @@ import { ShortfallBanner } from './ShortfallBanner'
 import { CuratedIdeasSection } from './CuratedIdeasSection'
 import { SyncStatusBadge, type SyncState } from './SyncStatusBadge'
 import { ShareSaveModal } from './ShareSaveModal'
+import { QuoteIntakeSheet } from '@/components/quotes/QuoteIntakeSheet'
+import { SmartInspectorSheet } from '@/components/quotes/SmartInspectorSheet'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -27,6 +43,7 @@ import {
   Lock,
   KeyRound,
   Sparkles,
+  Compass,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -55,6 +72,10 @@ export interface WorkspaceShellProps {
   onRetryExtraction?: () => void
   onAdoptIdea?: (idea: CuratedIdea) => void
   onRetractIdea?: (ideaId: string) => void
+  onCommitQuote?: (committedPlan: Plan) => void
+  onUnlockQuote?: (unlockedPlan: Plan) => void
+  onCheckQuote?: (category: BudgetCategory) => void
+  onOpenSmartInspector?: (category?: BudgetCategory) => void
 }
 
 export type MobileTab = 'budget' | 'timeline' | 'ideas' | 'style' | 'summary'
@@ -85,11 +106,99 @@ export function WorkspaceShell({
   onRetryExtraction,
   onAdoptIdea,
   onRetractIdea,
+  onCommitQuote: onCommitQuoteProp,
+  onUnlockQuote: onUnlockQuoteProp,
+  onCheckQuote: onCheckQuoteProp,
+  onOpenSmartInspector: onOpenSmartInspectorProp,
 }: WorkspaceShellProps) {
   const [mobileTab, setMobileTab] = useState<MobileTab>('budget')
   const [desktopTab, setDesktopTab] = useState<DesktopTab>('all')
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+
+  // Quote Intake and Generative UI State (GENUI-01, GENUI-02, D-01, D-14)
+  const [currentPlan, setCurrentPlan] = useState<Plan>(plan)
+  useEffect(() => {
+    setCurrentPlan(plan)
+  }, [plan])
+
+  const [isQuoteIntakeOpen, setIsQuoteIntakeOpen] = useState(false)
+  const [activeQuoteCategory, setActiveQuoteCategory] = useState<BudgetCategory | undefined>(undefined)
+  const [isSmartInspectorOpen, setIsSmartInspectorOpen] = useState(false)
+  const [smartInspectorLayout, setSmartInspectorLayout] = useState<GenerativeUILayout | undefined>(undefined)
+  const [smartInspectorTier, setSmartInspectorTier] = useState<1 | 2 | 3 | undefined>(undefined)
+  const [activeQuotes, setActiveQuotes] = useState<VendorQuote[]>(() => plan.quotes || [])
+
+  const [timelineSchedule, setTimelineSchedule] = useState(() =>
+    calculateBackwardsTimeline(plan.brief.eventDate, plan.brief.guestCount)
+  )
+
+  useEffect(() => {
+    setTimelineSchedule(
+      calculateBackwardsTimeline(currentPlan.brief.eventDate, currentPlan.brief.guestCount)
+    )
+  }, [currentPlan.brief.eventDate, currentPlan.brief.guestCount])
+
+  const handleCheckQuote = (category: BudgetCategory) => {
+    setActiveQuoteCategory(category)
+    setIsQuoteIntakeOpen(true)
+    onCheckQuoteProp?.(category)
+  }
+
+  const handleOpenSmartInspector = (category?: BudgetCategory) => {
+    const targetCat =
+      category || activeQuoteCategory || currentPlan.brief.protectedCategory || 'catering'
+    const layout = generateDeterministicLayout(currentPlan, targetCat)
+    setSmartInspectorLayout(layout)
+    setSmartInspectorTier(3)
+    setIsSmartInspectorOpen(true)
+    onOpenSmartInspectorProp?.(category)
+  }
+
+  const handleCommitQuote = (
+    quote: VendorQuote,
+    tierId: string,
+    activeAdderIds: string[]
+  ) => {
+    try {
+      const nextPlan = commitQuote(currentPlan, quote, tierId, activeAdderIds)
+      const updatedSchedule = completePrimaryBookingTask(
+        timelineSchedule,
+        quote.category,
+        quote.id
+      )
+      setTimelineSchedule(updatedSchedule)
+
+      const updatedQuotes = [
+        ...activeQuotes.filter((q) => q.id !== quote.id),
+        quote,
+      ]
+      setActiveQuotes(updatedQuotes)
+
+      const finalPlan: Plan = {
+        ...nextPlan,
+        quotes: updatedQuotes,
+      }
+      setCurrentPlan(finalPlan)
+      onCommitQuoteProp?.(finalPlan)
+      setIsQuoteIntakeOpen(false)
+    } catch (err: any) {
+      console.error('[WorkspaceShell] Quote commit error:', err)
+    }
+  }
+
+  const handleUnlockQuote = (category: BudgetCategory) => {
+    try {
+      const nextPlan = unlockQuote(currentPlan, category)
+      const updatedSchedule = reopenPrimaryBookingTask(timelineSchedule, category)
+      setTimelineSchedule(updatedSchedule)
+
+      setCurrentPlan(nextPlan)
+      onUnlockQuoteProp?.(nextPlan)
+    } catch (err: any) {
+      console.error('[WorkspaceShell] Quote unlock error:', err)
+    }
+  }
 
   const changeList = changes ?? history ?? []
   const hasExplicitVersions = Boolean(versions && versions.length > 0)
@@ -97,17 +206,12 @@ export function WorkspaceShell({
     ? `${versions!.length} ${versions!.length === 1 ? 'version' : 'versions'}`
     : `${changeList.length} ${changeList.length === 1 ? 'change' : 'changes'}`
 
-  const schedule = calculateBackwardsTimeline(
-    plan.brief.eventDate,
-    plan.brief.guestCount
-  )
-
   const effectiveCurrentVersion =
     currentVersion ||
     versions?.find((v) => v.versionNumber === currentVersionNumber) ||
     versions?.[0]
 
-  const adoptedCount = plan.adoptedIdeas?.length ?? 0
+  const adoptedCount = currentPlan.adoptedIdeas?.length ?? 0
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -179,6 +283,17 @@ export function WorkspaceShell({
 
           <Button
             type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => handleOpenSmartInspector()}
+            className="h-8 border-royal-plum/20 bg-warm-ivory text-xs font-semibold text-royal-plum hover:bg-royal-plum/5 hover:border-marigold shadow-2xs flex items-center gap-1.5"
+          >
+            <Compass className="h-3.5 w-3.5 text-royal-plum/80" />
+            <span>Smart Inspector</span>
+          </Button>
+
+          <Button
+            type="button"
             size="sm"
             onClick={() => setIsShareModalOpen(true)}
             className="h-8 bg-marigold text-xs font-semibold text-royal-plum hover:bg-marigold/90 shadow-2xs flex items-center gap-1.5"
@@ -204,7 +319,7 @@ export function WorkspaceShell({
       {desktopTab === 'ideas' && (
         <div data-testid="desktop-ideas-pane" className="hidden lg:block h-[calc(100vh-5rem)] overflow-y-auto pr-2 pb-12">
           <CuratedIdeasSection
-            plan={plan}
+            plan={currentPlan}
             isReadOnly={isReadOnly}
             onAdoptIdea={onAdoptIdea ?? (() => {})}
             onRetractIdea={onRetractIdea ?? (() => {})}
@@ -224,9 +339,11 @@ export function WorkspaceShell({
             className="lg:col-span-4 h-[calc(100vh-5rem)] overflow-y-auto flex flex-col gap-6 pr-2"
           >
             <BudgetSection
-              plan={plan}
+              plan={currentPlan}
               onGuestCountChange={onGuestCountChange}
               onSetProtected={onSetProtected}
+              onCheckQuote={handleCheckQuote}
+              onUnlockQuote={handleUnlockQuote}
             />
           </div>
 
@@ -235,7 +352,7 @@ export function WorkspaceShell({
             data-testid="desktop-timeline-pane"
             className="lg:col-span-5 h-[calc(100vh-5rem)] overflow-y-auto flex flex-col gap-6 pr-2"
           >
-            <TimelineSection plan={plan} schedule={schedule} />
+            <TimelineSection plan={currentPlan} schedule={timelineSchedule} />
           </div>
 
           {/* Right Column: 25% Style DNA, Change Explainer & Summary (col-span-3) */}
@@ -245,7 +362,7 @@ export function WorkspaceShell({
           >
             {/* Pinned Style DNA Card (D-08, D-14, VIBE-04) */}
             <StyleDNACard
-              plan={plan}
+              plan={currentPlan}
               currentVersion={effectiveCurrentVersion}
               isReadOnly={isReadOnly}
               isExtracting={isExtracting}
@@ -255,7 +372,7 @@ export function WorkspaceShell({
             />
 
             <ChangeExplainer
-              plan={plan}
+              plan={currentPlan}
               changes={changeList}
               versions={versions}
               currentVersionNumber={currentVersionNumber}
@@ -273,24 +390,24 @@ export function WorkspaceShell({
               <CardContent className="p-0 text-xs text-royal-plum/70 flex flex-col gap-2">
                 <div className="flex justify-between items-center py-1 border-b border-royal-plum/5">
                   <span>Event</span>
-                  <span className="font-semibold text-royal-plum">{plan.brief.title}</span>
+                  <span className="font-semibold text-royal-plum">{currentPlan.brief.title}</span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-b border-royal-plum/5">
                   <span>City & Date</span>
                   <span className="font-semibold text-royal-plum">
-                    {plan.brief.city} • {plan.brief.eventDate}
+                    {currentPlan.brief.city} • {currentPlan.brief.eventDate}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-b border-royal-plum/5">
                   <span>Total Budget</span>
                   <span className="font-semibold text-royal-plum tabular-nums">
-                    {formatINR(plan.totalBudgetPaise)}
+                    {formatINR(currentPlan.totalBudgetPaise)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-1">
                   <span>Protected Category</span>
                   <span className="font-semibold text-royal-plum capitalize">
-                    {plan.brief.protectedCategory}
+                    {currentPlan.brief.protectedCategory}
                   </span>
                 </div>
               </CardContent>
@@ -307,23 +424,25 @@ export function WorkspaceShell({
         {mobileTab === 'budget' && (
           <div data-testid="mobile-pane-budget">
             <BudgetSection
-              plan={plan}
+              plan={currentPlan}
               onGuestCountChange={onGuestCountChange}
               onSetProtected={onSetProtected}
+              onCheckQuote={handleCheckQuote}
+              onUnlockQuote={handleUnlockQuote}
             />
           </div>
         )}
 
         {mobileTab === 'timeline' && (
           <div data-testid="mobile-pane-timeline">
-            <TimelineSection plan={plan} schedule={schedule} />
+            <TimelineSection plan={currentPlan} schedule={timelineSchedule} />
           </div>
         )}
 
         {mobileTab === 'ideas' && (
           <div data-testid="mobile-pane-ideas" className="flex flex-col gap-4">
             <CuratedIdeasSection
-              plan={plan}
+              plan={currentPlan}
               isReadOnly={isReadOnly}
               onAdoptIdea={onAdoptIdea ?? (() => {})}
               onRetractIdea={onRetractIdea ?? (() => {})}
@@ -334,7 +453,7 @@ export function WorkspaceShell({
         {mobileTab === 'style' && (
           <div data-testid="mobile-pane-style" className="flex flex-col gap-4">
             <StyleDNACard
-              plan={plan}
+              plan={currentPlan}
               currentVersion={effectiveCurrentVersion}
               isReadOnly={isReadOnly}
               isExtracting={isExtracting}
@@ -350,18 +469,18 @@ export function WorkspaceShell({
             <div className="rounded-2xl border border-royal-plum/10 bg-warm-ivory p-6 text-center shadow-xs flex flex-col gap-3">
               <h3 className="font-serif font-bold text-lg text-royal-plum">Plan Summary</h3>
               <p className="text-xs text-royal-plum/60">
-                {plan.brief.title} • {plan.brief.city} • {plan.brief.eventDate}
+                {currentPlan.brief.title} • {currentPlan.brief.city} • {currentPlan.brief.eventDate}
               </p>
               <div className="text-lg font-bold text-royal-plum tabular-nums">
-                {formatINR(plan.totalBudgetPaise)}
+                {formatINR(currentPlan.totalBudgetPaise)}
               </div>
               <div className="text-xs text-royal-plum/70">
-                Protected Floor Locked: <span className="font-semibold capitalize">{plan.brief.protectedCategory}</span>
+                Protected Floor Locked: <span className="font-semibold capitalize">{currentPlan.brief.protectedCategory}</span>
               </div>
             </div>
 
             <ChangeExplainer
-              plan={plan}
+              plan={currentPlan}
               changes={changeList}
               versions={versions}
               currentVersionNumber={currentVersionNumber}
@@ -465,10 +584,48 @@ export function WorkspaceShell({
       <ShareSaveModal
         open={isShareModalOpen}
         onOpenChange={setIsShareModalOpen}
-        planId={plan.id}
-        planTitle={plan.brief.title}
+        planId={currentPlan.id}
+        planTitle={currentPlan.brief.title}
         editKey={editKey}
         initialShareToken={initialShareToken}
+      />
+
+      {/* Quarantined Quote Intake Sandbox Sheet (QUOTE-01, QUOTE-02, D-01) */}
+      <QuoteIntakeSheet
+        open={isQuoteIntakeOpen}
+        onOpenChange={setIsQuoteIntakeOpen}
+        category={activeQuoteCategory || 'catering'}
+        guestCount={currentPlan.brief.guestCount}
+        plan={currentPlan}
+        onCommitQuote={handleCommitQuote}
+      />
+
+      {/* Contextual Smart Inspector Slide-Over (GENUI-01, GENUI-02, GENUI-03, D-14) */}
+      <SmartInspectorSheet
+        open={isSmartInspectorOpen}
+        onOpenChange={setIsSmartInspectorOpen}
+        layout={smartInspectorLayout}
+        activeTier={smartInspectorTier}
+        plan={currentPlan}
+        onCheckQuote={handleCheckQuote}
+        onCommitQuote={(quoteId, tierId, adders) => {
+          const q =
+            activeQuotes.find((x) => x.id === quoteId) ||
+            currentPlan.quotes?.find((x) => x.id === quoteId)
+          if (q) {
+            handleCommitQuote(q, tierId, adders)
+          }
+        }}
+        onUnlockQuote={(quoteId) => {
+          const q =
+            activeQuotes.find((x) => x.id === quoteId) ||
+            currentPlan.quotes?.find((x) => x.id === quoteId)
+          if (q) {
+            handleUnlockQuote(q.category)
+          }
+        }}
+        onAdoptIdea={onAdoptIdea}
+        onRetractIdea={onRetractIdea}
       />
     </div>
   )

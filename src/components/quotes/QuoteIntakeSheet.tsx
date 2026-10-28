@@ -156,6 +156,7 @@ export function QuoteIntakeSheet({
       <SheetContent
         side="right"
         className="w-full sm:max-w-xl bg-warm-ivory border-l border-royal-plum/10 p-6 flex flex-col gap-6 overflow-y-auto text-royal-plum"
+        data-testid="quote-intake-sheet"
       >
         <SheetHeader className="gap-2 text-left">
           <div className="flex items-center justify-between">

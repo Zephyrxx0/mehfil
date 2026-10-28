@@ -10,12 +10,16 @@ interface BudgetSectionProps {
   plan: Plan
   onGuestCountChange: (newCount: number) => void
   onSetProtected: (category: BudgetCategory) => void
+  onCheckQuote?: (category: BudgetCategory) => void
+  onUnlockQuote?: (category: BudgetCategory) => void
 }
 
 export function BudgetSection({
   plan,
   onGuestCountChange,
   onSetProtected,
+  onCheckQuote,
+  onUnlockQuote,
 }: BudgetSectionProps) {
   const { brief, lines, totalBudgetPaise } = plan
   const guestCount = brief.guestCount
@@ -129,6 +133,8 @@ export function BudgetSection({
                 totalBudgetPaise={totalBudgetPaise}
                 onSetProtected={onSetProtected}
                 displacedRecords={displacedRecords}
+                onCheckQuote={onCheckQuote}
+                onUnlockQuote={onUnlockQuote}
               />
             )
           })}

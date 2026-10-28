@@ -155,4 +155,25 @@ describe('WorkspaceShell Component', () => {
     // Sheet header should appear
     expect(screen.getByText('Plan Changes & Rebalancing')).toBeInTheDocument()
   })
+
+  it('opens Smart Inspector sheet when clicking Smart Inspector button in top bar', async () => {
+    render(<WorkspaceShell {...defaultProps} />)
+
+    const inspectorBtn = screen.getByRole('button', { name: /Smart Inspector/i })
+    expect(inspectorBtn).toBeInTheDocument()
+
+    fireEvent.click(inspectorBtn)
+    expect(await screen.findByTestId('smart-inspector-sheet')).toBeInTheDocument()
+    expect(screen.getAllByText(/Smart Inspector/i).length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('opens Quote Intake sandbox sheet when clicking Check Quote on a budget line card', async () => {
+    render(<WorkspaceShell {...defaultProps} />)
+
+    const checkQuoteButtons = screen.getAllByRole('button', { name: /Check Quote/i })
+    expect(checkQuoteButtons.length).toBeGreaterThan(0)
+
+    fireEvent.click(checkQuoteButtons[0])
+    expect(await screen.findByTestId('quote-intake-sheet')).toBeInTheDocument()
+  })
 })
