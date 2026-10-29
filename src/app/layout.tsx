@@ -1,7 +1,16 @@
 import type { Metadata } from 'next'
-import { Fraunces, Plus_Jakarta_Sans, Tiro_Devanagari_Hindi } from 'next/font/google'
+import { Fraunces, Plus_Jakarta_Sans, Noto_Serif_Devanagari } from 'next/font/google'
+import localFont from 'next/font/local'
 import { Agentation } from 'agentation'
 import './globals.css'
+
+// Ewert — the all-caps slab display face used for the hero wordmark ("Meh").
+const ewert = localFont({
+  src: './Ewert.ttf',
+  variable: '--font-ewert',
+  display: 'swap',
+  weight: '400',
+})
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -15,8 +24,10 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: 'swap',
 })
 
-const tiroDevanagariHindi = Tiro_Devanagari_Hindi({
-  weight: '400',
+// Noto Serif Devanagari (bold) — the brand's Devanagari face, with the nukta and a
+// strong, confident weight for "महफ़िल" across the app.
+const notoSerifDevanagari = Noto_Serif_Devanagari({
+  weight: ['400', '700'],
   subsets: ['devanagari', 'latin'],
   variable: '--font-tiro',
   display: 'swap',
@@ -36,7 +47,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${plusJakartaSans.variable} ${tiroDevanagariHindi.variable}`}
+      className={`${fraunces.variable} ${plusJakartaSans.variable} ${notoSerifDevanagari.variable} ${ewert.variable}`}
     >
       <body className="min-h-screen bg-warm-ivory text-royal-plum antialiased font-sans selection:bg-marigold/30 selection:text-royal-plum">
         {children}
