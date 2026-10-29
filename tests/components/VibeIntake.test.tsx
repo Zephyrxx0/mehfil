@@ -1,9 +1,15 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import React, { useState } from 'react'
 import { StepVibeSwatches } from '@/components/intake/StepVibeSwatches'
 import { StepVibeTradeoffs, type VibeTradeoffs } from '@/components/intake/StepVibeTradeoffs'
 import { SWATCHES } from '@/data/swatches'
+import { VIBE_MAX, VIBE_MIN } from '@/lib/vibe-limits'
+
+const pickCopy = (n: number) => `Pick ${VIBE_MIN} to ${VIBE_MAX} vibes (${n}/${VIBE_MAX} selected)`
+const readyCopy = (n: number) => `Ready! ${n}/${VIBE_MAX} vibes selected`
+const confirmName = `Confirm ${VIBE_MIN} to ${VIBE_MAX} Vibes`
 
 describe('Vibe Intake Components (VIBE-01, VIBE-02, D-01, D-03, D-04)', () => {
   describe('StepVibeSwatches Component', () => {
@@ -18,76 +24,164 @@ describe('Vibe Intake Components (VIBE-01, VIBE-02, D-01, D-03, D-04)', () => {
       )
     }
 
-    it('renders all 24 curated swatches and filter chips', () => {
+    const list = () => within(screen.getByRole('list', { name: 'Vibe references' }))
+
+    it('renders all 24 curated swatches in a list with a category dropdown and the AI button', () => {
       render(<SwatchesWrapper />)
 
       expect(screen.getByText('Visual Vibe Gallery')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Royal Heritage' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Garden Pastel' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Minimalist Festive' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'High Energy Mela' })).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Intimate Classic' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Category' })).toHaveTextContent('All categories')
+      expect(screen.getByRole('button', { name: 'Describe your vibe' })).toBeInTheDocument()
 
-      // Should render swatches from registry
-      expect(screen.getByText('Royal Amber Courtyard')).toBeInTheDocument()
-      expect(screen.getByText('Marigold Cascade')).toBeInTheDocument()
-      expect(screen.getByText('Gulabi Rose Palace')).toBeInTheDocument()
+      expect(list().getAllByRole('listitem')).toHaveLength(SWATCHES.length)
+      expect(list().getByText('Royal Amber Courtyard')).toBeInTheDocument()
+      expect(list().getByText('Marigold Cascade')).toBeInTheDocument()
+      expect(list().getByText('Gulabi Rose Palace')).toBeInTheDocument()
     })
 
-    it('filters swatches when clicking preset filter chips', () => {
+    it('filters the list by one or more categories from the multi-select dropdown', async () => {
+      const user = userEvent.setup()
       render(<SwatchesWrapper />)
 
-      // Filter by 'Garden Pastel'
-      fireEvent.click(screen.getByRole('button', { name: 'Garden Pastel' }))
+      await user.click(screen.getByRole('button', { name: 'Category' }))
+      await user.click(await screen.findByRole('menuitemcheckbox', { name: /Garden Pastel/ }))
 
-      // Swatches with Garden Pastel should show
-      expect(screen.getByText('Pastel Floral Shamiana')).toBeInTheDocument()
+      // The menu stays open so a second category can be ticked.
+      await user.click(screen.getByRole('menuitemcheckbox', { name: /High Energy Mela/ }))
+      // Radix hides the rest of the page from assistive tech while a menu is open, hence `hidden`.
+      expect(screen.getByRole('button', { name: 'Category', hidden: true })).toHaveTextContent('2 categories')
 
-      // Swatches not tagged with Garden Pastel should not show
-      expect(screen.queryByText('Royal Amber Courtyard')).not.toBeInTheDocument()
+      await user.keyboard('{Escape}')
 
-      // Click 'All' to restore
-      fireEvent.click(screen.getByRole('button', { name: 'All' }))
-      expect(screen.getByText('Royal Amber Courtyard')).toBeInTheDocument()
+      const expected = SWATCHES.filter((s) =>
+        s.tags.some((t) => t === 'Garden Pastel' || t === 'High Energy Mela')
+      )
+      expect(list().getAllByRole('listitem')).toHaveLength(expected.length)
+      expect(list().getByText('Pastel Floral Shamiana')).toBeInTheDocument()
+      expect(list().queryByText('Royal Amber Courtyard')).not.toBeInTheDocument()
+
+      // "All categories" clears the filter.
+      await user.click(screen.getByRole('button', { name: 'Category' }))
+      await user.click(await screen.findByRole('menuitemcheckbox', { name: 'All categories' }))
+      await user.keyboard('{Escape}')
+      expect(list().getAllByRole('listitem')).toHaveLength(SWATCHES.length)
     })
 
-    it('displays counter pill reflecting selected count and disables CTA below 6', () => {
+    it('shows the full title and description of the focused swatch in the detail card', async () => {
+      const user = userEvent.setup()
       render(<SwatchesWrapper />)
 
-      expect(screen.getByText('Pick 6 to 8 vibes (0/8 selected)')).toBeInTheDocument()
-      const cta = screen.getByRole('button', { name: 'Confirm 6 to 8 Vibes' })
+      const target = SWATCHES[3]
+      await user.click(list().getByText(target.title))
+
+      const card = within(screen.getByRole('article', { name: `${target.title} details` }))
+      expect(card.getByRole('heading', { name: target.title })).toBeInTheDocument()
+      // Nothing is clipped: the whole description is in the DOM, not a line-clamped excerpt.
+      expect(card.getByText(target.description)).toBeInTheDocument()
+      for (const hex of target.palette) expect(card.getByText(hex)).toBeInTheDocument()
+
+      // Previewing does not select.
+      expect(screen.getByText(pickCopy(0))).toBeInTheDocument()
+      await user.click(card.getByRole('button', { name: 'Add to my vibes' }))
+      expect(screen.getByText(pickCopy(1))).toBeInTheDocument()
+      expect(card.getByRole('button', { name: 'Remove from my vibes' })).toBeInTheDocument()
+    })
+
+    it(`displays counter pill reflecting selected count and disables CTA below ${VIBE_MIN}`, () => {
+      render(<SwatchesWrapper initialIds={SWATCHES.slice(0, VIBE_MIN - 1).map((s) => s.id)} />)
+
+      expect(screen.getByText(pickCopy(VIBE_MIN - 1))).toBeInTheDocument()
+      const cta = screen.getByRole('button', { name: confirmName })
       expect(cta).toBeDisabled()
       expect(cta).toHaveAttribute('aria-disabled', 'true')
     })
 
-    it('enables primary CTA when 6 to 8 swatches are selected with celebratory copy', () => {
-      const sixIds = SWATCHES.slice(0, 6).map((s) => s.id)
-      render(<SwatchesWrapper initialIds={sixIds} />)
+    it(`enables primary CTA when ${VIBE_MIN} to ${VIBE_MAX} swatches are selected with celebratory copy`, () => {
+      const minIds = SWATCHES.slice(0, VIBE_MIN).map((s) => s.id)
+      render(<SwatchesWrapper initialIds={minIds} />)
 
-      expect(screen.getByText('Ready! 6/8 vibes selected')).toBeInTheDocument()
-      const cta = screen.getByRole('button', { name: 'Confirm 6 to 8 Vibes' })
+      expect(screen.getByText(readyCopy(VIBE_MIN))).toBeInTheDocument()
+      const cta = screen.getByRole('button', { name: confirmName })
       expect(cta).not.toBeDisabled()
       expect(cta).toHaveAttribute('aria-disabled', 'false')
     })
 
-    it('rejects 9th selection, blocks addition, and displays warning message (T-04-07)', () => {
-      const eightIds = SWATCHES.slice(0, 8).map((s) => s.id)
-      render(<SwatchesWrapper initialIds={eightIds} />)
+    it('rejects a selection past the maximum, blocks addition, and displays the warning', () => {
+      const maxIds = SWATCHES.slice(0, VIBE_MAX).map((s) => s.id)
+      render(<SwatchesWrapper initialIds={maxIds} />)
 
-      expect(screen.getByText('Ready! 8/8 vibes selected')).toBeInTheDocument()
+      expect(screen.getByText(readyCopy(VIBE_MAX))).toBeInTheDocument()
 
-      // Try selecting 9th swatch
-      const ninthSwatch = SWATCHES[8]
-      fireEvent.click(screen.getByText(ninthSwatch.title))
+      // Try selecting one more than the maximum
+      const extra = SWATCHES[VIBE_MAX]
+      fireEvent.click(screen.getByRole('button', { name: `Select ${extra.title}` }))
 
       // Warning copy must appear
       expect(
-        screen.getByText('Maximum 8 swatches reached. Tap a selected swatch to deselect.')
+        screen.getByText(`Maximum ${VIBE_MAX} swatches reached. Tap a selected swatch to deselect.`)
       ).toBeInTheDocument()
 
-      // Pill should still show 8/8 selected
-      expect(screen.getByText('Ready! 8/8 vibes selected')).toBeInTheDocument()
+      // Pill should still show the maximum selected
+      expect(screen.getByText(readyCopy(VIBE_MAX))).toBeInTheDocument()
+    })
+  })
+
+  describe('Describe your vibe (AI)', () => {
+    function Wrapper({ initialIds = [] }: { initialIds?: string[] }) {
+      const [ids, setIds] = useState<string[]>(initialIds)
+      return <StepVibeSwatches selectedSwatchIds={ids} onChange={setIds} />
+    }
+
+    afterEach(() => vi.unstubAllGlobals())
+
+    it('replaces the selection with the suggested vibes and lets the user undo', async () => {
+      const user = userEvent.setup()
+      const suggested = SWATCHES.slice(10, 10 + VIBE_MAX).map((s) => s.id)
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: { swatchIds: suggested, reasoning: 'Warm brass and marigold.', source: 'ai' },
+        }),
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      const before = SWATCHES.slice(0, 2).map((s) => s.id)
+      render(<Wrapper initialIds={before} />)
+      expect(screen.getByText(pickCopy(2))).toBeInTheDocument()
+
+      await user.click(screen.getByRole('button', { name: 'Describe your vibe' }))
+      const submit = await screen.findByRole('button', { name: 'Find my vibes' })
+      expect(submit).toBeDisabled()
+
+      await user.type(screen.getByRole('textbox', { name: 'Describe your vibe' }), 'Warm brass and marigold')
+      await user.click(submit)
+
+      await waitFor(() => expect(screen.getByText(readyCopy(VIBE_MAX))).toBeInTheDocument())
+      expect(screen.getByText(/Picked for you: Warm brass and marigold\./)).toBeInTheDocument()
+
+      const [url, init] = fetchMock.mock.calls[0]
+      expect(url).toBe('/api/vibes/suggest')
+      expect(JSON.parse(init.body)).toEqual({ description: 'Warm brass and marigold' })
+
+      await user.click(screen.getByRole('button', { name: /Undo/ }))
+      expect(screen.getByText(pickCopy(2))).toBeInTheDocument()
+    })
+
+    it('shows the error and keeps the selection when the request fails', async () => {
+      const user = userEvent.setup()
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({ ok: false, json: async () => ({ success: false, error: 'Describe the vibe in a few words' }) })
+      )
+
+      render(<Wrapper />)
+      await user.click(screen.getByRole('button', { name: 'Describe your vibe' }))
+      await user.type(await screen.findByRole('textbox', { name: 'Describe your vibe' }), 'abc')
+      await user.click(screen.getByRole('button', { name: 'Find my vibes' }))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Describe the vibe in a few words')
+      expect(screen.getByText(pickCopy(0))).toBeInTheDocument()
     })
   })
 

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
 import { QuoteCheckCard } from '@/components/quotes/QuoteCheckCard'
-import { BudgetLineCard } from '@/components/workspace/BudgetLineCard'
+import { BudgetLineRow } from '@/components/workspace/BudgetLineRow'
 import type { VendorQuote, Plan, BudgetLine } from '@/lib/engine/types'
 
 function createSamplePlan(): Plan {
@@ -227,7 +227,7 @@ describe('QuoteCheckCard Component (QUOTE-05, QUOTE-06, D-07, D-08, D-09, D-10)'
   })
 })
 
-describe('BudgetLineCard Integration with Quotes (D-01, D-10)', () => {
+describe('BudgetLineRow Integration with Quotes (D-01, D-10)', () => {
   const committedLine: BudgetLine = {
     id: 'line_venue',
     name: 'Venue & Banquet',
@@ -255,7 +255,7 @@ describe('BudgetLineCard Integration with Quotes (D-01, D-10)', () => {
 
   it('renders Committed badge and Saved variance pill on committed line', () => {
     render(
-      <BudgetLineCard
+      <BudgetLineRow
         line={committedLine}
         totalBudgetPaise={105000000}
         onSetProtected={vi.fn()}
@@ -270,7 +270,7 @@ describe('BudgetLineCard Integration with Quotes (D-01, D-10)', () => {
   it('renders Check Quote button on uncommitted line', () => {
     const onCheckQuote = vi.fn()
     render(
-      <BudgetLineCard
+      <BudgetLineRow
         line={uncommittedLine}
         totalBudgetPaise={105000000}
         onSetProtected={vi.fn()}

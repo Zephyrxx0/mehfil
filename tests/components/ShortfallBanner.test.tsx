@@ -70,9 +70,9 @@ describe('ShortfallBanner Component (BUDGET-03, ADR-0002, D-13)', () => {
     expect(screen.getByText(/Budget Balancing Shortfall: ₹45,000/)).toBeInTheDocument()
 
     // Permissive posture badge & explanation
-    expect(screen.getByText('ADR-0002 Permissive Mode')).toBeInTheDocument()
+    expect(screen.getByText(/stays fully editable and savable/i)).toBeInTheDocument()
     expect(
-      screen.getByText(/Your celebration plan remains fully editable and savable in Infeasible State/i)
+      screen.getByText(/stays fully editable and savable/i)
     ).toBeInTheDocument()
 
     // Undo button

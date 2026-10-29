@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
-import { BudgetLineCard, type DisplacedDonorRecord } from '@/components/workspace/BudgetLineCard'
+import { BudgetLineRow, type DisplacedDonorRecord } from '@/components/workspace/BudgetLineRow'
 import type { BudgetLine } from '@/lib/engine/types'
 
-describe('BudgetLineCard Component (MOMENT-03, BUDGET-04, D-05, D-08)', () => {
+describe('BudgetLineRow Component (MOMENT-03, BUDGET-04, D-05, D-08)', () => {
   const flexibleLine: BudgetLine = {
     id: 'decor-1',
     category: 'decor',
@@ -46,7 +46,7 @@ describe('BudgetLineCard Component (MOMENT-03, BUDGET-04, D-05, D-08)', () => {
   it('renders Protected Moment card with Gulabi Rose styling, lock icon, and immunity indicator', () => {
     const onSetProtected = vi.fn()
     render(
-      <BudgetLineCard
+      <BudgetLineRow
         line={protectedLine}
         totalBudgetPaise={2_000_000_00}
         onSetProtected={onSetProtected}
@@ -63,20 +63,21 @@ describe('BudgetLineCard Component (MOMENT-03, BUDGET-04, D-05, D-08)', () => {
     expect(badge).toHaveTextContent('Protected Moment')
 
     const card = document.getElementById('category-photo_film')
-    expect(card).toHaveClass('border-gulabi-rose')
-    expect(card).toHaveClass('animate-shimmer-rose')
+    expect(card).toHaveAttribute('data-protected', 'true')
+    expect(card?.className).toContain('bg-gulabi-rose/10')
+    expect(card?.className).not.toContain('animate-shimmer-rose')
 
     // Protected quote displayed
     expect(screen.getByText(/Candid golden hour portraits with Dadi and Nani/)).toBeInTheDocument()
 
     // Immunity statement
-    expect(screen.getByText(/Immune to displacement \(ADR-0004\)/)).toBeInTheDocument()
+    expect(screen.getByText(/immune to displacement/i)).toBeInTheDocument()
   })
 
   it('triggers onSetProtected and micro-haptic vibrate(50) on button click', () => {
     const onSetProtected = vi.fn()
     render(
-      <BudgetLineCard
+      <BudgetLineRow
         line={flexibleLine}
         totalBudgetPaise={2_000_000_00}
         onSetProtected={onSetProtected}
@@ -100,7 +101,7 @@ describe('BudgetLineCard Component (MOMENT-03, BUDGET-04, D-05, D-08)', () => {
     ]
 
     render(
-      <BudgetLineCard
+      <BudgetLineRow
         line={flexibleLine}
         totalBudgetPaise={2_000_000_00}
         onSetProtected={onSetProtected}
@@ -115,7 +116,7 @@ describe('BudgetLineCard Component (MOMENT-03, BUDGET-04, D-05, D-08)', () => {
   it('displays 40% floor indicator for non-protected flexible lines', () => {
     const onSetProtected = vi.fn()
     render(
-      <BudgetLineCard
+      <BudgetLineRow
         line={flexibleLine}
         totalBudgetPaise={2_000_000_00}
         onSetProtected={onSetProtected}

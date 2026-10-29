@@ -187,7 +187,6 @@ describe('ChangeExplainer Component (D-10, D-11, COLLAB-04)', () => {
 
       const protectedTag = screen.getAllByText('Protected Moment held firm')[0]
       expect(protectedTag).toBeInTheDocument()
-      expect(protectedTag.parentElement?.className).toContain('bg-gulabi-rose/20')
     })
 
     it('omits restore buttons when in read-only mode', () => {

@@ -37,7 +37,7 @@ describe('PlanWorkspace Component', () => {
     // The catering card should contain the protected indicator
     const cateringCards = document.querySelectorAll('#category-catering')
     expect(cateringCards.length).toBeGreaterThanOrEqual(1)
-    expect(cateringCards[0]?.className).toContain('border-gulabi-rose')
+    expect(cateringCards[0]).toHaveAttribute('data-protected', 'true')
   })
 
   it('dynamically scales guest count when clicking stepper buttons (D-09)', () => {

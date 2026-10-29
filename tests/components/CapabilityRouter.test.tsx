@@ -14,6 +14,8 @@ vi.mock('next/navigation', () => ({
     push: vi.fn(),
   }),
   useSearchParams: () => mockSearchParams,
+  usePathname: () => `/plan/test-collab-event-456/budget`,
+  useSelectedLayoutSegment: () => 'budget',
 }))
 
 describe('Capability Router & Read-Only Downgrade (D-02, D-03, D-04, COLLAB-02)', () => {
@@ -65,7 +67,7 @@ describe('Capability Router & Read-Only Downgrade (D-02, D-03, D-04, COLLAB-02)'
       json: async () => ({ authorized: true }),
     } as any)
 
-    render(<PlanClientPage planId={planId} initialKey={testSecretKey} />)
+    render(<PlanClientPage planId={planId} />)
 
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(`/api/plan/${planId}/claim`, {
@@ -77,7 +79,7 @@ describe('Capability Router & Read-Only Downgrade (D-02, D-03, D-04, COLLAB-02)'
 
     // Must call router.replace immediately to strip secret key from browser URL bar (D-02)
     await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalledWith(`/plan/${planId}`)
+      expect(mockReplace).toHaveBeenCalledWith(`/plan/${planId}/budget`)
     })
   })
 
@@ -87,7 +89,7 @@ describe('Capability Router & Read-Only Downgrade (D-02, D-03, D-04, COLLAB-02)'
     render(<PlanClientPage planId={planId} />)
 
     await waitFor(() => {
-      expect(screen.getByText(/Read-Only View:/i)).toBeInTheDocument()
+      expect(screen.getByText(/Read-Only View/i)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /Unlock Organizer Editing/i })).toBeInTheDocument()
     })
   })

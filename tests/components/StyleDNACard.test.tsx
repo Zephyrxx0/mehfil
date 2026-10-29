@@ -59,9 +59,9 @@ describe('StyleDNACard & Retune Flow (VIBE-04, D-08, D-11, D-14)', () => {
 
     // Dominant Dimension traits
     expect(screen.getByText('Dominant Dimensions')).toBeInTheDocument()
-    expect(screen.getByText('Grand Scale:')).toBeInTheDocument()
+    expect(screen.getByText('Grand Scale')).toBeInTheDocument()
     expect(screen.getByText('90%')).toBeInTheDocument()
-    expect(screen.getByText('High Energy:')).toBeInTheDocument()
+    expect(screen.getByText('High Energy')).toBeInTheDocument()
     expect(screen.getByText('85%')).toBeInTheDocument()
 
     // Protected moment quote cardlet
