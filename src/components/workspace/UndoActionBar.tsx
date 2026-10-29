@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { RotateCcw, X } from 'lucide-react'
+import { X } from 'lucide-react'
 
 export interface UndoActionBarProps {
   message: string | null
@@ -61,7 +61,7 @@ export function UndoActionBar({
       data-testid="undo-action-bar"
       role="status"
       aria-live="polite"
-      className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex flex-col overflow-hidden rounded-full bg-royal-plum text-warm-ivory shadow-2xl border border-white/20 backdrop-blur-md"
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 max-w-[calc(100vw-2rem)] flex flex-col overflow-hidden rounded-full bg-royal-plum text-warm-ivory shadow-2xl border border-white/20 backdrop-blur-md"
     >
       <div className="flex items-center gap-3 px-4 py-2.5">
         <span className="text-xs font-medium max-w-xs sm:max-w-md truncate">
@@ -73,7 +73,6 @@ export function UndoActionBar({
           onClick={handleUndo}
           className="inline-flex items-center gap-1.5 rounded-full bg-marigold px-3 py-1 text-xs font-bold text-royal-plum hover:bg-marigold/90 active:scale-95 transition shrink-0"
         >
-          <RotateCcw className="w-3.5 h-3.5" />
           <span>Undo</span>
         </button>
 

@@ -5,8 +5,6 @@ import type { BudgetCategory, CuratedIdea, Plan } from '@/lib/engine/types'
 import { formatINR } from '@/lib/engine/currency'
 import { getPersonalizedIdeas } from '@/data/curatedIdeas'
 import { CuratedIdeaCard } from './CuratedIdeaCard'
-import { Sparkles, Coins, Layers, Search, CheckCircle2 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
 export interface CuratedIdeasSectionProps {
@@ -87,112 +85,77 @@ export function CuratedIdeasSection({
   }
 
   return (
-    <div className="flex flex-col gap-6" data-testid="curated-ideas-section">
-      {/* Top Summary Metrics Strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {/* Adopted Count Card */}
-        <div className="rounded-2xl border border-royal-plum/10 bg-white/70 p-4 shadow-xs">
-          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-royal-plum/60">
-            <Sparkles className="w-4 h-4 text-marigold" />
-            <span>Adopted Ideas</span>
-          </div>
-          <div className="mt-1.5 flex items-baseline gap-2">
-            <span className="font-serif text-2xl font-bold text-royal-plum">
-              {adoptedCount}
-            </span>
-            <span className="text-xs text-royal-plum/50">enhancements active</span>
-          </div>
-          <div className="mt-1 flex items-center gap-1 text-2xs text-emerald-700">
-            <CheckCircle2 className="w-3 h-3" />
-            <span>Curated for {plan.brief.eventType}</span>
-          </div>
+    <div className="flex flex-col gap-8" data-testid="curated-ideas-section">
+      {/* One summary strip instead of three cards */}
+      <dl className="grid grid-cols-1 divide-y divide-royal-plum/10 border-y border-royal-plum/10 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        <div className="py-4 sm:pr-5">
+          <dt className="text-sm text-royal-plum/60">Adopted ideas</dt>
+          <dd className="mt-1 font-serif text-2xl font-bold tabular-nums text-royal-plum">{adoptedCount}</dd>
+          <p className="mt-0.5 text-sm text-royal-plum/60">Curated for {plan.brief.eventType}</p>
         </div>
-
-        {/* Invested Funds Card */}
-        <div className="rounded-2xl border border-royal-plum/10 bg-white/70 p-4 shadow-xs">
-          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-royal-plum/60">
-            <Coins className="w-4 h-4 text-royal-plum/70" />
-            <span>Invested in Enhancements</span>
-          </div>
-          <div className="mt-1.5 flex items-baseline gap-2">
-            <span className="font-serif text-2xl font-bold text-royal-plum">
-              {formatINR(totalInvestedPaise)}
-            </span>
-          </div>
-          <div className="mt-1 text-2xs text-royal-plum/60">
-            Displaced from flexible lines
-          </div>
+        <div className="py-4 sm:px-5">
+          <dt className="text-sm text-royal-plum/60">Invested in enhancements</dt>
+          <dd className="mt-1 font-serif text-2xl font-bold tabular-nums text-royal-plum">
+            {formatINR(totalInvestedPaise)}
+          </dd>
+          <p className="mt-0.5 text-sm text-royal-plum/60">Displaced from flexible lines</p>
         </div>
-
-        {/* Remaining Flexible Capacity Card */}
-        <div className="rounded-2xl border border-royal-plum/10 bg-white/70 p-4 shadow-xs">
-          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-royal-plum/60">
-            <Layers className="w-4 h-4 text-gulabi-rose" />
-            <span>Flexible Capacity</span>
-          </div>
-          <div className="mt-1.5 flex items-baseline gap-2">
-            <span className="font-serif text-2xl font-bold text-royal-plum">
-              {formatINR(remainingFlexiblePaise)}
-            </span>
-            <span className="text-xs text-royal-plum/50">available</span>
-          </div>
-          <div className="mt-1 text-2xs text-royal-plum/60">
-            Before reaching 40% floors
-          </div>
+        <div className="py-4 sm:pl-5">
+          <dt className="text-sm text-royal-plum/60">Flexible capacity</dt>
+          <dd className="mt-1 font-serif text-2xl font-bold tabular-nums text-royal-plum">
+            {formatINR(remainingFlexiblePaise)}
+          </dd>
+          <p className="mt-0.5 text-sm text-royal-plum/60">Before reaching 40% floors</p>
         </div>
-      </div>
+      </dl>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.value}
-              type="button"
-              onClick={() => setSelectedCategory(cat.value)}
-              className={cn(
-                'rounded-full px-3 py-1 text-xs font-medium transition-all shrink-0',
-                selectedCategory === cat.value
-                  ? 'bg-royal-plum text-warm-ivory shadow-2xs font-semibold'
-                  : 'bg-white/80 text-royal-plum/70 border border-royal-plum/15 hover:bg-royal-plum/5'
-              )}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Search Input */}
-        <div className="relative min-w-[200px] sm:w-64">
-          <Search className="w-3.5 h-3.5 text-royal-plum/40 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search ideas, rituals, tags..."
-            className="w-full pl-8 pr-3 py-1.5 rounded-full border border-royal-plum/15 bg-white/80 text-xs text-royal-plum placeholder:text-royal-plum/40 focus:outline-hidden focus:ring-1 focus:ring-royal-plum"
-          />
-        </div>
-      </div>
-
-      {/* Ideas Grid */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-serif font-bold text-lg text-royal-plum">
-            Curated Celebration Enhancements
+      <section aria-labelledby="ideas-heading" className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <h3 id="ideas-heading" className="flex items-center gap-2.5 font-serif text-xl font-bold text-royal-plum">
+            <span aria-hidden="true" className="h-4 w-1 shrink-0 origin-bottom rounded-full bg-gradient-to-b from-marigold to-gulabi-rose motion-safe:animate-[mehfil-flourish_0.5s_cubic-bezier(0.22,1,0.36,1)_both]" />
+            <span>Curated Celebration Enhancements</span>
           </h3>
-          <span className="text-xs text-royal-plum/60">
+          <span className="text-sm text-royal-plum/60">
             {filteredIdeas.length} idea{filteredIdeas.length === 1 ? '' : 's'} available
           </span>
         </div>
 
-        {filteredIdeas.length === 0 ? (
-          <div className="rounded-2xl border border-royal-plum/10 bg-white/50 p-8 text-center text-royal-plum/60 text-sm">
-            No celebration ideas found matching your criteria.
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div role="group" aria-label="Filter by category" className="-mx-1 flex items-center gap-1 overflow-x-auto">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.value}
+                type="button"
+                aria-pressed={selectedCategory === cat.value}
+                onClick={() => setSelectedCategory(cat.value)}
+                className={cn(
+                  'shrink-0 rounded-lg px-3 py-1.5 text-sm transition-colors',
+                  selectedCategory === cat.value
+                    ? 'bg-royal-plum font-medium text-warm-ivory'
+                    : 'text-royal-plum/70 hover:bg-royal-plum/5 hover:text-royal-plum'
+                )}
+              >
+                {cat.label}
+              </button>
+            ))}
           </div>
+
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search ideas, rituals, tags..."
+            aria-label="Search ideas"
+            className="w-full rounded-xl border border-royal-plum/15 bg-white/70 px-3.5 py-2 text-sm text-royal-plum placeholder:text-royal-plum/40 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum sm:w-64"
+          />
+        </div>
+
+        {filteredIdeas.length === 0 ? (
+          <p className="border-y border-royal-plum/10 py-10 text-center text-sm text-royal-plum/60">
+            No celebration ideas found matching your criteria.
+          </p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ul className="divide-y divide-royal-plum/10 border-y border-royal-plum/10">
             {filteredIdeas.map((idea) => (
               <CuratedIdeaCard
                 key={idea.id}
@@ -203,9 +166,9 @@ export function CuratedIdeasSection({
                 onToggle={handleToggle}
               />
             ))}
-          </div>
+          </ul>
         )}
-      </div>
+      </section>
     </div>
   )
 }

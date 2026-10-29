@@ -1,10 +1,11 @@
 'use client'
 
 import React from 'react'
+import { Wallet, Users, Coins } from 'lucide-react'
 import type { BudgetCategory, Plan } from '@/lib/engine/types'
 import { formatINR } from '@/lib/engine/currency'
-import { BudgetLineCard } from './BudgetLineCard'
-import { Users, Coins, CheckCircle2, Shield } from 'lucide-react'
+import { BudgetLineRow } from './BudgetLineRow'
+import { Button } from '@/components/ui/button'
 
 interface BudgetSectionProps {
   plan: Plan
@@ -12,6 +13,8 @@ interface BudgetSectionProps {
   onSetProtected: (category: BudgetCategory) => void
   onCheckQuote?: (category: BudgetCategory) => void
   onUnlockQuote?: (category: BudgetCategory) => void
+  onOpenInspector?: () => void
+  isReadOnly?: boolean
 }
 
 export function BudgetSection({
@@ -20,102 +23,98 @@ export function BudgetSection({
   onSetProtected,
   onCheckQuote,
   onUnlockQuote,
+  onOpenInspector,
+  isReadOnly = false,
 }: BudgetSectionProps) {
   const { brief, lines, totalBudgetPaise } = plan
   const guestCount = brief.guestCount
   const costPerGuest = guestCount > 0 ? Math.round(totalBudgetPaise / guestCount) : 0
 
-  const linesTotal = lines.reduce((s, l) => s + l.currentPaise, 0)
-  const isExactMatch = linesTotal === totalBudgetPaise
-
   return (
-    <div className="flex flex-col gap-6">
-      {/* Top Summary Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {/* Total Budget Card */}
-        <div className="rounded-2xl border border-royal-plum/10 bg-white/70 p-4 shadow-xs">
-          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-royal-plum/60">
-            <Coins className="w-4 h-4 text-marigold" />
-            <span>Total Budget</span>
-          </div>
-          <div className="mt-1.5 flex items-baseline gap-2">
-            <span className="font-serif text-2xl font-bold text-royal-plum">
-              {formatINR(totalBudgetPaise)}
-            </span>
-          </div>
-          <div className="mt-1 flex items-center gap-1 text-2xs text-emerald-700">
-            <CheckCircle2 className="w-3 h-3" />
-            <span>Integer Paise Invariant Guaranteed</span>
-          </div>
+    <div className="flex flex-col gap-8">
+      {/* One summary strip instead of three cards */}
+      <dl className="grid grid-cols-2 border-y border-royal-plum/10 sm:grid-cols-3">
+        <div className="col-span-2 border-b border-royal-plum/10 py-4 sm:col-span-1 sm:border-b-0">
+          <dt className="flex items-center gap-1.5 text-sm text-royal-plum/60">
+            <Wallet className="h-3.5 w-3.5 text-marigold" aria-hidden="true" />
+            Total budget
+          </dt>
+          <dd className="mt-1 font-serif text-2xl font-bold tabular-nums text-royal-plum">
+            {formatINR(totalBudgetPaise)}
+          </dd>
         </div>
 
-        {/* Guest Count Stepper Card */}
-        <div className="rounded-2xl border border-royal-plum/10 bg-white/70 p-4 shadow-xs">
-          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-royal-plum/60">
-            <Users className="w-4 h-4 text-royal-plum/70" />
-            <span>Guest Scale</span>
-          </div>
-          <div className="mt-1.5 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onGuestCountChange(Math.max(10, guestCount - 10))}
-              className="rounded-lg border border-royal-plum/20 bg-warm-ivory px-2.5 py-1 text-sm font-bold text-royal-plum hover:bg-royal-plum/5 active:scale-95 transition"
-            >
-              -10
-            </button>
-            <span className="font-serif text-2xl font-bold text-royal-plum min-w-[3rem] text-center">
+        <div className="py-4 pr-3 sm:border-l sm:border-royal-plum/10 sm:px-5">
+          <dt className="flex items-center gap-1.5 text-sm text-royal-plum/60">
+            <Users className="h-3.5 w-3.5 text-marigold" aria-hidden="true" />
+            Guests
+          </dt>
+          <dd className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span className="font-serif text-2xl font-bold tabular-nums text-royal-plum">
               {guestCount}
             </span>
-            <button
-              type="button"
-              onClick={() => onGuestCountChange(guestCount + 10)}
-              className="rounded-lg border border-royal-plum/20 bg-warm-ivory px-2.5 py-1 text-sm font-bold text-royal-plum hover:bg-royal-plum/5 active:scale-95 transition"
-            >
-              +10
-            </button>
-            <button
-              type="button"
-              onClick={() => onGuestCountChange(guestCount + 500)}
-              className="rounded-lg border border-royal-plum/20 bg-warm-ivory px-2 py-1 text-xs font-bold text-royal-plum hover:bg-royal-plum/5 active:scale-95 transition"
-            >
-              +500
-            </button>
-          </div>
-          <div className="mt-1 text-2xs text-royal-plum/60">
-            Baseline: {plan.baselineGuestCount} guests
-          </div>
+            {!isReadOnly && (
+              <span className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  aria-label="Remove 10 guests"
+                  onClick={() => onGuestCountChange(Math.max(10, guestCount - 10))}
+                  className="h-8 min-w-10 rounded-full border border-royal-plum/20 px-2.5 text-sm font-semibold tabular-nums text-royal-plum transition hover:border-royal-plum/40 hover:bg-royal-plum/5 motion-safe:active:scale-95"
+                >
+                  -10
+                </button>
+                <button
+                  type="button"
+                  aria-label="Add 10 guests"
+                  onClick={() => onGuestCountChange(guestCount + 10)}
+                  className="h-8 min-w-10 rounded-full border border-royal-plum/20 px-2.5 text-sm font-semibold tabular-nums text-royal-plum transition hover:border-royal-plum/40 hover:bg-royal-plum/5 motion-safe:active:scale-95"
+                >
+                  +10
+                </button>
+                <button
+                  type="button"
+                  aria-label="Add 500 guests"
+                  onClick={() => onGuestCountChange(guestCount + 500)}
+                  className="h-8 min-w-10 rounded-full border border-royal-plum/20 px-2.5 text-sm font-semibold tabular-nums text-royal-plum transition hover:border-royal-plum/40 hover:bg-royal-plum/5 motion-safe:active:scale-95"
+                >
+                  +500
+                </button>
+              </span>
+            )}
+          </dd>
+          <p className="mt-1 text-sm text-royal-plum/60">Baseline: {plan.baselineGuestCount} guests</p>
         </div>
 
-        {/* Cost per Guest */}
-        <div className="rounded-2xl border border-royal-plum/10 bg-white/70 p-4 shadow-xs">
-          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-royal-plum/60">
-            <Shield className="w-4 h-4 text-gulabi-rose" />
-            <span>Per Guest Outlay</span>
-          </div>
-          <div className="mt-1.5 flex items-baseline gap-2">
-            <span className="font-serif text-2xl font-bold text-royal-plum">
-              {formatINR(costPerGuest)}
-            </span>
-            <span className="text-xs text-royal-plum/50">/ guest</span>
-          </div>
-          <div className="mt-1 text-2xs text-royal-plum/60">
-            Across all catering, favors & allocations
-          </div>
+        <div className="border-l border-royal-plum/10 py-4 pl-4 sm:px-5">
+          <dt className="flex items-center gap-1.5 text-sm text-royal-plum/60">
+            <Coins className="h-3.5 w-3.5 text-marigold" aria-hidden="true" />
+            Per guest
+          </dt>
+          <dd className="mt-1 font-serif text-2xl font-bold tabular-nums text-royal-plum">
+            {formatINR(costPerGuest)}
+          </dd>
         </div>
-      </div>
+      </dl>
 
-      {/* Budget Allocation Cards */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-serif font-bold text-lg text-royal-plum">
-            Allocation Lines
-          </h3>
-          <span className="text-xs text-royal-plum/60">
-            {lines.length} categories • Whole rupee display (D-10)
-          </span>
+      <section aria-labelledby="allocation-heading">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+          <div>
+            <h3 id="allocation-heading" className="flex items-center gap-2.5 font-serif text-xl font-bold text-royal-plum">
+              <span aria-hidden="true" className="h-4 w-1 shrink-0 origin-bottom rounded-full bg-gradient-to-b from-marigold to-gulabi-rose motion-safe:animate-[mehfil-flourish_0.5s_cubic-bezier(0.22,1,0.36,1)_both]" />
+              <span>Where the money goes</span>
+            </h3>
+            <p className="mt-0.5 text-sm text-royal-plum/60">
+              {lines.length} categories. Shares always add up to the total, to the paisa.
+            </p>
+          </div>
+          {onOpenInspector && (
+            <Button type="button" variant="outline" size="sm" onClick={onOpenInspector} className="self-start">
+              Smart Inspector
+            </Button>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <ul className="mt-4 divide-y divide-royal-plum/10 border-y border-royal-plum/10">
           {lines.map((line) => {
             const displacedRecords = plan.adoptedIdeas?.flatMap((idea) =>
               idea.displacedDonors
@@ -127,7 +126,7 @@ export function BudgetSection({
             )
 
             return (
-              <BudgetLineCard
+              <BudgetLineRow
                 key={line.id}
                 line={line}
                 totalBudgetPaise={totalBudgetPaise}
@@ -135,11 +134,12 @@ export function BudgetSection({
                 displacedRecords={displacedRecords}
                 onCheckQuote={onCheckQuote}
                 onUnlockQuote={onUnlockQuote}
+                isReadOnly={isReadOnly}
               />
             )
           })}
-        </div>
-      </div>
+        </ul>
+      </section>
     </div>
   )
 }

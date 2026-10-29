@@ -1,6 +1,9 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
+import { motion } from 'motion/react'
+import { Wordmark } from '@/components/brand/Wordmark'
 import type {
   Plan,
   BudgetCategory,
@@ -18,7 +21,6 @@ import {
 } from '@/lib/engine/timeline'
 import { commitQuote, unlockQuote } from '@/lib/engine/budget'
 import { generateDeterministicLayout } from '@/lib/ai/orchestrator'
-import { formatINR } from '@/lib/engine/currency'
 import { BudgetSection } from './BudgetSection'
 import { TimelineSection } from './TimelineSection'
 import { ChangeExplainer, type PlanChangeRecord } from './ChangeExplainer'
@@ -27,24 +29,10 @@ import { ShortfallBanner } from './ShortfallBanner'
 import { CuratedIdeasSection } from './CuratedIdeasSection'
 import { SyncStatusBadge, type SyncState } from './SyncStatusBadge'
 import { ShareSaveModal } from './ShareSaveModal'
+import { PLAN_TABS, type PlanTabId } from './tabs'
 import { QuoteIntakeSheet } from '@/components/quotes/QuoteIntakeSheet'
 import { SmartInspectorSheet } from '@/components/quotes/SmartInspectorSheet'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import {
-  Coins,
-  Calendar,
-  Palette,
-  History,
-  ChevronUp,
-  Share2,
-  Lock,
-  KeyRound,
-  Sparkles,
-  Compass,
-} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface WorkspaceShellProps {
@@ -61,6 +49,12 @@ export interface WorkspaceShellProps {
   initialShareToken?: string
   isExtracting?: boolean
   v2Banner?: React.ReactNode
+  /** Extra notices shown above the tab content (e.g. a sync conflict). */
+  notices?: React.ReactNode
+  /** Active tab. When given together with `basePath`, tabs are real links. */
+  activeTab?: PlanTabId
+  /** e.g. `/plan/abc123`: tabs link to `${basePath}/${tab}`. */
+  basePath?: string
   onGuestCountChange: (count: number) => void
   onSetProtected: (category: BudgetCategory) => void
   onApplyRemedy: (remedy: ShortfallRemedy) => void
@@ -78,8 +72,22 @@ export interface WorkspaceShellProps {
   onOpenSmartInspector?: (category?: BudgetCategory) => void
 }
 
-export type MobileTab = 'budget' | 'timeline' | 'ideas' | 'style' | 'summary'
-export type DesktopTab = 'all' | 'ideas'
+function formatEventDate(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  if (!y || !m || !d) return iso
+  return new Date(y, m - 1, d).toLocaleDateString('en-IN', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  wedding: 'Wedding',
+  birthday: 'Milestone birthday',
+  community: 'Cultural soirée',
+}
 
 export function WorkspaceShell({
   plan,
@@ -95,6 +103,9 @@ export function WorkspaceShell({
   initialShareToken,
   isExtracting = false,
   v2Banner,
+  notices,
+  activeTab: activeTabProp,
+  basePath,
   onGuestCountChange,
   onSetProtected,
   onApplyRemedy,
@@ -111,10 +122,10 @@ export function WorkspaceShell({
   onCheckQuote: onCheckQuoteProp,
   onOpenSmartInspector: onOpenSmartInspectorProp,
 }: WorkspaceShellProps) {
-  const [mobileTab, setMobileTab] = useState<MobileTab>('budget')
-  const [desktopTab, setDesktopTab] = useState<DesktopTab>('all')
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [localTab, setLocalTab] = useState<PlanTabId>('budget')
+  const activeTab = activeTabProp ?? localTab
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  const tabsRef = useRef<HTMLElement>(null)
 
   // Quote Intake and Generative UI State (GENUI-01, GENUI-02, D-01, D-14)
   const [currentPlan, setCurrentPlan] = useState<Plan>(plan)
@@ -139,6 +150,14 @@ export function WorkspaceShell({
     )
   }, [currentPlan.brief.eventDate, currentPlan.brief.guestCount])
 
+  // When the tab changes while the tab bar is stuck, bring the new content to the top.
+  useEffect(() => {
+    const el = tabsRef.current
+    if (!el) return
+    const top = el.getBoundingClientRect().top + window.scrollY
+    if (window.scrollY > top) window.scrollTo({ top })
+  }, [activeTab])
+
   const handleCheckQuote = (category: BudgetCategory) => {
     setActiveQuoteCategory(category)
     setIsQuoteIntakeOpen(true)
@@ -155,30 +174,16 @@ export function WorkspaceShell({
     onOpenSmartInspectorProp?.(category)
   }
 
-  const handleCommitQuote = (
-    quote: VendorQuote,
-    tierId: string,
-    activeAdderIds: string[]
-  ) => {
+  const handleCommitQuote = (quote: VendorQuote, tierId: string, activeAdderIds: string[]) => {
     try {
       const nextPlan = commitQuote(currentPlan, quote, tierId, activeAdderIds)
-      const updatedSchedule = completePrimaryBookingTask(
-        timelineSchedule,
-        quote.category,
-        quote.id
-      )
+      const updatedSchedule = completePrimaryBookingTask(timelineSchedule, quote.category, quote.id)
       setTimelineSchedule(updatedSchedule)
 
-      const updatedQuotes = [
-        ...activeQuotes.filter((q) => q.id !== quote.id),
-        quote,
-      ]
+      const updatedQuotes = [...activeQuotes.filter((q) => q.id !== quote.id), quote]
       setActiveQuotes(updatedQuotes)
 
-      const finalPlan: Plan = {
-        ...nextPlan,
-        quotes: updatedQuotes,
-      }
+      const finalPlan: Plan = { ...nextPlan, quotes: updatedQuotes }
       setCurrentPlan(finalPlan)
       onCommitQuoteProp?.(finalPlan)
       setIsQuoteIntakeOpen(false)
@@ -201,326 +206,185 @@ export function WorkspaceShell({
   }
 
   const changeList = changes ?? history ?? []
-  const hasExplicitVersions = Boolean(versions && versions.length > 0)
-  const countDisplay = hasExplicitVersions
-    ? `${versions!.length} ${versions!.length === 1 ? 'version' : 'versions'}`
-    : `${changeList.length} ${changeList.length === 1 ? 'change' : 'changes'}`
-
   const effectiveCurrentVersion =
     currentVersion ||
     versions?.find((v) => v.versionNumber === currentVersionNumber) ||
     versions?.[0]
 
   const adoptedCount = currentPlan.adoptedIdeas?.length ?? 0
+  const brief = currentPlan.brief
+
+  const shortfall = (
+    <ShortfallBanner
+      plan={plan}
+      isReadOnly={isReadOnly}
+      previousGuestCount={previousGuestCount}
+      onApplyRemedy={onApplyRemedy}
+      onUndo={() => onUndo?.()}
+    />
+  )
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      {/* Workspace Top Action Bar: Sync Status, Read-Only Pill, Desktop Nav & Share & Save trigger (D-01, D-14) */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-royal-plum/10 bg-warm-ivory px-4 py-2.5 shadow-2xs">
-        <div className="flex items-center gap-2.5">
+    <div className="min-h-dvh">
+      {/* Top bar: wordmark and the two actions that apply everywhere */}
+      <div className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between gap-3 px-4 sm:px-6">
+        <Link href="/" className="transition-opacity hover:opacity-80" aria-label="Mehfil home">
+          <Wordmark size="sm" hideTag />
+        </Link>
+
+        <div className="flex items-center gap-3">
           {syncStatus && <SyncStatusBadge status={syncStatus} />}
-          {isReadOnly && (
-            <Badge
-              variant="outline"
-              className="flex items-center gap-1.5 border-royal-plum/20 bg-marigold/15 text-royal-plum text-xs px-2.5 py-1"
-            >
-              <Lock className="h-3 w-3 text-royal-plum/70" />
-              <span>Read-Only View</span>
-            </Badge>
-          )}
-
-          {/* Desktop Navigation Switcher: Workspace Columns vs Curated Ideas (D-01) */}
-          <div className="hidden lg:flex items-center gap-1 bg-royal-plum/5 p-1 rounded-full border border-royal-plum/10 ml-2">
-            <button
-              type="button"
-              onClick={() => setDesktopTab('all')}
-              className={cn(
-                'px-3.5 py-1 rounded-full text-xs font-semibold transition',
-                desktopTab === 'all'
-                  ? 'bg-royal-plum text-warm-ivory shadow-xs'
-                  : 'text-royal-plum/70 hover:text-royal-plum'
-              )}
-            >
-              Workspace
-            </button>
-            <button
-              type="button"
-              onClick={() => setDesktopTab('ideas')}
-              className={cn(
-                'px-3.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition',
-                desktopTab === 'ideas'
-                  ? 'bg-marigold text-royal-plum shadow-xs font-bold'
-                  : 'text-royal-plum/70 hover:text-royal-plum'
-              )}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Curated Ideas</span>
-              {adoptedCount > 0 && (
-                <Badge
-                  variant="outline"
-                  className="h-4 px-1.5 text-3xs bg-warm-ivory text-royal-plum border-royal-plum/20 font-bold"
-                >
-                  {adoptedCount}
-                </Badge>
-              )}
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
+          {isReadOnly && <span className="hidden text-sm text-royal-plum/70 sm:inline">Read-Only View</span>}
           {isReadOnly && onUnlockEdit && (
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={onUnlockEdit}
-              className="h-8 border-royal-plum/20 bg-transparent text-xs font-semibold text-royal-plum hover:bg-royal-plum/5"
+              aria-label="Unlock Organizer Editing"
             >
-              <KeyRound className="mr-1.5 h-3.5 w-3.5" />
-              Unlock Organizer Editing
+              Unlock editing
             </Button>
           )}
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => handleOpenSmartInspector()}
-            className="h-8 border-royal-plum/20 bg-warm-ivory text-xs font-semibold text-royal-plum hover:bg-royal-plum/5 hover:border-marigold shadow-2xs flex items-center gap-1.5"
-          >
-            <Compass className="h-3.5 w-3.5 text-royal-plum/80" />
-            <span>Smart Inspector</span>
-          </Button>
-
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => setIsShareModalOpen(true)}
-            className="h-8 bg-marigold text-xs font-semibold text-royal-plum hover:bg-marigold/90 shadow-2xs flex items-center gap-1.5"
-          >
-            <Share2 className="h-3.5 w-3.5" />
-            <span>Share & Save</span>
+          <Button type="button" size="sm" onClick={() => setIsShareModalOpen(true)}>
+            Share &amp; Save
           </Button>
         </div>
       </div>
 
-      {/* Two-Beat v2 Reveal Change Banner (D-10, VIBE-04) */}
-      {v2Banner}
-
-      {/* Shortfall Banner (ADR-0002 Permissive Balancing) */}
-      <ShortfallBanner
-        plan={plan}
-        previousGuestCount={previousGuestCount}
-        onApplyRemedy={onApplyRemedy}
-        onUndo={() => onUndo?.()}
-      />
-
-      {/* Desktop Curated Ideas View (when desktopTab === 'ideas') */}
-      {desktopTab === 'ideas' && (
-        <div data-testid="desktop-ideas-pane" className="hidden lg:block h-[calc(100vh-5rem)] overflow-y-auto pr-2 pb-12">
-          <CuratedIdeasSection
-            plan={currentPlan}
-            isReadOnly={isReadOnly}
-            onAdoptIdea={onAdoptIdea ?? (() => {})}
-            onRetractIdea={onRetractIdea ?? (() => {})}
-          />
-        </div>
-      )}
-
-      {/* Desktop 3-Pane Layout (35% Budget, 40% Timeline, 25% Style DNA & Change Explainer) */}
-      {desktopTab === 'all' && (
-        <div
-          data-testid="desktop-workspace-layout"
-          className="hidden lg:grid lg:grid-cols-12 lg:gap-6 lg:h-[calc(100vh-5rem)] items-start"
-        >
-          {/* Left Column: 35% Budget (col-span-4) */}
-          <div
-            data-testid="desktop-budget-pane"
-            className="lg:col-span-4 h-[calc(100vh-5rem)] overflow-y-auto flex flex-col gap-6 pr-2"
-          >
-            <BudgetSection
-              plan={currentPlan}
-              onGuestCountChange={onGuestCountChange}
-              onSetProtected={onSetProtected}
-              onCheckQuote={handleCheckQuote}
-              onUnlockQuote={handleUnlockQuote}
-            />
-          </div>
-
-          {/* Center Column: 40% Timeline (col-span-5) */}
-          <div
-            data-testid="desktop-timeline-pane"
-            className="lg:col-span-5 h-[calc(100vh-5rem)] overflow-y-auto flex flex-col gap-6 pr-2"
-          >
-            <TimelineSection plan={currentPlan} schedule={timelineSchedule} />
-          </div>
-
-          {/* Right Column: 25% Style DNA, Change Explainer & Summary (col-span-3) */}
-          <div
-            data-testid="desktop-explainer-pane"
-            className="lg:col-span-3 h-[calc(100vh-5rem)] overflow-y-auto flex flex-col gap-6"
-          >
-            {/* Pinned Style DNA Card (D-08, D-14, VIBE-04) */}
-            <StyleDNACard
-              plan={currentPlan}
-              currentVersion={effectiveCurrentVersion}
-              isReadOnly={isReadOnly}
-              isExtracting={isExtracting}
-              onRetuneStyle={onRetuneStyle}
-              onResetToBaseline={onResetToBaseline}
-              onRetryExtraction={onRetryExtraction}
-            />
-
-            <ChangeExplainer
-              plan={currentPlan}
-              changes={changeList}
-              versions={versions}
-              currentVersionNumber={currentVersionNumber}
-              onRestoreVersion={onRestoreVersion}
-              isReadOnly={isReadOnly}
-              previousGuestCount={previousGuestCount}
-              onUndo={onUndo}
-            />
-
-            {/* Plan Metadata Summary Card */}
-            <Card className="rounded-2xl border border-royal-plum/10 bg-warm-ivory p-5 shadow-xs">
-              <CardHeader className="p-0 pb-3">
-                <CardTitle className="text-base font-serif">Celebration Overview</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 text-xs text-royal-plum/70 flex flex-col gap-2">
-                <div className="flex justify-between items-center py-1 border-b border-royal-plum/5">
-                  <span>Event</span>
-                  <span className="font-semibold text-royal-plum">{currentPlan.brief.title}</span>
-                </div>
-                <div className="flex justify-between items-center py-1 border-b border-royal-plum/5">
-                  <span>City & Date</span>
-                  <span className="font-semibold text-royal-plum">
-                    {currentPlan.brief.city} • {currentPlan.brief.eventDate}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-1 border-b border-royal-plum/5">
-                  <span>Total Budget</span>
-                  <span className="font-semibold text-royal-plum tabular-nums">
-                    {formatINR(currentPlan.totalBudgetPaise)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-1">
-                  <span>Protected Category</span>
-                  <span className="font-semibold text-royal-plum capitalize">
-                    {currentPlan.brief.protectedCategory}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+      {/* Plan identity */}
+      <div className="mx-auto w-full max-w-4xl px-4 pb-5 pt-4 sm:px-6 sm:pt-8">
+        <p className="text-sm text-royal-plum/60">
+          {EVENT_TYPE_LABELS[brief.eventType] ?? brief.eventType}
+          <span aria-hidden="true"> · </span>
+          {brief.city}
+          <span aria-hidden="true"> · </span>
+          {formatEventDate(brief.eventDate)}
+        </p>
+        <div className="mt-1 flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+          <h1 className="font-serif text-3xl font-bold leading-tight text-royal-plum sm:text-4xl">
+            {brief.title || 'Celebration Workspace'}
+          </h1>
+          <div className="flex items-center gap-4 pb-1 text-sm">
+            <Link
+              href={`/new?from=${encodeURIComponent(currentPlan.id)}`}
+              className="text-royal-plum/70 underline decoration-royal-plum/25 underline-offset-4 hover:text-royal-plum hover:decoration-royal-plum"
+            >
+              Edit brief
+            </Link>
+            <Link
+              href="/new"
+              className="text-royal-plum/70 underline decoration-royal-plum/25 underline-offset-4 hover:text-royal-plum hover:decoration-royal-plum"
+            >
+              New plan
+            </Link>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Mobile / Small Screen View (< 1024px) */}
-      <div
-        data-testid="mobile-workspace-layout"
-        className="block lg:hidden flex flex-col pb-36"
+      {/* Tabs: real links when routed, buttons otherwise */}
+      <nav
+        ref={tabsRef}
+        aria-label="Workspace sections"
+        className="sticky top-0 z-30 border-y border-royal-plum/10 bg-warm-ivory/95 backdrop-blur-sm"
       >
-        {mobileTab === 'budget' && (
-          <div data-testid="mobile-pane-budget">
-            <BudgetSection
-              plan={currentPlan}
-              onGuestCountChange={onGuestCountChange}
-              onSetProtected={onSetProtected}
-              onCheckQuote={handleCheckQuote}
-              onUnlockQuote={handleUnlockQuote}
-            />
-          </div>
-        )}
+        <ul role="tablist" className="mx-auto flex w-full max-w-4xl gap-0.5 overflow-x-auto px-2 [scrollbar-width:none] sm:gap-4 sm:px-6 [&::-webkit-scrollbar]:hidden">
+          {PLAN_TABS.map(({ id, label }) => {
+            const isActive = activeTab === id
+            const classes = cn(
+              'relative flex h-12 items-center px-2.5 text-sm font-medium transition-colors sm:px-1',
+              isActive ? 'text-royal-plum' : 'text-royal-plum/60 hover:text-royal-plum'
+            )
+            const text = (
+              <>
+                {label}
+                {id === 'ideas' && adoptedCount > 0 && (
+                  <span className="ml-1.5 tabular-nums text-royal-plum/60">{adoptedCount}</span>
+                )}
+                {/* The underline is one shared element that slides between tabs. */}
+                {isActive && (
+                  <motion.span
+                    layoutId="workspace-tab-underline"
+                    className="absolute inset-x-2.5 bottom-0 h-0.5 rounded-full bg-royal-plum sm:inset-x-0"
+                    transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                  />
+                )}
+              </>
+            )
+            return (
+              <li key={id} role="presentation" className="shrink-0">
+                {basePath ? (
+                  <Link
+                    href={`${basePath}/${id}`}
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-current={isActive ? 'page' : undefined}
+                    scroll={false}
+                    className={classes}
+                  >
+                    {text}
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => setLocalTab(id)}
+                    className={classes}
+                  >
+                    {text}
+                  </button>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
 
-        {mobileTab === 'timeline' && (
-          <div data-testid="mobile-pane-timeline">
-            <TimelineSection plan={currentPlan} schedule={timelineSchedule} />
-          </div>
-        )}
+      <main className="mx-auto w-full max-w-4xl px-4 pb-24 pt-6 sm:px-6 sm:pt-8">
+        <div className="flex flex-col gap-6">
+          {notices}
 
-        {mobileTab === 'ideas' && (
-          <div data-testid="mobile-pane-ideas" className="flex flex-col gap-4">
-            <CuratedIdeasSection
-              plan={currentPlan}
-              isReadOnly={isReadOnly}
-              onAdoptIdea={onAdoptIdea ?? (() => {})}
-              onRetractIdea={onRetractIdea ?? (() => {})}
-            />
-          </div>
-        )}
-
-        {mobileTab === 'style' && (
-          <div data-testid="mobile-pane-style" className="flex flex-col gap-4">
-            <StyleDNACard
-              plan={currentPlan}
-              currentVersion={effectiveCurrentVersion}
-              isReadOnly={isReadOnly}
-              isExtracting={isExtracting}
-              onRetuneStyle={onRetuneStyle}
-              onResetToBaseline={onResetToBaseline}
-              onRetryExtraction={onRetryExtraction}
-            />
-          </div>
-        )}
-
-        {mobileTab === 'summary' && (
-          <div data-testid="mobile-pane-summary" className="flex flex-col gap-4">
-            <div className="rounded-2xl border border-royal-plum/10 bg-warm-ivory p-6 text-center shadow-xs flex flex-col gap-3">
-              <h3 className="font-serif font-bold text-lg text-royal-plum">Plan Summary</h3>
-              <p className="text-xs text-royal-plum/60">
-                {currentPlan.brief.title} • {currentPlan.brief.city} • {currentPlan.brief.eventDate}
-              </p>
-              <div className="text-lg font-bold text-royal-plum tabular-nums">
-                {formatINR(currentPlan.totalBudgetPaise)}
-              </div>
-              <div className="text-xs text-royal-plum/70">
-                Protected Floor Locked: <span className="font-semibold capitalize">{currentPlan.brief.protectedCategory}</span>
-              </div>
+          <div key={activeTab} className="flex flex-col gap-6 motion-safe:animate-rise">
+          {activeTab === 'budget' && (
+            <div data-testid="pane-budget" className="flex flex-col gap-6">
+              {v2Banner}
+              {shortfall}
+              <BudgetSection
+                plan={currentPlan}
+                onGuestCountChange={onGuestCountChange}
+                onSetProtected={onSetProtected}
+                onCheckQuote={handleCheckQuote}
+                onUnlockQuote={handleUnlockQuote}
+                onOpenInspector={() => handleOpenSmartInspector()}
+                isReadOnly={isReadOnly}
+              />
             </div>
+          )}
 
-            <ChangeExplainer
-              plan={currentPlan}
-              changes={changeList}
-              versions={versions}
-              currentVersionNumber={currentVersionNumber}
-              onRestoreVersion={onRestoreVersion}
-              isReadOnly={isReadOnly}
-              previousGuestCount={previousGuestCount}
-              onUndo={onUndo}
-            />
-          </div>
-        )}
-
-        {/* Persistent bottom drawer sheet trigger handle floating above bottom tab bar */}
-        <div className="fixed bottom-20 inset-x-0 z-30 px-4">
-          <button
-            type="button"
-            onClick={() => setIsDrawerOpen(true)}
-            aria-label="Open change history drawer"
-            className="w-full flex items-center justify-between rounded-full bg-royal-plum text-warm-ivory px-4 py-2.5 text-xs font-semibold shadow-lg backdrop-blur-md active:scale-98 transition"
-          >
-            <span>
-              Guests: <span className="tabular-nums font-semibold">{plan.brief.guestCount}</span> • Floor: <span className="capitalize">{plan.brief.protectedCategory}</span>
-            </span>
-            <div className="flex items-center gap-1.5 text-marigold">
-              <span className="tabular-nums font-bold">
-                ⚡ {countDisplay}
-              </span>
-              <ChevronUp className="w-4 h-4" />
+          {activeTab === 'timeline' && (
+            <div data-testid="pane-timeline">
+              <TimelineSection plan={currentPlan} schedule={timelineSchedule} />
             </div>
-          </button>
-        </div>
+          )}
 
-        {/* Bottom Sheet Drawer containing StyleDNACard and ChangeExplainer */}
-        <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-          <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
-            <SheetHeader className="mb-3">
-              <SheetTitle>Plan Changes & Rebalancing</SheetTitle>
-            </SheetHeader>
-            <div className="mb-4">
+          {activeTab === 'ideas' && (
+            <div data-testid="pane-ideas" className="flex flex-col gap-6">
+              {shortfall}
+              <CuratedIdeasSection
+                plan={currentPlan}
+                isReadOnly={isReadOnly}
+                onAdoptIdea={onAdoptIdea ?? (() => {})}
+                onRetractIdea={onRetractIdea ?? (() => {})}
+              />
+            </div>
+          )}
+
+          {activeTab === 'style' && (
+            <div data-testid="pane-style" className="flex flex-col gap-6">
+              {v2Banner}
               <StyleDNACard
-                plan={plan}
+                plan={currentPlan}
                 currentVersion={effectiveCurrentVersion}
                 isReadOnly={isReadOnly}
                 isExtracting={isExtracting}
@@ -529,58 +393,26 @@ export function WorkspaceShell({
                 onRetryExtraction={onRetryExtraction}
               />
             </div>
-            <ChangeExplainer
-              plan={plan}
-              changes={changeList}
-              versions={versions}
-              currentVersionNumber={currentVersionNumber}
-              onRestoreVersion={onRestoreVersion}
-              isReadOnly={isReadOnly}
-              previousGuestCount={previousGuestCount}
-              onUndo={onUndo}
-            />
-          </SheetContent>
-        </Sheet>
+          )}
 
-        {/* 5-Tab Bottom Navigation Bar (D-01) */}
-        <nav
-          role="tablist"
-          aria-label="Workspace navigation"
-          className="fixed bottom-0 inset-x-0 z-40 bg-warm-ivory/95 border-t border-royal-plum/10 backdrop-blur-md h-16 flex items-center justify-around px-2"
-        >
-          {[
-            { id: 'budget', label: 'Budget', icon: Coins },
-            { id: 'timeline', label: 'Timeline', icon: Calendar },
-            { id: 'ideas', label: 'Ideas', icon: Sparkles },
-            { id: 'style', label: 'Style', icon: Palette },
-            { id: 'summary', label: 'Summary', icon: History },
-          ].map(({ id, label, icon: Icon }) => {
-            const isActive = mobileTab === id
-            return (
-              <button
-                key={id}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => {
-                  setMobileTab(id as MobileTab)
-                }}
-                className={cn(
-                  'flex flex-col items-center gap-1 py-1 px-3 rounded-full text-xs font-semibold transition',
-                  isActive
-                    ? 'bg-marigold text-royal-plum font-bold shadow-xs'
-                    : 'text-royal-plum/60 hover:text-royal-plum'
-                )}
-              >
-                <Icon className={cn('w-4 h-4', isActive ? 'text-royal-plum' : 'text-royal-plum/60')} />
-                <span>{label}</span>
-              </button>
-            )
-          })}
-        </nav>
-      </div>
+          {activeTab === 'history' && (
+            <div data-testid="pane-history">
+              <ChangeExplainer
+                plan={currentPlan}
+                changes={changeList}
+                versions={versions}
+                currentVersionNumber={currentVersionNumber}
+                onRestoreVersion={onRestoreVersion}
+                isReadOnly={isReadOnly}
+                previousGuestCount={previousGuestCount}
+                onUndo={onUndo}
+              />
+            </div>
+          )}
+          </div>
+        </div>
+      </main>
 
-      {/* Share & Save Modal */}
       <ShareSaveModal
         open={isShareModalOpen}
         onOpenChange={setIsShareModalOpen}

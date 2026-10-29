@@ -2,7 +2,7 @@
 
 import React from 'react'
 import type { MilestoneBand as MilestoneBandType } from '@/lib/engine/types'
-import { AlertCircle, Calendar, ArrowUpRight, CheckCircle2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface MilestoneBandProps {
   band: MilestoneBandType
@@ -24,105 +24,86 @@ export function MilestoneBand({ band }: MilestoneBandProps) {
     const el = document.getElementById(`category-${category}`)
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      el.classList.add('ring-2', 'ring-marigold')
-      setTimeout(() => {
-        el.classList.remove('ring-2', 'ring-marigold')
-      }, 1500)
     }
   }
 
   return (
-    <div
-      className={`rounded-2xl border p-4 sm:p-5 transition-all ${
-        band.isImmediateAction
-          ? 'border-amber-300 bg-amber-50/70 shadow-xs'
-          : 'border-royal-plum/10 bg-white/70'
-      }`}
-    >
-      {/* Band Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-royal-plum/8 pb-3">
-        <div className="flex items-center gap-2">
-          {band.isImmediateAction ? (
-            <div className="rounded-full bg-amber-200 p-1 text-amber-900">
-              <AlertCircle className="w-4 h-4" />
-            </div>
-          ) : (
-            <div className="rounded-full bg-royal-plum/5 p-1 text-royal-plum/70">
-              <Calendar className="w-4 h-4" />
-            </div>
+    <li>
+      <section
+        aria-labelledby={`band-${band.id}`}
+        className={cn(
+          band.isImmediateAction &&
+            'rounded-2xl border border-marigold/40 bg-marigold/10 p-4 shadow-xs sm:p-5'
+        )}
+      >
+        <header
+          className={cn(
+            'flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b pb-2',
+            band.isImmediateAction ? 'border-marigold/30' : 'border-royal-plum/10'
           )}
-
-          <h4 className="font-serif font-bold text-base text-royal-plum">
+        >
+          <h4 id={`band-${band.id}`} className="flex items-center gap-2 font-serif text-lg font-bold text-royal-plum">
+            {band.isImmediateAction && (
+              <span
+                aria-hidden="true"
+                className="h-4 w-1 shrink-0 rounded-full bg-gradient-to-b from-marigold to-gulabi-rose"
+              />
+            )}
             {band.name}
+            {band.isImmediateAction && (
+              <span className="font-sans text-sm font-medium text-royal-plum/55">Sprint Triage</span>
+            )}
           </h4>
+          <p className="text-sm text-royal-plum/60">
+            Target Date: <span className="font-medium tabular-nums text-royal-plum">{band.targetDate}</span>
+          </p>
+        </header>
 
-          {band.isImmediateAction && (
-            <span className="rounded-full bg-amber-200 px-2 py-0.5 text-2xs font-bold uppercase tracking-wider text-amber-900">
-              Sprint Triage
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 text-xs font-semibold text-royal-plum/70">
-          <span>Target Date:</span>
-          <span className="rounded-md bg-royal-plum/5 px-2 py-0.5 font-mono text-royal-plum">
-            {band.targetDate}
-          </span>
-        </div>
-      </div>
-
-      {/* Task Checklist */}
-      <div className="mt-3 flex flex-col gap-2.5">
-        {band.tasks.map((task) => (
-          <div
-            key={task.id}
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl border border-royal-plum/5 bg-white/60 p-3 hover:bg-white transition"
-          >
-            <div className="flex items-start gap-2.5">
-              <div className="mt-0.5 text-royal-plum/30">
-                <CheckCircle2 className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-royal-plum">
-                    {task.title}
-                  </span>
-                  {task.isCriticalPath && (
-                    <span className="rounded-full bg-red-100 px-1.5 py-0.2 text-3xs font-bold uppercase text-red-800">
-                      Critical Path
-                    </span>
-                  )}
-                  {task.appliedBufferDays !== undefined && task.appliedBufferDays > 0 && (
-                    <span className="rounded-full bg-marigold/20 border border-marigold/50 px-2 py-0.5 text-3xs font-bold text-royal-plum">
-                      +{task.appliedBufferDays}d peak buffer
-                    </span>
-                  )}
-                  {task.environmentalRiskId && (
-                    <span className="rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-3xs font-medium text-amber-900">
-                      [ {task.environmentalRiskId} ]
-                    </span>
-                  )}
-                </div>
-                {task.notes && (
-                  <p className="mt-0.5 text-xs text-royal-plum/60">{task.notes}</p>
+        <ul className="divide-y divide-royal-plum/8">
+          {band.tasks.map((task) => (
+            <li
+              key={task.id}
+              className="group flex flex-col gap-1 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
+            >
+              <div className="min-w-0">
+                <p className="text-base font-medium text-royal-plum">{task.title}</p>
+                {task.notes && <p className="mt-0.5 text-sm text-royal-plum/60">{task.notes}</p>}
+                {(task.isCriticalPath ||
+                  (task.appliedBufferDays !== undefined && task.appliedBufferDays > 0) ||
+                  task.environmentalRiskId) && (
+                  <p className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+                    {task.isCriticalPath && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-terracotta/10 px-2 py-0.5 font-semibold text-terracotta">
+                        <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-terracotta" />
+                        Critical Path
+                      </span>
+                    )}
+                    {task.appliedBufferDays !== undefined && task.appliedBufferDays > 0 && (
+                      <span className="rounded-full bg-marigold/15 px-2 py-0.5 font-medium text-royal-plum/75">
+                        +{task.appliedBufferDays}d peak buffer
+                      </span>
+                    )}
+                    {task.environmentalRiskId && (
+                      <span className="rounded-full bg-royal-plum/5 px-2 py-0.5 text-royal-plum/70">
+                        {task.environmentalRiskId}
+                      </span>
+                    )}
+                  </p>
                 )}
               </div>
-            </div>
 
-            {/* Clickable Budget Category Pill (D-16) */}
-            <button
-              type="button"
-              onClick={() => handleScrollToCategory(task.budgetCategory)}
-              title={`Jump to ${CATEGORY_NAMES[task.budgetCategory] || task.budgetCategory} budget card`}
-              className="inline-flex items-center gap-1 self-start sm:self-center rounded-full border border-royal-plum/15 bg-warm-ivory px-2.5 py-1 text-2xs font-semibold text-royal-plum/80 hover:border-marigold hover:bg-marigold/15 transition active:scale-95"
-            >
-              <span>{CATEGORY_NAMES[task.budgetCategory] || task.budgetCategory}</span>
-              <ArrowUpRight className="w-3 h-3 text-royal-plum/40" />
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
+              <button
+                type="button"
+                onClick={() => handleScrollToCategory(task.budgetCategory)}
+                title={`Jump to ${CATEGORY_NAMES[task.budgetCategory] || task.budgetCategory} in the budget`}
+                className="w-fit shrink-0 rounded-full border border-royal-plum/10 bg-warm-ivory px-3 py-1 text-sm text-royal-plum/70 transition hover:border-royal-plum/25 hover:bg-white hover:text-royal-plum motion-safe:group-hover:border-royal-plum/20"
+              >
+                {CATEGORY_NAMES[task.budgetCategory] || task.budgetCategory}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </li>
   )
 }
-

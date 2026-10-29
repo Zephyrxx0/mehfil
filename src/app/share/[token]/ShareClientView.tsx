@@ -1,5 +1,6 @@
 'use client'
 
+import { Wordmark } from '@/components/brand/Wordmark'
 import * as React from 'react'
 import type { SanitizedSharedPlan, BudgetCategory } from '@/lib/engine/types'
 import { formatINR } from '@/lib/engine/currency'
@@ -88,11 +89,9 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
         {/* Top Wordmark & Header */}
         <header className="flex flex-col items-center text-center space-y-4">
           <div className="flex items-center gap-2">
-            <span className="font-devanagari text-3xl font-bold tracking-tight text-royal-plum">
-              महफ़िल
-            </span>
+            <Wordmark size="lg" hideTag />
             <span className="text-xs uppercase tracking-widest text-royal-plum/50 font-medium">
-              • MEHFIL CELEBRATION
+              • Celebration
             </span>
           </div>
 
@@ -285,12 +284,6 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
             </p>
           )}
         </section>
-
-        {/* Footer */}
-        <footer className="text-center py-6 border-t border-royal-plum/10 text-xs text-royal-plum/50 space-y-1">
-          <p>Planned with precision & reassurance on Mehfil (महफ़िल)</p>
-          <p>Words from models, numbers from code</p>
-        </footer>
       </div>
     </main>
   )

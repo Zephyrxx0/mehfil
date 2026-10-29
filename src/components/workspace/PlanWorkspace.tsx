@@ -17,19 +17,20 @@ import { applyStyleModulationToPlan, generateStyleModulationRationale } from '@/
 import { extractDeterministicStyleDNA } from '@/lib/ai/heuristic'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
 import { persistence } from '@/lib/storage/persistence'
+import { VIBE_MIN } from '@/lib/vibe-limits'
 import { WorkspaceShell } from './WorkspaceShell'
 import { ConcurrencyConflictBanner } from './ConcurrencyConflictBanner'
 import { V2ChangeBanner } from './V2ChangeBanner'
 import { UndoActionBar } from './UndoActionBar'
 import type { SyncState } from './SyncStatusBadge'
 import type { PlanChangeRecord, PlanChangeDelta } from './ChangeExplainer'
-import { ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import type { PlanTabId } from './tabs'
 
 export interface PlanWorkspaceProps {
   initialPlan: Plan
-  onResetPlan?: () => void
+  /** Active workspace tab; with `basePath` the tabs are links. */
+  activeTab?: PlanTabId
+  basePath?: string
   isReadOnly?: boolean
   editKey?: string
   initialVersions?: PlanVersionRecord[]
@@ -39,7 +40,8 @@ export interface PlanWorkspaceProps {
 
 export function PlanWorkspace({
   initialPlan,
-  onResetPlan,
+  activeTab,
+  basePath,
   isReadOnly = false,
   editKey,
   initialVersions,
@@ -270,7 +272,7 @@ export function PlanWorkspace({
   useEffect(() => {
     if (
       plan.brief.vibeSwatches &&
-      plan.brief.vibeSwatches.length >= 6 &&
+      plan.brief.vibeSwatches.length >= VIBE_MIN &&
       !plan.styleDNA &&
       !hasTriggeredInitialExtraction.current
     ) {
@@ -420,7 +422,7 @@ export function PlanWorkspace({
     const swatches = plan.brief.vibeSwatches || []
     const quote = plan.brief.protectedMomentQuote || ''
     const tradeoffs = plan.brief.tradeoffs
-    if (swatches.length >= 6) {
+    if (swatches.length >= VIBE_MIN) {
       await triggerStyleDNAExtraction(swatches, quote, tradeoffs)
     }
   }, [plan.brief.protectedMomentQuote, plan.brief.tradeoffs, plan.brief.vibeSwatches, triggerStyleDNAExtraction])
@@ -834,53 +836,19 @@ export function PlanWorkspace({
   }
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto px-4 py-6">
-      {/* Workspace Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-royal-plum/10 pb-5">
-        <div>
-          <div className="flex items-center gap-2">
-            <Badge variant="default" className="uppercase tracking-wider">
-              {plan.brief.eventType}
-            </Badge>
-            <span className="text-xs text-royal-plum/50">• {plan.brief.city}</span>
-            <span className="text-xs text-royal-plum/50">• {plan.brief.eventDate}</span>
-            <span className="text-xs text-royal-plum/70 font-semibold tabular-nums">
-              • {formatINR(plan.totalBudgetPaise)}
-            </span>
-          </div>
-          <h1 className="mt-1 font-serif text-3xl font-bold text-royal-plum">
-            {plan.brief.title || 'Celebration Workspace'}
-          </h1>
-          <p className="text-xs text-royal-plum/60 mt-0.5">
-            Mathematically guaranteed budget & timeline • Words from models, numbers from code
-          </p>
-        </div>
-
-        {onResetPlan && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onResetPlan}
-            className="inline-flex items-center gap-1.5 self-start sm:self-center text-xs font-semibold"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>New Celebration</span>
-          </Button>
-        )}
-      </div>
-
-      {/* Optimistic Concurrency Conflict Banner (D-15, COLLAB-04) */}
-      {concurrencyConflict && (
-        <ConcurrencyConflictBanner
-          onRefresh={handleRefreshToLatest}
-          onCommitNewSnapshot={handleCommitAsNewSnapshot}
-        />
-      )}
-
-      {/* Responsive Workspace Shell */}
+    <>
       <WorkspaceShell
         plan={plan}
+        activeTab={activeTab}
+        basePath={basePath}
+        notices={
+          concurrencyConflict ? (
+            <ConcurrencyConflictBanner
+              onRefresh={handleRefreshToLatest}
+              onCommitNewSnapshot={handleCommitAsNewSnapshot}
+            />
+          ) : undefined
+        }
         changes={snapshotStack}
         versions={versions}
         currentVersionNumber={currentVersionNumber}
@@ -919,6 +887,6 @@ export function PlanWorkspace({
         onUndo={handleTier1Undo}
         onDismiss={() => setUndoState(null)}
       />
-    </div>
+    </>
   )
 }

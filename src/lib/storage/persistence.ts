@@ -25,6 +25,8 @@ export interface PersistenceAdapter {
 
 const LOCAL_STORAGE_PREFIX = 'mehfil_plan_'
 const LOCAL_VERSIONS_PREFIX = 'mehfil_versions_'
+/** Marks a plan this browser created, so it opens editable without an edit key. */
+export const LOCAL_OWNER_PREFIX = 'mehfil_owner_'
 
 export class HybridPersistenceAdapter implements PersistenceAdapter {
   async savePlan(
@@ -197,6 +199,8 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
         let isAuthorized = false
         if (editKey) {
           isAuthorized = true
+        } else if (window.localStorage.getItem(LOCAL_OWNER_PREFIX + planId)) {
+          isAuthorized = true
         } else if (typeof document !== 'undefined' && document.cookie.includes(`mehfil_edit_${planId}`)) {
           isAuthorized = true
         }
@@ -286,3 +290,11 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
 }
 
 export const persistence = new HybridPersistenceAdapter()
+
+/** Saves a freshly generated plan in this browser and marks it as owned by it. */
+export async function saveNewPlan(plan: Plan): Promise<void> {
+  await persistence.savePlan(plan, undefined, 'Initial plan created from archetype')
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.setItem(LOCAL_OWNER_PREFIX + plan.id, '1')
+  }
+}

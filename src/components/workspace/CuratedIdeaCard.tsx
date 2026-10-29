@@ -3,10 +3,7 @@
 import React from 'react'
 import type { CuratedIdea, Plan } from '@/lib/engine/types'
 import { formatINR } from '@/lib/engine/currency'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
-import { Clock, Sparkles, Quote, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface CuratedIdeaCardProps {
@@ -17,6 +14,7 @@ export interface CuratedIdeaCardProps {
   onToggle: (idea: CuratedIdea, adopted: boolean) => void
 }
 
+/** One idea as a list row: what it is, what it costs, and the switch to adopt it. */
 export function CuratedIdeaCard({
   idea,
   plan,
@@ -30,7 +28,7 @@ export function CuratedIdeaCard({
   )
 
   const availableDonorCapacityPaise = flexibleDonorLines.reduce((acc, l) => {
-    const floor = Math.round((l.baselinePaise * 0.40) / 100) * 100
+    const floor = Math.round((l.baselinePaise * 0.4) / 100) * 100
     return acc + Math.max(0, l.currentPaise - floor)
   }, 0)
 
@@ -49,96 +47,55 @@ export function CuratedIdeaCard({
   }
 
   return (
-    <Card
+    <li
       id={`idea-${idea.id}`}
       className={cn(
-        'relative transition-all duration-200 border bg-white/80 shadow-xs flex flex-col justify-between',
-        isAdopted
-          ? 'border-marigold/60 bg-marigold/5 ring-1 ring-marigold/40'
-          : 'border-royal-plum/10 hover:border-royal-plum/25 hover:shadow-sm'
+        'flex items-start justify-between gap-4 px-4 py-4 sm:px-5',
+        isAdopted ? 'relative bg-marigold/10 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-marigold' : ''
       )}
     >
-      <CardContent className="p-4 flex flex-col gap-3 h-full justify-between">
-        {/* Top Header: Title, Devanagari flourish & Switch */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex flex-col gap-0.5 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h4 className="font-serif font-bold text-base text-royal-plum">
-                {idea.title}
-              </h4>
-              {idea.devanagariTitle && (
-                <span className="font-devanagari text-xs text-royal-plum/60 font-normal">
-                  {idea.devanagariTitle}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-royal-plum/70 line-clamp-2">
-              {idea.tagline}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 pt-0.5">
-            <Switch
-              checked={isAdopted}
-              disabled={isReadOnly}
-              onCheckedChange={handleToggle}
-              aria-label={`Toggle ${idea.title}`}
-            />
-          </div>
-        </div>
-
-        {/* Badges: Category, Cost Pill, Lead Time, and Adopted Pill */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <Badge
-            variant="outline"
-            className="capitalize text-2xs font-medium text-royal-plum/70 border-royal-plum/20 bg-warm-ivory"
-          >
-            {idea.category}
-          </Badge>
-
-          <Badge
-            variant="outline"
-            className="text-2xs font-bold text-royal-plum border-marigold/50 bg-marigold/15 tabular-nums"
-          >
-            {formatINR(idea.costPaise)}
-          </Badge>
-
-          <Badge
-            variant="outline"
-            className="text-2xs font-medium text-royal-plum/60 border-royal-plum/15 gap-1 bg-warm-ivory"
-          >
-            <Clock className="w-3 h-3 text-royal-plum/60" />
-            <span>{idea.leadDays}d lead</span>
-          </Badge>
-
-          {isAdopted && (
-            <Badge
-              variant="outline"
-              className="bg-marigold text-royal-plum border-marigold font-semibold text-2xs gap-1 shadow-2xs"
-            >
-              <Sparkles className="w-3 h-3 text-royal-plum" />
-              <span>Adopted</span>
-            </Badge>
+      <div className="min-w-0">
+        <h4 className="font-serif text-lg font-bold text-royal-plum">
+          {idea.title}
+          {idea.devanagariTitle && (
+            <span className="ml-2 font-devanagari text-sm font-normal text-royal-plum/60">
+              {idea.devanagariTitle}
+            </span>
           )}
-        </div>
+        </h4>
+        <p className="mt-0.5 text-sm text-royal-plum/80">{idea.tagline}</p>
+        <p className="mt-1 text-sm capitalize text-royal-plum/60">
+          <span>{idea.category}</span>
+          <span aria-hidden="true"> · </span>
+          <span className="font-medium tabular-nums normal-case text-royal-plum">{formatINR(idea.costPaise)}</span>
+          <span aria-hidden="true"> · </span>
+          <span className="normal-case">{idea.leadDays}d lead</span>
+          {isAdopted && (
+            <>
+              <span aria-hidden="true"> · </span>
+              <span className="font-medium normal-case text-royal-plum">Adopted</span>
+            </>
+          )}
+        </p>
 
-        {/* Pre-adoption Capacity Warning Pill (ADR-0002, ADR-0004) */}
         {willExceedCapacity && (
-          <div
-            className="rounded-lg border border-amber-300 bg-amber-50/90 px-2.5 py-1.5 text-xs text-amber-900 flex items-center gap-1.5 font-medium"
-            data-testid="shortfall-warning"
-          >
-            <AlertCircle className="w-3.5 h-3.5 text-amber-700 shrink-0" />
-            <span>Adopting will exceed flexible capacity & activate Shortfall Banner remedies</span>
-          </div>
+          <p data-testid="shortfall-warning" className="mt-2 text-sm font-medium text-terracotta">
+            Adopting will exceed flexible capacity &amp; activate Shortfall Banner remedies
+          </p>
         )}
 
-        {/* Cultural Nuance Callout Box */}
-        <div className="rounded-xl border border-royal-plum/10 bg-warm-ivory/80 p-2.5 text-xs text-royal-plum/80 italic flex items-start gap-2">
-          <Quote className="w-3.5 h-3.5 text-marigold shrink-0 mt-0.5 not-italic" />
-          <p className="font-serif leading-relaxed">&ldquo;{idea.culturalNuance}&rdquo;</p>
-        </div>
-      </CardContent>
-    </Card>
+        <p className="mt-2 font-serif text-sm italic leading-relaxed text-royal-plum/70">
+          &ldquo;{idea.culturalNuance}&rdquo;
+        </p>
+      </div>
+
+      <Switch
+        checked={isAdopted}
+        disabled={isReadOnly}
+        onCheckedChange={handleToggle}
+        aria-label={`Toggle ${idea.title}`}
+        className="mt-1 shrink-0"
+      />
+    </li>
   )
 }

@@ -3,19 +3,7 @@
 import React, { useState } from 'react'
 import type { Plan, PlanVersionRecord } from '@/lib/engine/types'
 import type { StyleDNA, StyleDimensions } from '@/lib/ai/schemas'
-import {
-  Palette,
-  Sparkles,
-  SlidersHorizontal,
-  RotateCcw,
-  RefreshCw,
-  Lock,
-  Quote,
-  Info,
-} from 'lucide-react'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
   Tooltip,
   TooltipContent,
@@ -33,7 +21,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { StyleDNARetuneSheet } from './StyleDNARetuneSheet'
-import { cn } from '@/lib/utils'
 
 export interface StyleDNACardProps {
   plan: Plan
@@ -120,163 +107,124 @@ export function StyleDNACard({
 
   return (
     <>
-      <Card className="rounded-2xl border border-royal-plum/10 bg-warm-ivory shadow-xs overflow-hidden">
-        {/* Card Header */}
-        <CardHeader className="p-4 pb-3 border-b border-royal-plum/8 bg-white/50 flex flex-row items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-marigold/30 text-royal-plum">
-              <Palette className="w-4 h-4 text-royal-plum" />
-            </div>
-            <div>
-              <CardTitle className="font-serif text-sm font-bold text-royal-plum flex items-center gap-1.5">
-                <span>Style DNA</span>
-                <span className="text-2xs font-sans font-normal text-royal-plum/50">&bull; Aesthetic Identity</span>
-              </CardTitle>
-            </div>
+      <section aria-labelledby="style-dna-heading" className="flex flex-col gap-8">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h3 id="style-dna-heading" className="flex items-center gap-2.5 font-serif text-xl font-bold text-royal-plum">
+              <span aria-hidden="true" className="h-4 w-1 shrink-0 origin-bottom rounded-full bg-gradient-to-b from-marigold to-gulabi-rose motion-safe:animate-[mehfil-flourish_0.5s_cubic-bezier(0.22,1,0.36,1)_both]" />
+              <span>Style DNA</span>
+            </h3>
+            <p className="mt-0.5 text-sm text-royal-plum/60">Aesthetic Identity</p>
           </div>
 
           {!isReadOnly && onRetuneStyle && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsRetuneOpen(true)}
-              className="h-7 gap-1 px-2.5 text-2xs font-semibold text-royal-plum border-royal-plum/20 hover:bg-royal-plum/5"
-            >
-              <SlidersHorizontal className="w-3 h-3" />
-              <span>Edit Style DNA</span>
+            <Button type="button" variant="outline" size="sm" onClick={() => setIsRetuneOpen(true)}>
+              Edit Style DNA
             </Button>
           )}
-        </CardHeader>
+        </div>
 
-        <CardContent className="p-4 flex flex-col gap-3.5">
-          {/* Loading Beat 1 Pulse State */}
-          {isExtracting ? (
-            <div className="flex flex-col items-center justify-center py-6 text-center animate-pulse">
-              <Sparkles className="w-6 h-6 text-marigold animate-spin mb-2" />
-              <p className="text-xs font-semibold text-royal-plum">
-                Analyzing visual vibes & balancing allocations...
+        {isExtracting ? (
+          <div role="status" className="border-y border-royal-plum/10 py-10 text-center">
+            <p className="text-base font-medium text-royal-plum">
+              Analyzing visual vibes &amp; balancing allocations...
+            </p>
+            <p className="mt-1 text-sm text-royal-plum/60">
+              Calibrating 8 aesthetic dimensions and protected floor
+            </p>
+          </div>
+        ) : (
+          <>
+            <blockquote className="border-l-2 border-marigold pl-4">
+              <p className="font-serif text-xl italic leading-relaxed text-royal-plum">
+                &ldquo;{vibeStatement}&rdquo;
               </p>
-              <p className="text-3xs text-royal-plum/60 mt-0.5">
-                Calibrating 8 aesthetic dimensions and protected floor
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* 1-Sentence Vibe Statement in Fraunces Display Styling */}
-              <div className="relative pl-3 border-l-2 border-marigold">
-                <p className="font-serif italic text-xs text-royal-plum leading-relaxed">
-                  &ldquo;{vibeStatement}&rdquo;
-                </p>
-              </div>
+            </blockquote>
 
-              {/* Named Palette Swatches */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-3xs uppercase tracking-wider font-semibold text-royal-plum/50">
-                  Named Festive Palette
-                </span>
+            <div className="grid gap-8 sm:grid-cols-2">
+              <div>
+                <h4 className="text-sm font-semibold text-royal-plum">Named Festive Palette</h4>
                 <TooltipProvider>
-                  <div className="flex items-center gap-2">
+                  <ul className="mt-3 flex flex-col gap-2">
                     {palette.map((color, idx) => (
-                      <Tooltip key={idx}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className="h-6 w-6 rounded-full border border-royal-plum/20 shadow-2xs cursor-help transition-transform hover:scale-110"
-                            style={{ backgroundColor: color.hex }}
-                            aria-label={`${color.name} (${color.hex})`}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="text-2xs">
-                          <span className="font-semibold">{color.name}</span>
-                          <span className="text-royal-plum/60 ml-1 font-mono">{color.hex}</span>
-                        </TooltipContent>
-                      </Tooltip>
+                      <li key={idx} className="flex items-center gap-3 text-sm">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span
+                              className="h-6 w-6 shrink-0 rounded-full border border-royal-plum/20"
+                              style={{ backgroundColor: color.hex }}
+                              aria-label={`${color.name} (${color.hex})`}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">
+                            <span className="font-semibold">{color.name}</span>
+                            <span className="ml-1 font-mono text-royal-plum/60">{color.hex}</span>
+                          </TooltipContent>
+                        </Tooltip>
+                        <span className="text-royal-plum">{color.name}</span>
+                        <span className="font-mono text-xs text-royal-plum/50">{color.hex}</span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </TooltipProvider>
               </div>
 
-              {/* Top Dimension Trait Badges */}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-3xs uppercase tracking-wider font-semibold text-royal-plum/50">
-                  Dominant Dimensions
-                </span>
-                <div className="flex flex-wrap gap-1.5">
+              <div>
+                <h4 className="text-sm font-semibold text-royal-plum">Dominant Dimensions</h4>
+                <ul className="mt-3 flex flex-col gap-3">
                   {topDimensions.map(([key, value]) => (
-                    <Badge
-                      key={key}
-                      variant="outline"
-                      className="text-2xs font-medium border-royal-plum/15 bg-white/70 text-royal-plum flex items-center gap-1"
-                    >
-                      <span>{DIMENSION_LABELS[key] || key}:</span>
-                      <span className="font-mono font-bold tabular-nums">{value}%</span>
-                    </Badge>
+                    <li key={key}>
+                      <div className="flex items-baseline justify-between text-sm">
+                        <span className="text-royal-plum">{DIMENSION_LABELS[key] || key}</span>
+                        <span className="font-semibold tabular-nums text-royal-plum">{value}%</span>
+                      </div>
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-royal-plum/10">
+                        <div className="h-full rounded-full bg-marigold" style={{ width: `${value}%` }} />
+                      </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
+            </div>
 
-              {/* Protected Moment Quote Cardlet */}
-              {protectedQuote && (
-                <div className="rounded-xl border border-gulabi-rose/30 bg-gulabi-rose/15 p-2.5 flex items-start gap-2">
-                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gulabi-rose text-royal-plum mt-0.5">
-                    <Lock className="w-2.5 h-2.5 fill-royal-plum" />
-                  </div>
-                  <div className="flex flex-col gap-0.5 min-w-0">
-                    <span className="text-3xs uppercase font-bold tracking-wider text-royal-plum/80">
-                      Protected Moment Quote
-                    </span>
-                    <p className="font-serif italic text-2xs text-royal-plum leading-snug line-clamp-2">
-                      &ldquo;{protectedQuote}&rdquo;
-                    </p>
-                  </div>
-                </div>
-              )}
+            {protectedQuote && (
+              <div className="border-l-2 border-gulabi-rose bg-gulabi-rose/10 px-4 py-3">
+                <h4 className="text-sm font-semibold text-royal-plum">Protected Moment Quote</h4>
+                <p className="mt-1 font-serif text-base italic text-royal-plum">&ldquo;{protectedQuote}&rdquo;</p>
+              </div>
+            )}
 
-              {/* Calm Degradation Note (D-14, 04-UI-SPEC.md §Copywriting) */}
-              {isFallbackTier && (
-                <div className="rounded-xl border border-royal-plum/10 bg-white/80 p-3 flex flex-col gap-2">
-                  <div className="flex items-start gap-2 text-xs text-royal-plum/75">
-                    <Info className="w-4 h-4 text-marigold shrink-0 mt-0.5" />
-                    <p className="text-2xs leading-relaxed">
-                      Showing standard style profile for now; your custom vibe will be infused when you retry.
-                    </p>
-                  </div>
-
-                  {onRetryExtraction && !isReadOnly && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={isRetrying}
-                      onClick={handleRetry}
-                      className="self-end h-6 px-2.5 text-3xs font-semibold text-royal-plum border-royal-plum/20 hover:bg-royal-plum/5"
-                    >
-                      <RefreshCw className={cn('w-2.5 h-2.5 mr-1', isRetrying && 'animate-spin')} />
-                      <span>{isRetrying ? 'Retrying...' : 'Retry Extraction'}</span>
-                    </Button>
-                  )}
-                </div>
-              )}
-
-              {/* Footer: Reset to Baseline (v1) destructive action (D-11) */}
-              {!isReadOnly && onResetToBaseline && (
-                <div className="border-t border-royal-plum/8 pt-2.5 flex justify-end">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsResetDialogOpen(true)}
-                    className="h-6 px-2 text-3xs font-medium text-royal-plum/60 hover:text-terracotta hover:bg-terracotta/10 transition-colors"
-                  >
-                    <RotateCcw className="w-2.5 h-2.5 mr-1" />
-                    <span>Reset to Baseline (v1)</span>
+            {/* Calm Degradation Note (D-14, 04-UI-SPEC.md §Copywriting) */}
+            {isFallbackTier && (
+              <div className="flex flex-wrap items-center justify-between gap-3 border-y border-royal-plum/10 py-3">
+                <p className="text-sm text-royal-plum/75">
+                  Showing standard style profile for now; your custom vibe will be infused when you retry.
+                </p>
+                {onRetryExtraction && !isReadOnly && (
+                  <Button type="button" variant="outline" size="sm" disabled={isRetrying} onClick={handleRetry}>
+                    {isRetrying ? 'Retrying...' : 'Retry Extraction'}
                   </Button>
-                </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+                )}
+              </div>
+            )}
+
+            {/* Reset to Baseline (v1) destructive action (D-11) */}
+            {!isReadOnly && onResetToBaseline && (
+              <div className="border-t border-royal-plum/10 pt-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsResetDialogOpen(true)}
+                  className="-ml-3 text-royal-plum/70 hover:bg-terracotta/10 hover:text-terracotta"
+                >
+                  Reset to Baseline (v1)
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </section>
 
       {/* Retune Sliders Sheet */}
       {onRetuneStyle && (

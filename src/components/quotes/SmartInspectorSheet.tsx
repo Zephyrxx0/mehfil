@@ -8,14 +8,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { Badge } from '@/components/ui/badge'
-import { Info, Sparkles, Compass } from 'lucide-react'
 import { PlanProvider } from './registry/PlanContext'
 import { VendorChecklist } from './registry/VendorChecklist'
 import { IdeaGrid } from './registry/IdeaGrid'
 import { QuoteReport } from './registry/QuoteReport'
 import { ScenarioComparison } from './registry/ScenarioComparison'
-import { cn } from '@/lib/utils'
 
 export interface SmartInspectorSheetProps {
   open: boolean
@@ -52,7 +49,7 @@ export function SmartInspectorSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-2xl bg-warm-ivory border-l border-royal-plum/10 p-6 flex flex-col gap-6 overflow-y-auto"
+        className="w-full sm:max-w-2xl bg-warm-ivory border-l border-royal-plum/10 p-5 sm:p-6 flex flex-col gap-6 overflow-y-auto"
         data-testid="smart-inspector-sheet"
       >
         <PlanProvider
@@ -65,34 +62,20 @@ export function SmartInspectorSheet({
           onSelectLine={onSelectLine}
         >
           {/* Header Section */}
-          <SheetHeader className="space-y-3 text-left">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-xs font-serif text-royal-plum/70">
-                <Compass className="w-3.5 h-3.5 text-royal-plum/60" />
-                <span className="font-hindi tracking-wide">महफ़िल Smart Inspector</span>
-              </div>
+          <SheetHeader className="space-y-2 pr-8 text-left">
+            <p className="text-sm text-royal-plum/60">
+              <span className="font-devanagari">महफ़िल</span> Smart Inspector
+              {activeTier === 3 && <span> · Viewing standard comparison layout</span>}
+            </p>
 
-              {/* Tier 3 Fallback Banner (GENUI-03, D-15) */}
-              {activeTier === 3 && (
-                <Badge
-                  variant="outline"
-                  className="bg-soft-ivory border-royal-plum/15 text-royal-plum/80 text-[11px] font-medium flex items-center gap-1"
-                >
-                  <Info className="w-3 h-3 text-royal-plum/60" />
-                  <span>Viewing standard comparison layout</span>
-                </Badge>
-              )}
-            </div>
-
-            <SheetTitle className="font-serif text-2xl font-bold text-royal-plum leading-tight">
+            <SheetTitle className="font-serif text-2xl font-bold leading-tight text-royal-plum">
               {layout.layoutTitle}
             </SheetTitle>
 
-            {/* Layout Summary & Editorial Rationale */}
             {layout.layoutSummary && (
-              <div className="p-3.5 rounded-2xl bg-soft-ivory border border-royal-plum/10 text-xs text-royal-plum/80 leading-relaxed">
+              <p className="border-l-2 border-marigold pl-3 text-sm leading-relaxed text-royal-plum/80">
                 {layout.layoutSummary}
-              </div>
+              </p>
             )}
           </SheetHeader>
 
@@ -110,12 +93,7 @@ export function SmartInspectorSheet({
                     <h3 className="font-serif text-lg font-semibold text-royal-plum">
                       {section.title}
                     </h3>
-                    <Badge
-                      variant="outline"
-                      className="bg-soft-ivory/50 border-royal-plum/10 text-royal-plum/60 text-[10px] uppercase tracking-wider"
-                    >
-                      {section.variant}
-                    </Badge>
+                    <span className="text-sm capitalize text-royal-plum/60">{section.variant}</span>
                   </div>
 
                   {section.rationale && (
