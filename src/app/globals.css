@@ -33,6 +33,8 @@
     --ring: 287 29% 20%;               /* High-visibility Plum ring */
 
     --radius: 1.25rem;                 /* 20px - Warm, generous curves */
+
+    --maroon: 347 62% 25%;             /* #68182B mehendi maroon, used for line art only */
   }
 
   body {
@@ -43,30 +45,355 @@
   }
 }
 
-@keyframes roseShimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
+/* Hairline figures (isometric line art) in mehendi maroon on the ivory ground. */
+.hairline-mehendi {
+  --hairline-plate: #fff8ee;
+  --hairline-hi: #6b1a2b;
+  --hairline-edge: #9a5662;
+  --hairline-mid: #c9a49f;
+  --hairline-lo: #e8d4ca;
+}
+
+/*
+ * Colour for the diyas. The vendored figure only draws lines (every shape is filled with the
+ * ivory plate colour), so its fills are set here. Structure from /public/hairline/diyas.js:
+ *   svg > g > path.sil          far half of the tray      svg > g > path.fo   near wall
+ *   svg > g > g (lamp) > g > path.sil   clay bowl         ... > g > path.nf.lo   oil in the mouth
+ *   svg > g > g (lamp) > path:last-child   the flame
+ */
+.hairline-mehendi[data-hairline='diyas'] svg > g > path.sil:not(.nf) {
+  fill: #dca46a;
+}
+.hairline-mehendi[data-hairline='diyas'] svg > g > path.sil:not(.nf) + path.nf {
+  fill: #f2d6a6;
+}
+.hairline-mehendi[data-hairline='diyas'] svg > g > path.fo {
+  fill: #c98d55;
+}
+.hairline-mehendi[data-hairline='diyas'] svg > g > g > g > path.sil:not(.nf) {
+  fill: #cf5b3c;
+}
+.hairline-mehendi[data-hairline='diyas'] svg > g > g > g > path.nf.lo {
+  fill: #6e2a22;
+  stroke: #9a5662;
+}
+.hairline-mehendi[data-hairline='diyas'] svg > g > g > path:last-child {
+  fill: #f6b73c;
+}
+
+/*
+ * Colour for the laddoos. Structure from /public/hairline/laddoos.js (svg > g > ...):
+ *   path.lo            lid underside            path.nf.lo (several)  lid lip + dimple/arc guides (stay unfilled)
+ *   path.sil (1st, 2nd)   lid top, tray far wall    path.fo            near tray wall
+ *   ellipse.sil(.hi)   the laddoo balls (5)
+ * The mithai box is a soft pink; each laddoo is a warm besan gold. The `.nf`
+ * guide lines keep no fill, so the lid reads as open and the dimples stay clean.
+ */
+.hairline-mehendi[data-hairline='laddoos'] svg > g > path.lo:not(.nf) {
+  fill: #e7b7c0;
+}
+.hairline-mehendi[data-hairline='laddoos'] svg > g > path.sil:not(.nf) {
+  fill: #f2a7b8;
+}
+.hairline-mehendi[data-hairline='laddoos'] svg > g > path.fo {
+  fill: #d98499;
+}
+.hairline-mehendi[data-hairline='laddoos'] svg > g > ellipse.sil {
+  fill: #e8a53f;
+}
+.hairline-mehendi[data-hairline='laddoos'] svg > g > ellipse.sil.hi {
+  fill: #f2bb55;
+}
+
+/*
+ * Colour for the bangles. Structure from /public/hairline/bangles.js (svg > g > ...):
+ *   two g (base + collar discs), then, painted bottom to top, pairs of
+ *   path.sil (rod segment) + path.sil (bangle body) + path.nf.lo (its inner arc).
+ * The two base discs are a muted gold tray; each bangle body alternates between
+ * festive glass tones (the rod segments stay the neutral plate colour).
+ */
+.hairline-mehendi[data-hairline='bangles'] svg > g > g path.sil {
+  fill: #d8b06a;
+}
+/* Bangle bodies and rod segments alternate in the path list (counting every <path>):
+   rod, BANGLE, inner-arc, rod, BANGLE, inner-arc, ...  so the bangle bodies land on
+   nth-of-type 2, 5, 8, 11, ... = 3n+2. The rod segments (3n+1) stay the plate colour.
+   The two tones alternate down the stack via 6n+2 and 6n+5. */
+.hairline-mehendi[data-hairline='bangles'] svg > g > path.sil:nth-of-type(6n + 2) {
+  fill: #c0436a;
+}
+.hairline-mehendi[data-hairline='bangles'] svg > g > path.sil:nth-of-type(6n + 5) {
+  fill: #e8a53f;
+}
+.hairline-mehendi[data-hairline='bangles'] svg > g > path.sil.hi {
+  fill: #7b2f8a;
+}
+
+/* Rangoli: rings turn slowly, thick lines draw and erase, dots pulse in waves. */
+@keyframes rangoli-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-.animate-shimmer-rose {
-  background: linear-gradient(
-    110deg,
-    rgba(242, 167, 184, 0.12) 0%,
-    rgba(242, 167, 184, 0.28) 45%,
-    rgba(255, 255, 255, 0.45) 50%,
-    rgba(242, 167, 184, 0.28) 55%,
-    rgba(242, 167, 184, 0.12) 100%
-  );
-  background-size: 200% 100%;
-  animation: roseShimmer 3.5s ease-in-out infinite;
+@keyframes rangoli-trace {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  45%,
+  55% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -1;
+  }
+}
+
+@keyframes rangoli-pulse {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.75);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.5);
+  }
+}
+
+.rangoli-group {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  animation: rangoli-spin var(--rangoli-spin, 200s) linear infinite var(--rangoli-dir, normal);
+}
+
+.rangoli-trace {
+  stroke-dasharray: 1 1;
+  animation: rangoli-trace var(--rangoli-trace, 12s) cubic-bezier(0.45, 0, 0.55, 1)
+    var(--rangoli-delay, 0s) infinite;
+}
+
+.rangoli-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: rangoli-pulse var(--rangoli-pulse, 6s) ease-in-out var(--rangoli-delay, 0s) infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-shimmer-rose {
+  .rangoli-group,
+  .rangoli-dot {
+    animation: none;
+  }
+  .rangoli-trace {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Fireworks: streaks shoot out, sparks fly and fall, rings expand, embers twinkle. */
+@keyframes fw-bloom {
+  0% {
+    transform: scale(0.05);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  55% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1.1);
+    opacity: 0;
+  }
+}
+
+@keyframes fw-streak {
+  0% {
+    stroke-dashoffset: 0.3;
+    opacity: 1;
+  }
+  55% {
+    stroke-dashoffset: -1;
+    opacity: 0.9;
+  }
+  100% {
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+}
+
+@keyframes fw-spark {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  55% {
+    transform: translate(var(--dx), var(--dy)) scale(0.9);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy2, var(--dy))) scale(0.2);
+    opacity: 0;
+  }
+}
+
+@keyframes fw-ring {
+  0% {
+    transform: scale(0.05);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.9;
+  }
+  60% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(1.08);
+    opacity: 0;
+  }
+}
+
+@keyframes fw-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.4);
+  }
+}
+
+.fw-streak {
+  stroke-dasharray: 0.3 2;
+  animation: fw-streak var(--fw-seconds, 6s) cubic-bezier(0.12, 0.7, 0.3, 1) var(--fw-delay, 0s) infinite;
+}
+
+.fw-spark {
+  animation: fw-spark var(--fw-seconds, 6s) cubic-bezier(0.12, 0.7, 0.3, 1) var(--fw-delay, 0s) infinite;
+}
+
+.fw-ring {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  animation: fw-ring var(--fw-seconds, 6s) cubic-bezier(0.12, 0.7, 0.3, 1) var(--fw-delay, 0s) infinite;
+}
+
+.fw-bloom {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  animation: fw-bloom var(--fw-seconds, 6s) cubic-bezier(0.12, 0.7, 0.3, 1) var(--fw-delay, 0s) infinite;
+}
+
+.fw-twinkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fw-twinkle var(--fw-period, 2.4s) ease-in-out var(--fw-delay, 0s) infinite;
+}
+
+.fw-spin {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  animation: rangoli-spin var(--fw-spin, 5s) linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fw-bloom,
+  .fw-streak,
+  .fw-spark,
+  .fw-ring,
+  .fw-twinkle,
+  .fw-spin {
+    animation: none;
+  }
+  /* A still frame of the burst instead */
+  .fw-bloom {
+    opacity: 0.6;
+  }
+  .fw-streak {
+    stroke-dasharray: none;
+    opacity: 0.55;
+  }
+  .fw-spark {
+    transform: translate(var(--dx), var(--dy));
+    opacity: 0.7;
+  }
+  .fw-ring {
+    opacity: 0;
+  }
+  .fw-twinkle {
+    opacity: 0.6;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Motion: small, festive, and always calm. Everything here is turned off under
+ * prefers-reduced-motion at the bottom of this block.
+ * ------------------------------------------------------------------------- */
+
+/* A soft rise-and-fade for sections and cards as they enter. */
+@keyframes mehfil-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* A gentle pop for things that appear in place (badges, pills, confirmations). */
+@keyframes mehfil-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  60% {
+    transform: scale(1.015);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-rise {
+  animation: mehfil-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-pop {
+  animation: mehfil-pop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Stagger helper: set --stagger-index on children of .stagger-rise to fan them in. */
+.stagger-rise > * {
+  animation: mehfil-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--stagger-index, 0) * 60ms);
+}
+
+/* The soft marigold flourish beside a section heading draws itself in. */
+@keyframes mehfil-flourish {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-pop,
+  .stagger-rise > * {
     animation: none;
   }
 }

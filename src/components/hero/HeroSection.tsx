@@ -1,125 +1,85 @@
-'use client'
-
 import React from 'react'
-import type { EventBrief } from '@/lib/engine/types'
-import { HeroHeadline } from '@/components/hero/HeroHeadline'
-import { JaliWatermark } from '@/components/hero/JaliWatermark'
-import { CelebrationParticles } from '@/components/hero/CelebrationParticles'
-import { StarterChips, STARTER_OPTIONS } from '@/components/intake/StarterChips'
+import Link from 'next/link'
+import { HairlineFigure } from '@/components/hairline/HairlineFigure'
+import { Rangoli } from '@/components/rangoli/Rangoli'
+import { Firework } from '@/components/fireworks/Firework'
+import { TitleDraw } from './TitleDraw'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, Calculator, ShieldCheck, CalendarClock } from 'lucide-react'
 
-interface HeroSectionProps {
-  onOpenBrief: () => void
-  onSelectStarter: (brief: EventBrief) => void
-  onExploreSample?: () => void
-}
-
-export function HeroSection({
-  onOpenBrief,
-  onSelectStarter,
-  onExploreSample,
-}: HeroSectionProps) {
-  const handleExploreSample = () => {
-    if (onExploreSample) {
-      onExploreSample()
-    } else {
-      onSelectStarter(STARTER_OPTIONS[0].brief)
-    }
-  }
-
+/**
+ * The landing page does nothing by itself: a title, one sentence, and two
+ * links into the app. The line art behind it answers the pointer.
+ */
+export function HeroSection() {
   return (
-    <section className="relative min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 py-16 sm:py-24 max-w-5xl mx-auto text-center overflow-hidden">
-      {/* Ambient Visual Layers */}
-      <CelebrationParticles />
-      <JaliWatermark />
-
-      {/* Top Brand Badge */}
-      <div
-        data-testid="hero-brand-badge"
-        className="inline-flex items-center gap-2.5 rounded-full border border-royal-plum/10 bg-white/70 px-4 py-1.5 shadow-xs mb-8 backdrop-blur-xs"
-      >
-        <span className="font-devanagari text-base font-bold text-royal-plum">
-          महफ़िल
-        </span>
-        <span className="h-3.5 w-px bg-royal-plum/20" />
-        <span className="font-sans text-xs font-semibold text-royal-plum/80">
-          Mehfil — Words from models, numbers from code.
-        </span>
+    <main className="relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-16">
+      {/* Centrepiece rangoli, behind the title */}
+      <div className="pointer-events-none absolute inset-0 -z-20 flex items-center justify-center">
+        <Rangoli className="w-[min(125vw,880px,98dvh)] max-w-none" />
       </div>
 
-      {/* Centerpiece Kinetic Headline */}
-      <HeroHeadline />
+      {/* Fireworks: each type in its own marked area (positions are a share of a 1734 x 928 viewport) */}
+      <Firework
+        type="peony"
+        seconds={5}
+        offset={1}
+        className="absolute left-[27.2%] top-[1.2%] -z-10 hidden w-[6vw] sm:block"
+      />
+      <Firework
+        type="willow"
+        seconds={7}
+        offset={3}
+        className="absolute left-[2.1%] top-[33%] -z-10 hidden w-[14.1vw] sm:block"
+      />
+      <Firework
+        type="ring"
+        seconds={6}
+        offset={0}
+        className="absolute right-[3%] top-[3%] -z-10 w-[30vw] sm:left-[85.7%] sm:right-auto sm:top-[32.6%] sm:w-[8.7vw]"
+      />
+      <Firework
+        type="palm"
+        seconds={8}
+        offset={5}
+        className="absolute left-[80.3%] top-[68%] -z-10 hidden w-[17.1vw] sm:block"
+      />
+      <Firework
+        type="chakri"
+        seconds={3}
+        offset={1.5}
+        className="absolute bottom-[3%] left-[2%] -z-10 w-[30vw] sm:bottom-auto sm:left-[2.9%] sm:top-[85.3%] sm:w-[6.1vw]"
+      />
 
-      {/* Subtitle */}
-      <p className="mt-6 text-base sm:text-lg text-royal-plum/70 max-w-2xl leading-relaxed mx-auto">
-        A deterministic celebration planner that protects your moments, guarantees every rupee, and adapts in milliseconds.
-      </p>
+      {/* Line art, kept to the edges so it never sits under the text or links. */}
+      <HairlineFigure
+        name="bangles"
+        className="absolute -left-[6%] top-[2%] -z-10 w-[58vw] max-w-[360px] sm:left-[3%] sm:top-[2%] sm:w-[26vw] lg:w-[21vw]"
+      />
+      <HairlineFigure
+        name="laddoos"
+        className="absolute -right-[10%] top-[40%] -z-10 hidden w-[46vw] max-w-[420px] sm:right-[2%] sm:top-[-2%] sm:block sm:w-[28vw] lg:w-[22vw]"
+      />
+      <HairlineFigure
+        name="diyas"
+        className="absolute -bottom-[2%] right-[-14%] -z-10 w-[84vw] max-w-[560px] sm:bottom-[0%] sm:left-[3%] sm:right-auto sm:w-[40vw]"
+      />
 
-      {/* Primary & Secondary Actions */}
-      <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <Button
-          variant="pill"
-          size="hero"
-          onClick={onOpenBrief}
-          className="h-14 px-8 rounded-full bg-marigold text-royal-plum font-bold text-lg shadow-[0_8px_24px_-4px_rgba(247,200,115,0.45)] hover:bg-marigold/95 active:scale-95 transition-all gap-2"
-        >
-          <span>Start Your Mehfil</span>
-          <ArrowRight className="w-5 h-5 text-royal-plum" />
-        </Button>
+      <div className="flex w-full max-w-[1080px] flex-col items-center text-center">
+        <TitleDraw className="w-full" />
 
-        <button
-          type="button"
-          onClick={handleExploreSample}
-          className="text-sm font-semibold text-royal-plum/70 hover:text-royal-plum underline underline-offset-4 decoration-royal-plum/20 hover:decoration-royal-plum transition-colors"
-        >
-          Explore Sample Plan
-        </button>
-      </div>
+        <p className="mt-8 max-w-md text-balance text-base leading-relaxed text-royal-plum/80 [text-shadow:0_0_6px_hsl(var(--background)),0_0_14px_hsl(var(--background))] sm:text-lg">
+          One plan for the budget, the timeline and the people. Change one thing and the rest rebalances.
+        </p>
 
-      {/* 1-Click Starter Section */}
-      <div className="mt-12 w-full pt-8 border-t border-royal-plum/8 flex flex-col items-center">
-        <StarterChips onSelect={onSelectStarter} />
-      </div>
-
-      {/* 3 Pillars Feature Callouts */}
-      <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left w-full">
-        <div className="rounded-2xl border border-royal-plum/8 bg-white/60 p-5 shadow-xs backdrop-blur-xs">
-          <div className="rounded-lg bg-marigold/20 p-2 text-royal-plum w-fit mb-2.5">
-            <Calculator className="w-4 h-4" />
-          </div>
-          <h4 className="font-serif font-bold text-sm text-royal-plum">
-            Zero-Float Paise Precision
-          </h4>
-          <p className="mt-1 text-xs text-royal-plum/60 leading-relaxed">
-            Hare-Niemeyer largest remainder guarantees exact rupee balances across every vendor line.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-royal-plum/8 bg-white/60 p-5 shadow-xs backdrop-blur-xs">
-          <div className="rounded-lg bg-gulabi-rose/25 p-2 text-royal-plum w-fit mb-2.5">
-            <ShieldCheck className="w-4 h-4" />
-          </div>
-          <h4 className="font-serif font-bold text-sm text-royal-plum">
-            Protected Moment Immunity
-          </h4>
-          <p className="mt-1 text-xs text-royal-plum/60 leading-relaxed">
-            Designate your non-negotiable moment (Catering, Photos, or Music). It is structurally immune to trimming.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-royal-plum/8 bg-white/60 p-5 shadow-xs backdrop-blur-xs">
-          <div className="rounded-lg bg-royal-plum/10 p-2 text-royal-plum w-fit mb-2.5">
-            <CalendarClock className="w-4 h-4" />
-          </div>
-          <h4 className="font-serif font-bold text-sm text-royal-plum">
-            Backwards UTC Roadmap
-          </h4>
-          <p className="mt-1 text-xs text-royal-plum/60 leading-relaxed">
-            Milestones schedule backwards from your event day with Immediate Action triage and .ics export.
-          </p>
+        <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+          <Button asChild size="hero" className="rounded-full">
+            <Link href="/new">Start planning</Link>
+          </Button>
+          <Button asChild size="hero" variant="outline" className="rounded-full bg-warm-ivory">
+            <Link href="/new?starter=wedding">See a sample plan</Link>
+          </Button>
         </div>
       </div>
-    </section>
+    </main>
   )
 }
