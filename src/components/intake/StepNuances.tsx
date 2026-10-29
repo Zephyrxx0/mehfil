@@ -30,12 +30,12 @@ export function StepNuances({
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="grid gap-8 lg:h-full lg:grid-cols-2 lg:gap-12">
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
+        <span className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
           Cultural & Operational Nuances (Optional)
-        </label>
-        <p className="text-xs text-royal-plum/60 mb-3">
+        </span>
+        <p className="mb-3 text-xs text-royal-plum/60">
           Select any special logistical considerations for your celebration.
         </p>
         <div className="flex flex-wrap gap-2">
@@ -45,8 +45,9 @@ export function StepNuances({
               <button
                 key={tag}
                 type="button"
+                aria-pressed={isSelected}
                 onClick={() => toggleNuance(tag)}
-                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition active:scale-95 ${
+                className={`rounded-full border px-3.5 py-2 text-sm font-medium transition active:scale-95 ${
                   isSelected
                     ? 'border-royal-plum bg-royal-plum text-warm-ivory shadow-sm'
                     : 'border-royal-plum/15 bg-white/70 text-royal-plum hover:border-royal-plum/30'
@@ -59,19 +60,19 @@ export function StepNuances({
         </div>
       </div>
 
-      <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-1.5">
+      <div className="flex flex-col">
+        <label htmlFor="custom-notes" className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
           Custom Family Notes or Traditions
         </label>
         <textarea
-          rows={3}
+          id="custom-notes"
+          rows={8}
           placeholder="e.g. Grandma's special sweets counter, surprise fireworks, specific auspicious time (muhurat) for pheras..."
           value={customNotes}
           onChange={(e) => onChange({ customNotes: e.target.value })}
-          className="w-full rounded-xl border border-royal-plum/15 bg-white/80 p-3 text-sm text-royal-plum placeholder:text-royal-plum/40 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
+          className="h-56 w-full resize-none rounded-xl border border-royal-plum/15 bg-white/80 p-3.5 text-sm text-royal-plum placeholder:text-royal-plum/40 transition hover:border-royal-plum/30 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
         />
       </div>
     </div>
   )
 }
-

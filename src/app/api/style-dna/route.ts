@@ -4,7 +4,7 @@ import { extractStyleDNAWithFallbackLadder } from '@/lib/ai/orchestrator'
 import { extractDeterministicStyleDNA } from '@/lib/ai/heuristic'
 
 const StyleDNARequestSchema = z.object({
-  selectedSwatchIds: z.array(z.string()).min(6).max(8),
+  selectedSwatchIds: z.array(z.string()).min(3).max(6),
   protectedMomentQuote: z.string().max(200),
   tradeoffs: z.object({
     feastVsSpectacle: z.enum(['feast', 'spectacle']),

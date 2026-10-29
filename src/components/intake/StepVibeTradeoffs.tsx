@@ -41,9 +41,9 @@ export function StepVibeTradeoffs({
   }
 
   return (
-    <div className="flex flex-col gap-5 w-full">
+    <div className="grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] lg:gap-10">
       {/* Step Header */}
-      <div>
+      <div className="lg:col-span-2">
         <h3 className="font-serif text-lg font-bold text-royal-plum">
           Protected Moment & Festive Trade-offs
         </h3>
@@ -53,7 +53,7 @@ export function StepVibeTradeoffs({
       </div>
 
       {/* Section 1: Single-Sentence Protected Moment Input (D-04, MOMENT-01) */}
-      <div className="flex flex-col gap-1.5 rounded-2xl border border-royal-plum/10 bg-white/70 p-4 shadow-xs">
+      <div className="flex flex-col gap-2 self-start rounded-2xl border border-royal-plum/10 bg-white/70 p-5 shadow-xs">
         <div className="flex items-center justify-between">
           <label
             htmlFor="protected-moment-input"
@@ -64,7 +64,7 @@ export function StepVibeTradeoffs({
           </label>
           <span
             className={cn(
-              'text-2xs font-mono tabular-nums',
+              'text-xs font-mono tabular-nums',
               charCount >= 190 ? 'text-amber-800 font-bold' : 'text-royal-plum/50'
             )}
           >
@@ -77,25 +77,25 @@ export function StepVibeTradeoffs({
           value={protectedMoment}
           onChange={(e) => onProtectedMomentChange(e.target.value.slice(0, 200))}
           maxLength={200}
-          rows={2}
+          rows={5}
           placeholder="e.g. Live soulful qawwali night under fairy lights"
-          className="w-full resize-none rounded-xl border border-royal-plum/15 bg-warm-ivory/60 p-2.5 text-xs text-royal-plum placeholder:text-royal-plum/40 focus:border-royal-plum/50 focus:outline-hidden focus:ring-1 focus:ring-royal-plum/20"
+          className="w-full resize-none rounded-xl border border-royal-plum/15 bg-warm-ivory/60 p-3 text-sm text-royal-plum placeholder:text-royal-plum/40 focus:border-royal-plum/50 focus:outline-hidden focus:ring-1 focus:ring-royal-plum/20"
         />
 
-        <p className="text-3xs text-royal-plum/55">
+        <p className="text-xs text-royal-plum/55">
           This vision statement locks a 1.25x floor multiplier on its matching budget line so it will never be trimmed.
         </p>
       </div>
 
       {/* Section 2: Three Forced-Choice Trade-Off Card Pairs (D-04) */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4">
         <h4 className="text-xs font-semibold text-royal-plum uppercase tracking-wider">
           Aesthetic Priorities (Forced-Choice)
         </h4>
 
         {/* Trade-off 1: Feast vs Spectacle */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-2xs font-semibold text-royal-plum/70">
+          <span className="text-xs font-semibold text-royal-plum/70">
             1. Dining vs Visual Drama
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -119,10 +119,10 @@ export function StepVibeTradeoffs({
                   <Utensils className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold text-royal-plum leading-tight">
+                  <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Sumptuous Multi-Course Dining
                   </span>
-                  <span className="text-3xs text-royal-plum/60 leading-tight">
+                  <span className="text-xs text-royal-plum/60 leading-snug">
                     Focus on culinary craft, live stations & feasts
                   </span>
                 </div>
@@ -154,10 +154,10 @@ export function StepVibeTradeoffs({
                   <Sparkles className="w-3.5 h-3.5 text-marigold" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold text-royal-plum leading-tight">
+                  <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Dazzling Stage & Visual Production
                   </span>
-                  <span className="text-3xs text-royal-plum/60 leading-tight">
+                  <span className="text-xs text-royal-plum/60 leading-snug">
                     High impact lighting, grand sets & stagecraft
                   </span>
                 </div>
@@ -173,7 +173,7 @@ export function StepVibeTradeoffs({
 
         {/* Trade-off 2: Intimate vs Grand */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-2xs font-semibold text-royal-plum/70">
+          <span className="text-xs font-semibold text-royal-plum/70">
             2. Gathering Energy
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -197,10 +197,10 @@ export function StepVibeTradeoffs({
                   <Users className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold text-royal-plum leading-tight">
+                  <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Warm & Cozy Close Circle
                   </span>
-                  <span className="text-3xs text-royal-plum/60 leading-tight">
+                  <span className="text-xs text-royal-plum/60 leading-snug">
                     Personal conversations, subtle music & intimacy
                   </span>
                 </div>
@@ -232,10 +232,10 @@ export function StepVibeTradeoffs({
                   <Crown className="w-3.5 h-3.5 text-royal-plum" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold text-royal-plum leading-tight">
+                  <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Grand High-Energy Extravaganza
                   </span>
-                  <span className="text-3xs text-royal-plum/60 leading-tight">
+                  <span className="text-xs text-royal-plum/60 leading-snug">
                     Expansive scale, electric beats & large crowd
                   </span>
                 </div>
@@ -251,7 +251,7 @@ export function StepVibeTradeoffs({
 
         {/* Trade-off 3: Heritage vs Modern */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-2xs font-semibold text-royal-plum/70">
+          <span className="text-xs font-semibold text-royal-plum/70">
             3. Cultural Styling
           </span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -275,10 +275,10 @@ export function StepVibeTradeoffs({
                   <Landmark className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold text-royal-plum leading-tight">
+                  <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Timeless Rituals & Cultural Craft
                   </span>
-                  <span className="text-3xs text-royal-plum/60 leading-tight">
+                  <span className="text-xs text-royal-plum/60 leading-snug">
                     Traditional fabrics, classic motifs & heirloom touches
                   </span>
                 </div>
@@ -310,10 +310,10 @@ export function StepVibeTradeoffs({
                   <Zap className="w-3.5 h-3.5 text-royal-plum" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold text-royal-plum leading-tight">
+                  <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Contemporary Chic & Minimalist Elegance
                   </span>
-                  <span className="text-3xs text-royal-plum/60 leading-tight">
+                  <span className="text-xs text-royal-plum/60 leading-snug">
                     Clean lines, architectural floral styling & modern palettes
                   </span>
                 </div>

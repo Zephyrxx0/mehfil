@@ -2,15 +2,19 @@
 
 import React from 'react'
 import type { EventBrief } from '@/lib/engine/types'
-import { Sparkles } from 'lucide-react'
+import { rollForwardToFuture } from '@/lib/dates'
+
+export type StarterKey = 'wedding' | 'birthday' | 'community'
 
 export interface StarterChipOption {
+  key: StarterKey
   label: string
   brief: EventBrief
 }
 
 export const STARTER_OPTIONS: StarterChipOption[] = [
   {
+    key: 'wedding',
     label: 'Big Fat Delhi Wedding ₹25L',
     brief: {
       title: 'Delhi Grand Wedding',
@@ -24,6 +28,7 @@ export const STARTER_OPTIONS: StarterChipOption[] = [
     },
   },
   {
+    key: 'birthday',
     label: 'Intimate 50th Birthday ₹5L',
     brief: {
       title: '50th Milestone Birthday',
@@ -37,6 +42,7 @@ export const STARTER_OPTIONS: StarterChipOption[] = [
     },
   },
   {
+    key: 'community',
     label: 'Society Diwali Gala ₹8L',
     brief: {
       title: 'Society Diwali Gala',
@@ -51,6 +57,14 @@ export const STARTER_OPTIONS: StarterChipOption[] = [
   },
 ]
 
+/**
+ * Starters carry fixed dates that go stale. Opening one never produces a plan
+ * for a day that has passed: the date moves forward a year at a time.
+ */
+export function resolveStarterBrief(brief: EventBrief): EventBrief {
+  return { ...brief, eventDate: rollForwardToFuture(brief.eventDate) }
+}
+
 interface StarterChipsProps {
   onSelect: (brief: EventBrief) => void
   disabled?: boolean
@@ -58,25 +72,31 @@ interface StarterChipsProps {
 
 export function StarterChips({ onSelect, disabled }: StarterChipsProps) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-royal-plum/70">
-        <Sparkles className="w-3.5 h-3.5 text-marigold" />
-        <span>1-Click Celebration Starters</span>
-      </div>
-      <div className="flex flex-wrap gap-2">
+    <section
+      aria-labelledby="starters-heading"
+      className="self-start rounded-2xl border border-royal-plum/10 bg-muted/70 p-5"
+    >
+      <h3 id="starters-heading" className="text-sm font-semibold text-royal-plum">
+        1-Click Celebration Starters
+      </h3>
+      <p className="mt-0.5 text-sm text-royal-plum/60">Skip the steps and open a ready-made plan.</p>
+      <ul className="mt-3 flex flex-col gap-2">
         {STARTER_OPTIONS.map((starter) => (
-          <button
-            key={starter.label}
-            type="button"
-            disabled={disabled}
-            onClick={() => onSelect(starter.brief)}
-            className="rounded-full border border-royal-plum/15 bg-white/70 px-3.5 py-1.5 text-xs font-medium text-royal-plum shadow-sm transition hover:border-marigold hover:bg-marigold/15 active:scale-95 disabled:opacity-50"
-          >
-            {starter.label}
-          </button>
+          <li key={starter.label}>
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => onSelect(starter.brief)}
+              className="flex w-full flex-col gap-0.5 rounded-xl border border-royal-plum/10 bg-warm-ivory px-4 py-3 text-left transition hover:border-royal-plum/30 hover:bg-white focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-royal-plum disabled:opacity-50"
+            >
+              <span className="text-sm font-semibold text-royal-plum">{starter.label}</span>
+              <span className="text-xs tabular-nums text-royal-plum/60">
+                {starter.brief.guestCount} guests · {starter.brief.city}
+              </span>
+            </button>
+          </li>
         ))}
-      </div>
-    </div>
+      </ul>
+    </section>
   )
 }
-
