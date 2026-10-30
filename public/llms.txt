@@ -1,0 +1,24 @@
+# Mehfil (महफ़िल)
+
+> Words from models, numbers from code: an intelligent milestone celebration planning workspace where budget, timeline, vendors, and personalized ideas form a single mathematically linked plan in integer paise (INR).
+
+## Core Principles
+- **Mathematical Integrity**: Pure code owns all figures and dates. Models are structurally banned from generating monetary amounts or dates.
+- **Integer Currency**: All financial figures are stored and apportioned as integer paise (`INR`) using the Hare-Niemeyer largest-remainder algorithm to eliminate floating-point rounding errors.
+- **Protected Floors**: A family's single most cherished experience ("Protected Moment") is locked with a hard 40% floor that cannot be eroded by dynamic re-balancing.
+- **Quarantined Quote Checking**: Untrusted vendor quotes (PDF/image/text) are parsed in isolated XML sandboxes (`<untrusted_vendor_quote>`) with zero tool execution, two-phase verbatim phrase extraction, and statutory GST / hidden fee omission warnings.
+- **Resilient Fallback Ladder**: Three-tier architecture (Gemma 4 -> Gemini 3.5 Flash Lite -> Deterministic Heuristic Engine) guarantees sub-second execution with zero runtime exceptions or blank states.
+- **Private Collaboration**: Dual-link capability sharing with unguessable capability edit keys and read-only family view links (negotiations and vendor margins automatically stripped).
+
+## Architecture & Technology Stack
+- **Framework**: Next.js 15 (App Router), React 19, TypeScript 5.6+
+- **Styling**: Tailwind CSS with custom 3-hue tokens (Warm Ivory `#FFF8EE`, Marigold `#F7C873`, Gulabi Rose `#F2A7B8`, Royal Plum ink `#3A2442`)
+- **Animation**: Motion & GSAP with strict reduced-motion adherence
+- **AI Providers**: `@ai-sdk/google` (Gemma 4 31B, Gemini 3.5 Flash Lite, and deterministic local heuristics)
+- **Database & Auth**: Supabase PostgreSQL with capability tokens, anonymous sessions, and local storage fallback
+
+## Key URLs
+- Homepage: https://mehfil.app/
+- Plan Intake Wizard: https://mehfil.app/new
+- Full Context: https://mehfil.app/llms-full.txt
+
