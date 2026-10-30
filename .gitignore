@@ -26,3 +26,10 @@ coverage/
 *.sln
 *.sw?
 .temp/
+
+# Excluded documentation
+AGENTS.md
+CONTEXT.md
+PRD.md
+DESIGN.md
+
