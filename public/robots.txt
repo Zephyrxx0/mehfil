@@ -1,0 +1,16 @@
+# robots.txt for Mehfil (महफ़िल)
+# https://mehfil.app
+
+User-agent: *
+Allow: /
+Allow: /new
+Allow: /llms.txt
+Allow: /llms-full.txt
+
+# Disallow private user workspace sessions and capability tokens
+Disallow: /api/
+Disallow: /plan/
+Disallow: /share/
+
+Sitemap: https://mehfil.app/sitemap.xml
+

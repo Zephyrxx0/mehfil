@@ -1,0 +1,104 @@
+# Mehfil (महफ़िल) — Complete Architecture & Specification
+
+> "Words from models, numbers from code": Mehfil (महफ़िल) is an intelligent, interconnected planning workspace for milestone celebrations (weddings, milestone birthdays, cultural gatherings) where budget, timeline, vendors, and personalized ideas form a single mathematically linked plan in integer paise (INR).
+
+---
+
+## 1. Core Principles & Mathematical Guarantees
+
+### Arithmetic Ownership
+- **Strict Separation of Concerns**: Pure TypeScript code owns 100% of calculations, figures, amounts, and dates. Language models are structurally banned from computing, generating, or modifying monetary numbers or calendar schedules directly.
+- **Integer Currency (Paise)**: All monetary values are stored and calculated strictly as integers in paise (`1 INR = 100 paise`). Floating-point mathematics (`0.1 + 0.2 !== 0.3`) is completely banned in financial calculation paths to guarantee exact sums and zero IEEE-754 drift.
+- **Apportionment**: Allocations across budget categories are distributed using the Hare-Niemeyer largest-remainder algorithm (`apportionRupees`), ensuring `sum(category_allocations) === total_budget` at all times.
+
+### Protected Moments (40% Minimum Floor)
+- Non-technical organizers typically have one sacred experience (e.g. heirloom photography, royal feast, artisanal decor).
+- Mehfil allows users to designate a **Protected Moment**.
+- The planning engine locks a **40% minimum floor** of the initial allocation on that budget category. When other categories grow or quotes are imported, re-balancing cannot cannibalize this floor.
+
+### Non-Blocking Shortfall Remediation
+- When guest counts increase or high-value quotes exceed budget capacity, the workspace never throws modal blocking errors or locks the UI.
+- Instead, it enters an **Infeasible State** displaying a non-blocking `ShortfallBanner` with three deterministic, single-click remedies:
+  1. Increase total celebration budget by the shortfall.
+  2. Scale back guest count to maximum capacity.
+  3. Trim elastic/flexible lines.
+- One-click undo restores previous state with zero data loss.
+
+---
+
+## 2. Vendor Quote Checking & Untrusted Data Quarantine
+
+### Tool-Less XML Quarantine
+- Vendor quotes submitted as PDFs, images, or unstructured text are untrusted user inputs.
+- To prevent prompt injection and model jailbreaking:
+  - Quotes are wrapped in rigid XML boundary tags: `<untrusted_vendor_quote>...</untrusted_vendor_quote>`.
+  - The model runs in a tool-less, memory-less execution environment with zero access to tools, database queries, or external APIs.
+  - The model only outputs a structured Zod schema containing candidate totals and extracted line items.
+
+### Two-Phase Verbatim Evidence Verification
+- An anchor amount extracted by the model is accepted only if the numeric value can be parsed verbatim from the raw quote source text via pure regex heuristics.
+- If a model hallucinates an unlisted figure, the engine flags it and forces verification.
+
+### Statutory Omission Flags
+- Real celebration quotes frequently omit mandatory fees that surprise organizers later.
+- The omission rules engine detects absent operational costs based on category heuristics:
+  - Catering: Missing 18% GST, service charge, cleaning deposits.
+  - Venue: Generator diesel charges, corkage fees, sound curfew restrictions.
+  - Decor: Teardown labour, freight charges.
+
+---
+
+## 3. Resilient Three-Tier Fallback Ladder
+
+To ensure high availability without network failure disruptions, all AI pipelines (Style DNA, Quote Analysis, and Generative UI Curation) operate on a structured fallback ladder:
+
+| Tier | Provider & Model | Latency | Behavior |
+|---|---|---|---|
+| **Tier 1** | **Google Gemma 4 (`gemma-4-31b-it`)** | ~2,500ms | Primary structured extractor with 8,000ms timeout and 1-shot self-repair retry loop. |
+| **Tier 2** | **Google Gemini (`gemini-3.5-flash-lite`)** | ~1,200ms | Cloud fallback invoked automatically on Tier 1 timeout, rate limit, or schema failure. |
+| **Tier 3** | **Deterministic Heuristics (`deterministic-heuristic-v1`)** | <5ms | 100% offline pure TypeScript rule-based engine. Executes with zero network calls and zero API keys. |
+
+Every AI invocation produces an immutable `AgentRunRecord` containing `activeTier`, `durationMs`, `modelId`, and `fallbackReason` for auditability.
+
+---
+
+## 4. Generative UI Closed Component Registry
+
+- Language models are strictly banned from returning raw HTML, CSS, or dynamic JSX scripts.
+- Mehfil implements a **Closed Component Registry**:
+  - Models choose from an allowlist of pre-audited, accessible React components (`ComparisonCard`, `ChecklistGrid`, `MilestoneHighlight`, `IdeaCard`).
+  - **Entity ID Binding**: Component payloads contain only entity identifiers (`category: 'catering'`, `quoteId: 'q-1'`).
+  - React components resolve amounts, dates, and names directly from the validated engine state, making visual hallucination impossible.
+
+---
+
+## 5. Security & Collaboration Architecture
+
+### Capability-Based Anonymous Collaboration
+- **Zero Friction Onboarding**: Organizers create celebrations instantly without mandatory passwords or email signups.
+- **Dual-Link Sharing**:
+  - **Organizer Edit Link**: Contains a high-entropy capability token (`/plan/[id]?key=[token]`). On load, the server validates the hash using constant-time comparison (`crypto.timingSafeEqual`) and issues an `HttpOnly` session cookie.
+  - **Family Read-Only Link**: A public share link (`/share/[hash]`) that exposes the accepted plan, timeline, and ideas, but strips private vendor quotes, internal notes, and budget buffers.
+
+---
+
+## 6. Festive Design System (3-Hue WCAG AAA Discipline)
+
+- **Palette**:
+  - Background: Warm Ivory (`#FFF8EE`, HSL `36 100% 97%`)
+  - Typography Ink: Royal Plum (`#3A2442`, HSL `287 29% 20%`)
+  - Accent Fills: Marigold (`#F7C873`) and Gulabi Rose (`#F2A7B8`)
+  - Warning/Alert: Terracotta (`#D95D39`)
+- **Contrast**: Text contrast ratio is **10.8:1** against the Warm Ivory ground, comfortably exceeding the WCAG AAA requirement (7:1).
+- **Reduced Motion**: Respects `prefers-reduced-motion: reduce` by disabling GSAP timelines and Lenis smooth scrolling.
+
+---
+
+## 7. API Routes & Endpoints
+
+- `POST /api/vibes/suggest`: Generates contextual celebration themes based on brief nuances.
+- `POST /api/style-dna`: Extracts bounded aesthetic dimensions from visual swatches and brief statements.
+- `POST /api/ai/quote-analyst`: Analyzes vendor quotes with XML quarantine and omission flags.
+- `POST /api/plan/[id]/claim`: Validates capability tokens for anonymous plan ownership.
+- `POST /api/plan/[id]/regenerate-share`: Rotates public family share links.
+
