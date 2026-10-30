@@ -67,16 +67,25 @@ export function checkRateLimit(
 }
 
 /**
- * Extracts client IP from standard proxy headers.
+ * Extracts client IP from standard proxy headers, prioritizing trusted platform headers
+ * (Vercel, Cloudflare) before fallbacks to prevent header spoofing.
  */
 export function getClientIp(request: Request): string {
-  const forwardedFor = request.headers.get('x-forwarded-for')
-  if (forwardedFor) {
-    return forwardedFor.split(',')[0].trim()
+  const vercelIp = request.headers.get('x-vercel-ip')
+  if (vercelIp) {
+    return vercelIp.trim()
+  }
+  const cfConnectingIp = request.headers.get('cf-connecting-ip')
+  if (cfConnectingIp) {
+    return cfConnectingIp.trim()
   }
   const realIp = request.headers.get('x-real-ip')
   if (realIp) {
     return realIp.trim()
+  }
+  const forwardedFor = request.headers.get('x-forwarded-for')
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0].trim()
   }
   return '127.0.0.1'
 }

@@ -133,7 +133,23 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_shared_plan: {
+        Args: {
+          p_share_key_hash: string
+        }
+        Returns: {
+          id: string
+          title: string
+          event_type: 'wedding' | 'birthday' | 'community'
+          event_date: string
+          city: string
+          guest_count: number
+          total_budget_paise: number
+          protected_category: string
+          status: 'active' | 'archived'
+          lines: Json
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

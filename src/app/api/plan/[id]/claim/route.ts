@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase/server'
 import { hashCapabilityToken, constantTimeCompare } from '@/lib/engine/crypto'
 import { cookies } from 'next/headers'
+import { enforceRateLimit } from '@/lib/security/rate-limit'
 
 export async function POST(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  // Rate limit: 10 attempts per minute per IP to protect against key brute-forcing
+  const rateLimitResponse = enforceRateLimit(req, 'claim-plan', 10, 60_000)
+  if (rateLimitResponse) return rateLimitResponse
+
   const { id: planId } = await context.params
   const body = await req.json().catch(() => ({}))
   const token = body.key

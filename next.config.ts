@@ -5,7 +5,23 @@ import type { NextConfig } from 'next'
 // them aggressively. `immutable` tells caches they never need to revalidate.
 const IMMUTABLE_CACHE = 'public, max-age=31536000, immutable'
 
+const CSP_DIRECTIVES = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "img-src 'self' data: blob: https:",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "base-uri 'self'",
+].join('; ')
+
 const SECURITY_HEADERS = [
+  {
+    key: 'Content-Security-Policy',
+    value: CSP_DIRECTIVES,
+  },
   {
     key: 'X-Frame-Options',
     value: 'DENY',

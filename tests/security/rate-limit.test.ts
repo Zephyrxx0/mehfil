@@ -43,6 +43,22 @@ describe('Security Rate Limiter (Task 6)', () => {
     })
     expect(getClientIp(req2)).toBe('198.51.100.1')
 
+    const reqVercel = new Request('http://localhost', {
+      headers: {
+        'x-vercel-ip': '203.0.113.195',
+        'x-forwarded-for': '198.51.100.2',
+      },
+    })
+    expect(getClientIp(reqVercel)).toBe('203.0.113.195')
+
+    const reqCloudflare = new Request('http://localhost', {
+      headers: {
+        'cf-connecting-ip': '192.0.2.77',
+        'x-forwarded-for': '198.51.100.2',
+      },
+    })
+    expect(getClientIp(reqCloudflare)).toBe('192.0.2.77')
+
     const req3 = new Request('http://localhost')
     expect(getClientIp(req3)).toBe('127.0.0.1')
   })
