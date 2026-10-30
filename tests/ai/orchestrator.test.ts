@@ -123,7 +123,7 @@ describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)',
     )
 
     expect(result.runRecord.activeTier).toBe(2)
-    expect(result.runRecord.modelId).toBe('gemini-2.0-flash')
+    expect(result.runRecord.modelId).toBe('gemini-3.5-flash-lite')
     expect(result.runRecord.fallbackReason).toContain('Tier 1 failed')
     expect(result.runRecord.fallbackReason).toContain('timeout')
     expect(mockGenerateObject).toHaveBeenCalledTimes(2)

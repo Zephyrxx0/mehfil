@@ -161,7 +161,7 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
       const result = await analyzeQuoteWithFallbackLadder(sampleRawQuote, 'catering')
 
       expect(result.runRecord.activeTier).toBe(2)
-      expect(result.runRecord.modelId).toBe('gemini-2.0-flash')
+      expect(result.runRecord.modelId).toBe('gemini-3.5-flash-lite')
       expect(result.runRecord.fallbackReason).toContain('Tier 1 failed')
     })
 

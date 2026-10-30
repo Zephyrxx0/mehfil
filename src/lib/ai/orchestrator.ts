@@ -65,7 +65,7 @@ Tasks:
  * Three-tier resilient fallback ladder orchestrator for Style DNA extraction (ADR-0007, D-13, D-15, D-16, GENUI-03).
  *
  * Tier 1: Gemma 4 (gemma-4-31b-it) with 8s timeout & 1-shot repair retry.
- * Tier 2: Gemini 2.0 Flash (gemini-2.0-flash) with 8s timeout.
+ * Tier 2: Gemini 3.5 Flash Lite (gemini-3.5-flash-lite) with 8s timeout.
  * Tier 3: Deterministic heuristic extractor (<5ms, zero-network).
  *
  * Always produces a structured AgentRunRecord and guarantees zero unhandled exceptions or blank screens.
@@ -151,15 +151,15 @@ export async function extractStyleDNAWithFallbackLadder(
     } catch (err: any) {
       tier1Error = err instanceof Error ? err : new Error(String(err))
       console.warn(
-        `[Orchestrator] Tier 1 (gemma-4-31b-it) failed: ${tier1Error.message}. Escalating to Tier 2 (gemini-2.0-flash).`
+        `[Orchestrator] Tier 1 (gemma-4-31b-it) failed: ${tier1Error.message}. Escalating to Tier 2 (gemini-3.5-flash-lite).`
       )
     }
   }
 
-  // Tier 2: Gemini 2.0 Flash
+  // Tier 2: Gemini 3.5 Flash Lite
   if (options?.forceTier === undefined || options.forceTier <= 2) {
     try {
-      const model = resolveModel('gemini-2.0-flash')
+      const model = resolveModel('gemini-3.5-flash-lite')
       const extractedDNA = await extractStyleDNAWithModel(model, prompt, timeoutMs)
       const styleDNA: StyleDNA = {
         ...extractedDNA,
@@ -170,7 +170,7 @@ export async function extractStyleDNAWithFallbackLadder(
       const runRecord: AgentRunRecord = {
         activeTier: 2,
         durationMs,
-        modelId: 'gemini-2.0-flash',
+        modelId: 'gemini-3.5-flash-lite',
         ...(fallbackReason ? { fallbackReason } : {}),
         timestamp: new Date().toISOString(),
       }
@@ -179,7 +179,7 @@ export async function extractStyleDNAWithFallbackLadder(
     } catch (err: any) {
       tier2Error = err instanceof Error ? err : new Error(String(err))
       console.warn(
-        `[Orchestrator] Tier 2 (gemini-2.0-flash) failed: ${tier2Error.message}. Escalating to Tier 3 (deterministic heuristic).`
+        `[Orchestrator] Tier 2 (gemini-3.5-flash-lite) failed: ${tier2Error.message}. Escalating to Tier 3 (deterministic heuristic).`
       )
     }
   }
@@ -419,7 +419,7 @@ export function extractDeterministicQuote(
  * Three-tier resilient fallback ladder orchestrator for Vendor Quote analysis (ADR-0007, QUOTE-01, QUOTE-02, GENUI-03).
  *
  * Tier 1: Gemma 4 (gemma-4-31b-it) with XML prompt quarantine and zero tool binding.
- * Tier 2: Gemini 2.0 Flash (gemini-2.0-flash) with XML prompt quarantine and zero tool binding.
+ * Tier 2: Gemini 3.5 Flash Lite (gemini-3.5-flash-lite) with XML prompt quarantine and zero tool binding.
  * Tier 3: Deterministic heuristic quote parser (<5ms, zero-network).
  */
 export async function analyzeQuoteWithFallbackLadder(
@@ -489,22 +489,22 @@ export async function analyzeQuoteWithFallbackLadder(
     } catch (err: any) {
       tier1Error = err instanceof Error ? err : new Error(String(err))
       console.warn(
-        `[Orchestrator] Tier 1 (gemma-4-31b-it) failed: ${tier1Error.message}. Escalating to Tier 2 (gemini-2.0-flash).`
+        `[Orchestrator] Tier 1 (gemma-4-31b-it) failed: ${tier1Error.message}. Escalating to Tier 2 (gemini-3.5-flash-lite).`
       )
     }
   }
 
-  // Tier 2: Gemini 2.0 Flash
+  // Tier 2: Gemini 3.5 Flash Lite
   if (options?.forceTier === undefined || options.forceTier <= 2) {
     try {
-      const model = resolveModel('gemini-2.0-flash')
+      const model = resolveModel('gemini-3.5-flash-lite')
       const extraction = await extractQuoteWithModel(model, quarantinedText, imageBase64, timeoutMs)
       const durationMs = Math.max(0, Date.now() - startTime)
       const fallbackReason = tier1Error ? `Tier 1 failed: ${tier1Error.message}` : undefined
       const runRecord: AgentRunRecord = {
         activeTier: 2,
         durationMs,
-        modelId: 'gemini-2.0-flash',
+        modelId: 'gemini-3.5-flash-lite',
         ...(fallbackReason ? { fallbackReason } : {}),
         timestamp: new Date().toISOString(),
       }
@@ -513,7 +513,7 @@ export async function analyzeQuoteWithFallbackLadder(
     } catch (err: any) {
       tier2Error = err instanceof Error ? err : new Error(String(err))
       console.warn(
-        `[Orchestrator] Tier 2 (gemini-2.0-flash) failed: ${tier2Error.message}. Escalating to Tier 3 (deterministic heuristic).`
+        `[Orchestrator] Tier 2 (gemini-3.5-flash-lite) failed: ${tier2Error.message}. Escalating to Tier 3 (deterministic heuristic).`
       )
     }
   }
@@ -709,7 +709,7 @@ export async function generateLayoutWithModel(
  * Three-tier resilient fallback ladder orchestrator for Generative UI Layout Curation (ADR-0007, ADR-0008, GENUI-01, GENUI-03).
  *
  * Tier 1: Gemma 4 (gemma-4-31b-it) with 8s timeout & 1-shot repair.
- * Tier 2: Gemini 2.0 Flash (gemini-2.0-flash).
+ * Tier 2: Gemini 3.5 Flash Lite (gemini-3.5-flash-lite).
  * Tier 3: Deterministic static template generator (generateDeterministicLayout).
  */
 export async function generateLayoutWithFallbackLadder(
@@ -786,22 +786,22 @@ export async function generateLayoutWithFallbackLadder(
     } catch (err: any) {
       tier1Error = err instanceof Error ? err : new Error(String(err))
       console.warn(
-        `[Orchestrator] Tier 1 (gemma-4-31b-it) failed: ${tier1Error.message}. Escalating to Tier 2 (gemini-2.0-flash).`
+        `[Orchestrator] Tier 1 (gemma-4-31b-it) failed: ${tier1Error.message}. Escalating to Tier 2 (gemini-3.5-flash-lite).`
       )
     }
   }
 
-  // Tier 2: Gemini 2.0 Flash
+  // Tier 2: Gemini 3.5 Flash Lite
   if (options?.forceTier === undefined || options.forceTier <= 2) {
     try {
-      const model = resolveModel('gemini-2.0-flash')
+      const model = resolveModel('gemini-3.5-flash-lite')
       const layout = await generateLayoutWithModel(model, planSummary, prompt, timeoutMs)
       const durationMs = Math.max(0, Date.now() - startTime)
       const fallbackReason = tier1Error ? `Tier 1 failed: ${tier1Error.message}` : undefined
       const runRecord: AgentRunRecord = {
         activeTier: 2,
         durationMs,
-        modelId: 'gemini-2.0-flash',
+        modelId: 'gemini-3.5-flash-lite',
         ...(fallbackReason ? { fallbackReason } : {}),
         timestamp: new Date().toISOString(),
       }
@@ -810,7 +810,7 @@ export async function generateLayoutWithFallbackLadder(
     } catch (err: any) {
       tier2Error = err instanceof Error ? err : new Error(String(err))
       console.warn(
-        `[Orchestrator] Tier 2 (gemini-2.0-flash) failed: ${tier2Error.message}. Escalating to Tier 3 (deterministic layout).`
+        `[Orchestrator] Tier 2 (gemini-3.5-flash-lite) failed: ${tier2Error.message}. Escalating to Tier 3 (deterministic layout).`
       )
     }
   }
