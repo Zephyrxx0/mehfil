@@ -34,9 +34,53 @@ const notoSerifDevanagari = Noto_Serif_Devanagari({
 })
 
 export const metadata: Metadata = {
-  title: 'Mehfil (महफ़िल) — Celebration Planning with Mathematical Integrity',
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://mehfil.app')
+  ),
+  title: {
+    default: 'Mehfil (महफ़िल) — Celebration Planning with Mathematical Integrity',
+    template: '%s | Mehfil (महफ़िल)',
+  },
   description:
     'Intelligent milestone celebration workspace where budget and timeline form a mathematically locked plan in integer paise.',
+  keywords: [
+    'celebration planning',
+    'wedding planner',
+    'budget rebalancing',
+    'integer paise',
+    'vendor quote check',
+    'mehfil',
+    'milestone celebrations',
+  ],
+  authors: [{ name: 'Mehfil' }],
+  creator: 'Mehfil Team',
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    url: 'https://mehfil.app',
+    siteName: 'Mehfil (महफ़िल)',
+    title: 'Mehfil (महफ़िल) — Celebration Planning with Mathematical Integrity',
+    description:
+      'Intelligent milestone celebration workspace where budget and timeline form a mathematically locked plan in integer paise.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Mehfil (महफ़िल) — Celebration Planning with Mathematical Integrity',
+    description:
+      'Intelligent milestone celebration workspace where budget and timeline form a mathematically locked plan in integer paise.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 }
 
 export default function RootLayout({

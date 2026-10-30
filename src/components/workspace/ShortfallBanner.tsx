@@ -50,6 +50,8 @@ export function ShortfallBanner({
   return (
     <section
       data-testid="shortfall-banner"
+      role="status"
+      aria-live="polite"
       aria-labelledby="shortfall-heading"
       className="border-l-2 border-terracotta bg-terracotta/5 px-4 py-4 sm:px-5"
     >

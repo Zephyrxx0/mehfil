@@ -95,6 +95,7 @@ export function MilestoneBand({ band }: MilestoneBandProps) {
               <button
                 type="button"
                 onClick={() => handleScrollToCategory(task.budgetCategory)}
+                aria-label={`Jump to ${CATEGORY_NAMES[task.budgetCategory] || task.budgetCategory} in the budget`}
                 title={`Jump to ${CATEGORY_NAMES[task.budgetCategory] || task.budgetCategory} in the budget`}
                 className="w-fit shrink-0 rounded-full border border-royal-plum/10 bg-warm-ivory px-3 py-1 text-sm text-royal-plum/70 transition hover:border-royal-plum/25 hover:bg-white hover:text-royal-plum motion-safe:group-hover:border-royal-plum/20"
               >
