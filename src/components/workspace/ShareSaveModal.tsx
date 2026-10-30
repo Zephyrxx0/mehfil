@@ -21,7 +21,7 @@ import {
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog'
 import { QRCodeSVG } from 'qrcode.react'
-import { Copy, Check, MessageCircle, RefreshCw, KeyRound, Share2, ShieldAlert, Lock, Loader2 } from 'lucide-react'
+import { Copy, Check, MessageCircle, RefreshCw, KeyRound, Share2, ShieldAlert, Lock, Loader2, CloudOff } from 'lucide-react'
 
 export interface ShareSaveModalProps {
   open: boolean
@@ -30,6 +30,7 @@ export interface ShareSaveModalProps {
   planTitle: string
   editKey?: string
   initialShareToken?: string
+  isCloudConfigured?: boolean
 }
 
 export function ShareSaveModal({
@@ -39,7 +40,17 @@ export function ShareSaveModal({
   planTitle,
   editKey,
   initialShareToken,
+  isCloudConfigured: customIsCloudConfigured,
 }: ShareSaveModalProps) {
+  const isCloudConfigured =
+    customIsCloudConfigured ??
+    Boolean(
+      process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id') &&
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+        !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('your-anon-key')
+    )
+
   const [copiedEditKey, setCopiedEditKey] = React.useState(false)
   const [copiedShareLink, setCopiedShareLink] = React.useState(false)
   const [shareToken, setShareToken] = React.useState<string>(initialShareToken || 'share-token-preview')
@@ -108,6 +119,23 @@ export function ShareSaveModal({
               Manage secret editing capability keys or share a celebratory sanitized view with family.
             </DialogDescription>
           </DialogHeader>
+
+          {!isCloudConfigured && (
+            <div
+              data-testid="cloud-unconfigured-notice"
+              className="rounded-2xl border border-marigold/50 bg-marigold/15 p-3.5 flex items-start gap-3 mt-2"
+            >
+              <CloudOff className="h-5 w-5 text-royal-plum/70 shrink-0 mt-0.5" />
+              <div className="space-y-0.5 text-xs text-royal-plum leading-relaxed">
+                <p className="font-semibold text-royal-plum">
+                  Saved to this device only
+                </p>
+                <p className="text-royal-plum/80">
+                  Cloud database sync isn&apos;t configured yet. Your celebration is safely stored in this browser, but shared links and QR codes won&apos;t open on other phones or computers.
+                </p>
+              </div>
+            </div>
+          )}
 
           <Tabs defaultValue="organizer" className="w-full mt-2">
             <TabsList className="grid w-full grid-cols-2">
