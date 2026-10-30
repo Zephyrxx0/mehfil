@@ -5,9 +5,37 @@ import type { NextConfig } from 'next'
 // them aggressively. `immutable` tells caches they never need to revalidate.
 const IMMUTABLE_CACHE = 'public, max-age=31536000, immutable'
 
+const SECURITY_HEADERS = [
+  {
+    key: 'X-Frame-Options',
+    value: 'DENY',
+  },
+  {
+    key: 'X-Content-Type-Options',
+    value: 'nosniff',
+  },
+  {
+    key: 'Referrer-Policy',
+    value: 'strict-origin-when-cross-origin',
+  },
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=()',
+  },
+  {
+    key: 'X-DNS-Prefetch-Control',
+    value: 'on',
+  },
+]
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
+      {
+        // Apply security headers to all routes
+        source: '/(.*)',
+        headers: SECURITY_HEADERS,
+      },
       {
         // Visual Vibe Gallery swatches (images + SVG fallbacks + the catalogue JSON).
         source: '/swatches/:path*',

@@ -281,5 +281,25 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
       expect(json.data.vendorQuote).toBeDefined()
       expect(json.data.runRecord.activeTier).toBe(3)
     })
+
+    it('returns 400 when imageBase64 exceeds maximum allowed payload limit (Task 4)', async () => {
+      const oversizedImage = 'a'.repeat(10_000_001)
+
+      const req = new Request('http://localhost:3000/api/ai/quote-analyst', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rawText: sampleRawQuote,
+          category: 'catering',
+          guestCount: 100,
+          imageBase64: oversizedImage,
+        }),
+      })
+
+      const res = await POST(req)
+      expect(res.status).toBe(400)
+      const json = await res.json()
+      expect(json.success).toBe(false)
+    })
   })
 })

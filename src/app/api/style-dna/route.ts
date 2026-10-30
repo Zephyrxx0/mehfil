@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { extractStyleDNAWithFallbackLadder } from '@/lib/ai/orchestrator'
 import { extractDeterministicStyleDNA } from '@/lib/ai/heuristic'
+import { enforceRateLimit } from '@/lib/security/rate-limit'
 
 const StyleDNARequestSchema = z.object({
   selectedSwatchIds: z.array(z.string()).min(3).max(6),
@@ -14,6 +15,9 @@ const StyleDNARequestSchema = z.object({
 })
 
 export async function POST(request: Request) {
+  const rateLimitResponse = enforceRateLimit(request, 'style-dna', 15)
+  if (rateLimitResponse) return rateLimitResponse
+
   let body: any
   try {
     body = await request.json()

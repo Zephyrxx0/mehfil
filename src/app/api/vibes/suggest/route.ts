@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { MAX_DESCRIPTION_LENGTH, suggestVibes } from '@/lib/ai/vibe-suggest'
+import { enforceRateLimit } from '@/lib/security/rate-limit'
 
 const RequestSchema = z.object({
   description: z.string().trim().min(3, 'Describe the vibe in a few words').max(MAX_DESCRIPTION_LENGTH),
 })
 
 export async function POST(request: Request) {
+  const rateLimitResponse = enforceRateLimit(request, 'vibes-suggest', 15)
+  if (rateLimitResponse) return rateLimitResponse
+
   let body: unknown
   try {
     body = await request.json()

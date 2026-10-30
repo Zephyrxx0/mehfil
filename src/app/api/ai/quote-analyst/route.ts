@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { BudgetCategorySchema } from '@/lib/ai/schemas'
+import { enforceRateLimit } from '@/lib/security/rate-limit'
 import {
   analyzeQuoteWithFallbackLadder,
   extractDeterministicQuote,
@@ -11,12 +12,15 @@ import type { VendorQuote } from '@/lib/engine/types'
 
 const QuoteAnalystRequestSchema = z.object({
   rawText: z.string().min(1).max(20000),
-  imageBase64: z.string().optional(),
+  imageBase64: z.string().max(10_000_000, 'Image payload exceeds 10MB limit').optional(),
   category: BudgetCategorySchema,
   guestCount: z.number().int().positive(),
 })
 
 export async function POST(request: Request) {
+  const rateLimitResponse = enforceRateLimit(request, 'quote-analyst', 15)
+  if (rateLimitResponse) return rateLimitResponse
+
   let body: any
   try {
     body = await request.json()

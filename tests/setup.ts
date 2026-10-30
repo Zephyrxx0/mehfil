@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom'
+import '@testing-library/jest-dom/vitest'
 
 // Mock Pointer Capture APIs for Radix UI (Slider, Dialog, etc.) in Happy-DOM
 if (typeof Element !== 'undefined') {

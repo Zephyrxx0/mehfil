@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase/server'
-import { generateCapabilityToken, hashCapabilityToken } from '@/lib/engine/crypto'
+import { generateCapabilityToken, hashCapabilityToken, constantTimeCompare } from '@/lib/engine/crypto'
 import { cookies } from 'next/headers'
 
 export async function POST(
@@ -11,8 +11,11 @@ export async function POST(
   const cookieStore = await cookies()
   const authCookie = cookieStore.get(`mehfil_edit_${planId}`)?.value
 
+  const body = await req.json().catch(() => ({}))
+  const keyFromBody = typeof body?.key === 'string' ? body.key : undefined
+
   // Verify edit authorization
-  if (!authCookie) {
+  if (!authCookie && !keyFromBody) {
     return NextResponse.json({ error: 'Unauthorized to modify celebration' }, { status: 401 })
   }
 
@@ -23,7 +26,33 @@ export async function POST(
     return NextResponse.json({ shareToken: newShareToken, status: 'regenerated_local' })
   }
 
-  // Generate new unguessable share token and SHA-256 hash
+  // 1. Fetch event edit_key_hash to verify authorization
+  const { data: event, error: fetchError } = await supabase
+    .from('events')
+    .select('id, edit_key_hash')
+    .eq('id', planId)
+    .single()
+
+  if (fetchError || !event) {
+    return NextResponse.json({ error: 'Celebration not found' }, { status: 404 })
+  }
+
+  // 2. Validate authorization via constant-time comparison
+  let isAuthorized = false
+  if (authCookie && constantTimeCompare(authCookie, event.edit_key_hash)) {
+    isAuthorized = true
+  } else if (keyFromBody) {
+    const keyHash = await hashCapabilityToken(keyFromBody)
+    if (constantTimeCompare(keyHash, event.edit_key_hash)) {
+      isAuthorized = true
+    }
+  }
+
+  if (!isAuthorized) {
+    return NextResponse.json({ error: 'Invalid capability authorization' }, { status: 401 })
+  }
+
+  // 3. Generate new unguessable share token and SHA-256 hash
   const newShareToken = generateCapabilityToken()
   const newShareHash = await hashCapabilityToken(newShareToken)
 
