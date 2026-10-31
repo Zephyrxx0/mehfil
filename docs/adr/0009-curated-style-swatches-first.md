@@ -9,7 +9,7 @@ Handling arbitrary user image uploads introduces security overhead (metadata str
 ## Decision
 
 1. **Curated Library**: The application provides a curated gallery of 24 aesthetic visual swatches spanning diverse regional and modern celebration styles, palettes, and decor densities.
-2. **Deterministic Extraction**: The organizer selects 6 to 8 swatches, enters their Protected Moment, and completes three forced-choice pairs.
+2. **Deterministic Extraction**: The organizer selects 3 to 6 swatches (`VIBE_MIN` and `VIBE_MAX` in `src/lib/vibe-limits.ts`; the `/api/style-dna` route enforces the same range), enters their Protected Moment, and completes three forced-choice pairs.
 3. **P2 Deferral**: Custom photo uploads to Supabase Storage and generative AI moodboard generation are designated as non-blocking P2 enhancements, tackled only after the core budget and timeline engines pass end-to-end evaluation.
 
 ## Consequences
