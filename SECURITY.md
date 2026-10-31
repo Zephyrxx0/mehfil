@@ -40,7 +40,7 @@ Out of scope:
 
 These are decisions, not oversights. Reports that only restate them are out of scope, but a way around the stated protection is not.
 
-- **A plan id is not secret.** It appears in the edit link. Anyone who knows it can send 20 wrong keys and make the database refuse every key for that plan for up to 10 minutes. This cannot expose or change a plan. It delays cloud saves, and the app keeps the organizer's latest edit on their device and shows "Sync paused" meanwhile. See [ADR-0010](docs/adr/0010-token-checked-rpc-persistence.md).
+- **A plan id is not secret.** It appears in the edit link. Anyone who knows it can send 20 wrong keys and make the database refuse every key for that plan for up to 10 minutes. This cannot expose or change a plan. It delays cloud saves, and the app keeps the organizer's latest edit on their device and shows "Sync paused" meanwhile.
 - **The family link is a bearer link.** Whoever holds it can see the sanitized family view. Replacing the link revokes the old one at once. One person opening it in a loop can make it look expired to others for the rest of that minute.
 - **The `style-src` directive allows `'unsafe-inline'`.** The animation and dialog libraries set inline style attributes, which cannot carry a nonce. Scripts do not allow it.
 - **Edit keys live in the browser's `localStorage`.** Script running on the page could read them, which is what the CSP guards against.

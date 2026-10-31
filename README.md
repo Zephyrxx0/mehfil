@@ -112,14 +112,14 @@ Coverage is about 95% of statements. `pnpm test:e2e` uses a Playwright browser; 
 
 ## Security model
 
-- **No hash is a credential.** The browser holds the plain edit key and share token. The database stores only SHA-256 hashes and compares them itself, inside `SECURITY DEFINER` functions. The tables are closed to the `anon` role (row-level security with no policies, and privileges revoked). See [ADR-0010](docs/adr/0010-token-checked-rpc-persistence.md).
+- **No hash is a credential.** The browser holds the plain edit key and share token. The database stores only SHA-256 hashes and compares them itself, inside `SECURITY DEFINER` functions. The tables are closed to the `anon` role (row-level security with no policies, and privileges revoked).
 - **256-bit tokens, generated in the database,** returned once. Replacing the family link revokes the old one immediately. Unknown plans and wrong keys get the same answer.
 - **Prompt quarantine.** Vendor text and the user's "protected moment" sentence are wrapped in a tag with a random per-request suffix, so a quote cannot close its own data block. Validation text is never fed back into a repair prompt. Models get no tools, and the Numeric Guard rejects any figure without a verbatim anchor.
 - **Strict CSP.** `src/middleware.ts` sets a per-request nonce policy: no `unsafe-eval` or `unsafe-inline` for scripts in production, images only from this site, and the browser may contact only the configured Supabase project. HSTS, framing and MIME-sniffing protections are set too.
-- **Abuse limits.** Rate limiting trusts only platform-set client-address headers (a forged `x-vercel-ip` buys nothing). A daily cap on model calls drops to the deterministic tier. With `SUPABASE_SERVICE_ROLE_KEY` set, both counters are shared through Postgres (see [ADR-0011](docs/adr/0011-shared-abuse-limits.md)), and `create_event` throttles itself. Request bodies and uploaded images are size-limited, and images are checked by type and by their first bytes.
+- **Abuse limits.** Rate limiting trusts only platform-set client-address headers (a forged `x-vercel-ip` buys nothing). A daily cap on model calls drops to the deterministic tier. With `SUPABASE_SERVICE_ROLE_KEY` set, both counters are shared through Postgres, and `create_event` throttles itself. Request bodies and uploaded images are size-limited, and images are checked by type and by their first bytes.
 - **Fail closed.** The claim route returns 503 in production if no database is configured. Error text from models and storage is logged on the server, not returned.
 
-Known limits: without `SUPABASE_SERVICE_ROLE_KEY`, rate-limit and model-cap counters are per server instance, so on serverless hosting the effective ceiling is multiplied by the number of warm instances. A key kept in `localStorage` can be read by script running in the page (the CSP is the mitigation). `create_event` is open to anyone holding the public key; it is size-limited and capped at 300 plans per 10 minutes across everyone, which bounds storage growth but cannot tell one caller from another. These and the trade-offs are written up in ADR-0010 and ADR-0011.
+Known limits: without `SUPABASE_SERVICE_ROLE_KEY`, rate-limit and model-cap counters are per server instance, so on serverless hosting the effective ceiling is multiplied by the number of warm instances. A key kept in `localStorage` can be read by script running in the page (the CSP is the mitigation). `create_event` is open to anyone holding the public key; it is size-limited and capped at 300 plans per 10 minutes across everyone, which bounds storage growth but cannot tell one caller from another. These and the other trade-offs are listed in [SECURITY.md](SECURITY.md).
 
 ## Accessibility and design
 
@@ -139,7 +139,6 @@ Ink on ivory and on the pastel fills reaches AAA. Secondary text and warnings me
 - **The engine** is `src/lib/engine/`. It is pure TypeScript with no network or database access. Money lives in `currency.ts` and `budget/` (`allocate`, `rebalance`, `quotes`, `ideas`, `shared`), dates in `timeline.ts`, and change explanations in `diff.ts`.
 - **The tests** are in `tests/`, one folder per concern. `tests/engine` and `tests/properties` cover the engine, `tests/db` runs the real migrations on PGlite, and `e2e/` holds the Playwright flows.
 - **Run everything locally** with three commands: `pnpm install`, `pnpm dev` (the app on <http://localhost:3000>), and `pnpm test`. `pnpm test:e2e` runs the browser flows.
-- **How the layers fit together**, including the request flow for a vendor quote and how plans are saved and shared, is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Project structure
 
@@ -164,10 +163,6 @@ tests/                  Vitest: engine, ai, security, storage, components, a11y,
   db/                   The real migrations run on PGlite
   properties/           fast-check property tests for the money engine
 e2e/  e2e-live/         Playwright against a local database; against the live project
-docs/
-  ARCHITECTURE.md       Layers, request flow, where to find things
-  adr/                  Eleven architecture decision records
-    README.md           Index of the records
 ```
 
 The spec-driven workflow's own files (`.planning/` and `.agents/`) are local-only and gitignored. They are not part of the repository and are not used at runtime.
