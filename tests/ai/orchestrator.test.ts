@@ -2,15 +2,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { extractStyleDNAWithFallbackLadder } from '@/lib/ai/style-dna'
 import { StyleDNASchema, type StyleDNA } from '@/lib/ai/schemas'
 import { POST } from '@/app/api/style-dna/route'
-import { generateObject } from 'ai'
+import { generateText } from 'ai'
 
-vi.mock('ai', () => ({
-  generateObject: vi.fn(),
+vi.mock('ai', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('ai')>()),
+  generateText: vi.fn(),
 }))
 
 describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)', () => {
   const originalEnv = { ...process.env }
-  const mockGenerateObject = vi.mocked(generateObject)
+  const mockGenerateText = vi.mocked(generateText)
 
   const sampleSwatchIds = [
     'royal-amber-courtyard',
@@ -60,8 +61,8 @@ describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)',
   })
 
   it('Test 1 (Tier 1 Happy Path): executes Gemma 4 successfully and attaches Tier 1 RunRecord', async () => {
-    mockGenerateObject.mockResolvedValueOnce({
-      object: validModelDNA,
+    mockGenerateText.mockResolvedValueOnce({
+      output: validModelDNA,
     } as any)
 
     const result = await extractStyleDNAWithFallbackLadder(
@@ -76,17 +77,17 @@ describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)',
     expect(result.runRecord.durationMs).toBeGreaterThanOrEqual(0)
     expect(StyleDNASchema.safeParse(result.styleDNA).success).toBe(true)
     expect(result.styleDNA.protectedMomentQuote).toBe(sampleMoment)
-    expect(mockGenerateObject).toHaveBeenCalledTimes(1)
+    expect(mockGenerateText).toHaveBeenCalledTimes(1)
   })
 
   it('Test 2 (Tier 1 Schema Repair Retry, T-04-04): triggers 1-shot repair retry at temperature 0 on schema validation failure', async () => {
     // Attempt 1 fails validation
-    mockGenerateObject.mockRejectedValueOnce(
+    mockGenerateText.mockRejectedValueOnce(
       new Error('Validation error: namedPalette must have at least 3 colors')
     )
     // Attempt 2 (repair retry) succeeds
-    mockGenerateObject.mockResolvedValueOnce({
-      object: validModelDNA,
+    mockGenerateText.mockResolvedValueOnce({
+      output: validModelDNA,
     } as any)
 
     const result = await extractStyleDNAWithFallbackLadder(
@@ -97,10 +98,10 @@ describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)',
 
     expect(result.runRecord.activeTier).toBe(1)
     expect(result.runRecord.modelId).toBe('gemma-4-31b-it')
-    expect(mockGenerateObject).toHaveBeenCalledTimes(2)
+    expect(mockGenerateText).toHaveBeenCalledTimes(2)
 
     // Inspect repair retry call arguments
-    const secondCall = mockGenerateObject.mock.calls[1][0]
+    const secondCall = mockGenerateText.mock.calls[1][0]
     expect(secondCall.temperature).toBe(0)
     expect(secondCall.prompt).toContain('The previous output failed schema validation')
     // Validation text can echo model output, so it must never be fed back into the prompt (S7).
@@ -110,11 +111,11 @@ describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)',
   it('Test 3 (Tier 1 Timeout Escalates to Tier 2, T-04-05): TimeoutError escalates to Gemini 2.0 Flash without repair retry', async () => {
     const timeoutErr = new Error('The operation was aborted due to timeout')
     timeoutErr.name = 'TimeoutError'
-    mockGenerateObject.mockRejectedValueOnce(timeoutErr)
+    mockGenerateText.mockRejectedValueOnce(timeoutErr)
 
     // Tier 2 succeeds
-    mockGenerateObject.mockResolvedValueOnce({
-      object: validModelDNA,
+    mockGenerateText.mockResolvedValueOnce({
+      output: validModelDNA,
     } as any)
 
     const result = await extractStyleDNAWithFallbackLadder(
@@ -126,12 +127,12 @@ describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)',
     expect(result.runRecord.activeTier).toBe(2)
     expect(result.runRecord.modelId).toBe('gemini-3.5-flash-lite')
     expect(result.runRecord.fallbackReason).toBe('tier_1_failed:model_timeout')
-    expect(mockGenerateObject).toHaveBeenCalledTimes(2)
+    expect(mockGenerateText).toHaveBeenCalledTimes(2)
   })
 
   it('Test 4 (Tier 2 Failure Escalates to Tier 3 Heuristic): when both tiers fail, calmly degrades to heuristic extractor', async () => {
     // Both Tier 1 and Tier 2 fail (each failing repair as well)
-    mockGenerateObject.mockRejectedValue(new Error('API quota exceeded / service unavailable'))
+    mockGenerateText.mockRejectedValue(new Error('API quota exceeded / service unavailable'))
 
     const result = await extractStyleDNAWithFallbackLadder(
       sampleSwatchIds,
@@ -163,7 +164,7 @@ describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)',
     expect(result.runRecord.modelId).toBe('deterministic-heuristic-v1')
     expect(result.runRecord.fallbackReason).toBe('api_key_missing')
     expect(elapsed).toBeLessThan(50) // Execution is instant
-    expect(mockGenerateObject).not.toHaveBeenCalled()
+    expect(mockGenerateText).not.toHaveBeenCalled()
     expect(StyleDNASchema.safeParse(result.styleDNA).success).toBe(true)
   })
 
@@ -182,8 +183,8 @@ describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)',
 
     // 2. Tier 1
     process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'mock-key'
-    mockGenerateObject.mockResolvedValueOnce({
-      object: { ...validModelDNA, protectedMomentQuote: 'slight model variation' },
+    mockGenerateText.mockResolvedValueOnce({
+      output: { ...validModelDNA, protectedMomentQuote: 'slight model variation' },
     } as any)
     const t1Result = await extractStyleDNAWithFallbackLadder(
       sampleSwatchIds,
@@ -195,8 +196,8 @@ describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)',
 
   describe('API Route POST /api/style-dna', () => {
     it('returns 200 with structured styleDNA and runRecord for valid request', async () => {
-      mockGenerateObject.mockResolvedValueOnce({
-        object: validModelDNA,
+      mockGenerateText.mockResolvedValueOnce({
+        output: validModelDNA,
       } as any)
 
       const req = new Request('http://localhost:3000/api/style-dna', {

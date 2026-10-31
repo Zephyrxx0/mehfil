@@ -1,6 +1,6 @@
-import { generateObject, type LanguageModel } from 'ai'
+import type { LanguageModel } from 'ai'
 import { QuoteExtractionSchema, type QuoteExtractionInput } from './schemas'
-import { isTimeoutOrAbortError } from './style-analyst'
+import { generateStructuredWithRepair, type StructuredInput } from './structured'
 import type { FencedText } from './quarantine'
 
 /**
@@ -30,54 +30,24 @@ export async function extractQuoteWithModel(
   imageBase64?: string,
   timeoutMs = 8000
 ): Promise<QuoteExtractionInput> {
-  const startTime = Date.now()
-  const systemPrompt = buildQuoteAnalystSystemPrompt(quarantined.tag)
-
-  const userContent: Array<{ type: 'text'; text: string } | { type: 'image'; image: string }> = []
-  if (imageBase64) {
-    userContent.push({ type: 'image', image: imageBase64 })
-  }
-  userContent.push({ type: 'text', text: quarantined.text })
-
-  try {
-    const { object } = await generateObject({
-      model: modelInstance,
-      schema: QuoteExtractionSchema,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userContent }],
-      abortSignal: AbortSignal.timeout(timeoutMs),
-      temperature: 0.2,
-    })
-
-    return QuoteExtractionSchema.parse(object)
-  } catch (err: unknown) {
-    // Escalate immediately on timeouts or explicit aborts
-    if (isTimeoutOrAbortError(err)) {
-      throw err
-    }
-
-    // 1-Shot Schema Repair Retry at temperature 0
-    const elapsed = Date.now() - startTime
-    const remainingTimeout = Math.max(2000, timeoutMs - elapsed)
-    // Fixed wording only: validation messages can echo model output derived from the quote.
-    const repairPrompt = `${quarantined.text}\n\nThe previous extraction failed schema validation. Return JSON that strictly matches the schema without calculating totals.`
-
-    const repairContent: Array<{ type: 'text'; text: string } | { type: 'image'; image: string }> =
-      []
+  const userMessage = (text: string): StructuredInput => {
+    const content: Array<{ type: 'text'; text: string } | { type: 'image'; image: string }> = []
     if (imageBase64) {
-      repairContent.push({ type: 'image', image: imageBase64 })
+      content.push({ type: 'image', image: imageBase64 })
     }
-    repairContent.push({ type: 'text', text: repairPrompt })
-
-    const { object: repaired } = await generateObject({
-      model: modelInstance,
-      schema: QuoteExtractionSchema,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: repairContent }],
-      abortSignal: AbortSignal.timeout(remainingTimeout),
-      temperature: 0,
-    })
-
-    return QuoteExtractionSchema.parse(repaired)
+    content.push({ type: 'text', text })
+    return { messages: [{ role: 'user', content }] }
   }
+
+  // Fixed wording only: validation messages can echo model output derived from the quote.
+  const repairPrompt = `${quarantined.text}\n\nThe previous extraction failed schema validation. Return JSON that strictly matches the schema without calculating totals.`
+
+  return generateStructuredWithRepair({
+    model: modelInstance,
+    schema: QuoteExtractionSchema,
+    system: buildQuoteAnalystSystemPrompt(quarantined.tag),
+    input: userMessage(quarantined.text),
+    repairInput: userMessage(repairPrompt),
+    timeoutMs,
+  })
 }

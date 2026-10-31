@@ -5,15 +5,16 @@ import { analyzeQuoteWithFallbackLadder } from '@/lib/ai/quote-pipeline'
 import { extractDeterministicQuote } from '@/lib/ai/quote-heuristic'
 import { QuoteExtractionSchema, type QuoteExtractionInput } from '@/lib/ai/schemas'
 import { POST } from '@/app/api/ai/quote-analyst/route'
-import { generateObject, type LanguageModel } from 'ai'
+import { generateText, Output, type LanguageModel } from 'ai'
 
-vi.mock('ai', () => ({
-  generateObject: vi.fn(),
+vi.mock('ai', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('ai')>()),
+  generateText: vi.fn(),
 }))
 
 describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI-03, D-03, D-04)', () => {
   const originalEnv = { ...process.env }
-  const mockGenerateObject = vi.mocked(generateObject)
+  const mockGenerateText = vi.mocked(generateText)
 
   const sampleRawQuote = `
     *ROYAL CATERERS & BANQUET SERVICES*
@@ -72,8 +73,8 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
 
   describe('extractQuoteWithModel', () => {
     it('sends no tools to the model (Zero Tool Binding)', async () => {
-      mockGenerateObject.mockResolvedValueOnce({
-        object: validExtraction,
+      mockGenerateText.mockResolvedValueOnce({
+        output: validExtraction,
       } as any)
 
       const fakeModel = { modelId: 'test-model' } as unknown as LanguageModel
@@ -82,17 +83,21 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
         fenceUntrustedText('untrusted_vendor_quote', sampleRawQuote)
       )
 
-      expect(mockGenerateObject).toHaveBeenCalledTimes(1)
-      const callArgs = mockGenerateObject.mock.calls[0][0] as any
+      expect(mockGenerateText).toHaveBeenCalledTimes(1)
+      const callArgs = mockGenerateText.mock.calls[0][0] as any
       expect(callArgs).not.toHaveProperty('tools') // zero tool binding: nothing callable is sent
       expect(callArgs.temperature).toBe(0.2)
-      expect(callArgs.schema).toBe(QuoteExtractionSchema)
+      // The schema now travels inside Output.object: its JSON schema must match QuoteExtractionSchema.
+      expect(callArgs.output.name).toBe('object')
+      expect(await callArgs.output.responseFormat).toEqual(
+        await Output.object({ schema: QuoteExtractionSchema }).responseFormat
+      )
       expect(result.vendorName).toBe('Royal Caterers & Banquet Services')
     })
 
     it('formats multimodal image payload when imageBase64 is provided', async () => {
-      mockGenerateObject.mockResolvedValueOnce({
-        object: validExtraction,
+      mockGenerateText.mockResolvedValueOnce({
+        output: validExtraction,
       } as any)
 
       const fakeModel = { modelId: 'test-model' } as unknown as LanguageModel
@@ -105,8 +110,8 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
         fakeImage
       )
 
-      expect(mockGenerateObject).toHaveBeenCalledTimes(1)
-      const callArgs = mockGenerateObject.mock.calls[0][0] as any
+      expect(mockGenerateText).toHaveBeenCalledTimes(1)
+      const callArgs = mockGenerateText.mock.calls[0][0] as any
       const messages = callArgs.messages as any[]
       expect(messages[0].content).toHaveLength(2)
       expect(messages[0].content[0].type).toBe('image')
@@ -115,11 +120,11 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
     })
 
     it('triggers 1-shot repair retry at temperature 0 on schema validation failure', async () => {
-      mockGenerateObject.mockRejectedValueOnce(
+      mockGenerateText.mockRejectedValueOnce(
         new Error('Validation error: tiers must have at least 1 item')
       )
-      mockGenerateObject.mockResolvedValueOnce({
-        object: validExtraction,
+      mockGenerateText.mockResolvedValueOnce({
+        output: validExtraction,
       } as any)
 
       const fakeModel = { modelId: 'test-model' } as unknown as LanguageModel
@@ -128,8 +133,8 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
         fenceUntrustedText('untrusted_vendor_quote', sampleRawQuote)
       )
 
-      expect(mockGenerateObject).toHaveBeenCalledTimes(2)
-      const repairCall = mockGenerateObject.mock.calls[1][0] as any
+      expect(mockGenerateText).toHaveBeenCalledTimes(2)
+      const repairCall = mockGenerateText.mock.calls[1][0] as any
       expect(repairCall.temperature).toBe(0)
       expect(repairCall).not.toHaveProperty('tools')
       expect(result.tiers).toHaveLength(1)
@@ -138,7 +143,7 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
     it('escalates immediately on timeout without triggering repair retry', async () => {
       const timeoutErr = new Error('The operation was aborted due to timeout')
       timeoutErr.name = 'TimeoutError'
-      mockGenerateObject.mockRejectedValueOnce(timeoutErr)
+      mockGenerateText.mockRejectedValueOnce(timeoutErr)
 
       const fakeModel = { modelId: 'test-model' } as unknown as LanguageModel
       await expect(
@@ -147,14 +152,14 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
           fenceUntrustedText('untrusted_vendor_quote', sampleRawQuote)
         )
       ).rejects.toThrow('timeout')
-      expect(mockGenerateObject).toHaveBeenCalledTimes(1)
+      expect(mockGenerateText).toHaveBeenCalledTimes(1)
     })
   })
 
   describe('analyzeQuoteWithFallbackLadder', () => {
     it('Tier 1: executes Gemma 4 successfully and returns Tier 1 RunRecord', async () => {
-      mockGenerateObject.mockResolvedValueOnce({
-        object: validExtraction,
+      mockGenerateText.mockResolvedValueOnce({
+        output: validExtraction,
       } as any)
 
       const result = await analyzeQuoteWithFallbackLadder(sampleRawQuote, 'catering')
@@ -167,9 +172,9 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
     it('Tier 2: degrades to Gemini 2.0 Flash when Tier 1 fails', async () => {
       const timeoutErr = new Error('The operation was aborted due to timeout')
       timeoutErr.name = 'TimeoutError'
-      mockGenerateObject.mockRejectedValueOnce(timeoutErr)
-      mockGenerateObject.mockResolvedValueOnce({
-        object: validExtraction,
+      mockGenerateText.mockRejectedValueOnce(timeoutErr)
+      mockGenerateText.mockResolvedValueOnce({
+        output: validExtraction,
       } as any)
 
       const result = await analyzeQuoteWithFallbackLadder(sampleRawQuote, 'catering')
@@ -180,7 +185,7 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
     })
 
     it('Tier 3: degrades to deterministic heuristic quote parser when both models fail', async () => {
-      mockGenerateObject.mockRejectedValue(new Error('Quota exceeded'))
+      mockGenerateText.mockRejectedValue(new Error('Quota exceeded'))
 
       const result = await analyzeQuoteWithFallbackLadder(sampleRawQuote, 'catering')
 
@@ -201,7 +206,7 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
       expect(result.runRecord.activeTier).toBe(3)
       expect(result.runRecord.fallbackReason).toBe('api_key_missing')
       expect(elapsed).toBeLessThan(50)
-      expect(mockGenerateObject).not.toHaveBeenCalled()
+      expect(mockGenerateText).not.toHaveBeenCalled()
     })
   })
 
@@ -233,8 +238,8 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
 
   describe('POST /api/ai/quote-analyst Route', () => {
     it('returns 200 with VendorQuote and RunRecord for valid payload', async () => {
-      mockGenerateObject.mockResolvedValueOnce({
-        object: validExtraction,
+      mockGenerateText.mockResolvedValueOnce({
+        output: validExtraction,
       } as any)
 
       const req = new Request('http://localhost:3000/api/ai/quote-analyst', {
@@ -274,7 +279,7 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
     })
 
     it('provides emergency recovery with 200 status when an unexpected runtime error occurs', async () => {
-      mockGenerateObject.mockImplementationOnce(() => {
+      mockGenerateText.mockImplementationOnce(() => {
         throw new Error('Fatal socket connection abort')
       })
 

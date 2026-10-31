@@ -1,4 +1,4 @@
-import { isTimeoutOrAbortError } from './style-analyst'
+import { isTimeoutOrAbortError } from './structured'
 
 /**
  * Stable, client-safe reasons a model call failed (S6). Raw error text can contain provider

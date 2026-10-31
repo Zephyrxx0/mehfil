@@ -1,9 +1,9 @@
-import { generateObject, type LanguageModel } from 'ai'
+import type { LanguageModel } from 'ai'
 import type { BudgetCategory, Plan } from '@/lib/engine/types'
-import { isTimeoutOrAbortError } from './style-analyst'
 import { buildGenerativeUISystemPrompt, generateDeterministicLayout } from './layout-heuristic'
 import { runLadder, type FallbackLadderOptions } from './ladder'
 import { fenceUntrustedText } from './quarantine'
+import { generateStructuredWithRepair } from './structured'
 import { GenerativeUILayoutSchema, type AgentRunRecord, type GenerativeUILayout } from './schemas'
 
 export interface LayoutFallbackLadderResult {
@@ -19,36 +19,27 @@ interface LayoutRequest {
 /**
  * Asks a model for a Generative UI layout with a timeout and a one-shot, temperature-0 repair
  * retry (GENUI-01, GENUI-02, ADR-0008). Output is a closed-registry layout of entity ids only.
- * `generateObject` accepts no tools, so the model cannot call anything: zero tool binding holds
- * by construction.
+ * `generateStructured` never passes tools, so the model cannot call anything: zero tool binding
+ * holds by construction (see structured.ts and tests/ai/structured.test.ts).
  */
 async function generateLayoutWithModel(
   model: LanguageModel,
   request: LayoutRequest,
   timeoutMs = 8000
 ): Promise<GenerativeUILayout> {
-  const startTime = Date.now()
-  const call = (prompt: string, abortMs: number, temperature: number) =>
-    generateObject({
-      model,
-      schema: GenerativeUILayoutSchema,
-      system: request.systemPrompt,
-      messages: [{ role: 'user', content: prompt }],
-      abortSignal: AbortSignal.timeout(abortMs),
-      temperature,
-    })
+  const repairPrompt = `${request.prompt}\n\nThe previous layout failed schema validation. Remember: NEVER output numeric amounts or dates. Use ONLY entity IDs (lineIds, quoteIds, ideaIds). Output valid JSON matching GenerativeUILayoutSchema.`
+  const asMessage = (content: string) => ({
+    messages: [{ role: 'user' as const, content }],
+  })
 
-  try {
-    const { object } = await call(request.prompt, timeoutMs, 0.2)
-    return GenerativeUILayoutSchema.parse(object)
-  } catch (err: unknown) {
-    if (isTimeoutOrAbortError(err)) throw err
-
-    const remainingMs = Math.max(2000, timeoutMs - (Date.now() - startTime))
-    const repairPrompt = `${request.prompt}\n\nThe previous layout failed schema validation. Remember: NEVER output numeric amounts or dates. Use ONLY entity IDs (lineIds, quoteIds, ideaIds). Output valid JSON matching GenerativeUILayoutSchema.`
-    const { object: repaired } = await call(repairPrompt, remainingMs, 0)
-    return GenerativeUILayoutSchema.parse(repaired)
-  }
+  return generateStructuredWithRepair({
+    model,
+    schema: GenerativeUILayoutSchema,
+    system: request.systemPrompt,
+    input: asMessage(request.prompt),
+    repairInput: asMessage(repairPrompt),
+    timeoutMs,
+  })
 }
 
 function summarisePlan(plan: Plan): string {
