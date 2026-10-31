@@ -5,7 +5,7 @@ import { analyzeQuoteWithFallbackLadder } from '@/lib/ai/quote-pipeline'
 import { extractDeterministicQuote } from '@/lib/ai/quote-heuristic'
 import { QuoteExtractionSchema, type QuoteExtractionInput } from '@/lib/ai/schemas'
 import { POST } from '@/app/api/ai/quote-analyst/route'
-import { generateObject } from 'ai'
+import { generateObject, type LanguageModel } from 'ai'
 
 vi.mock('ai', () => ({
   generateObject: vi.fn(),
@@ -71,12 +71,12 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
   })
 
   describe('extractQuoteWithModel', () => {
-    it('executes generateObject with tools: {} (Zero Tool Binding)', async () => {
+    it('sends no tools to the model (Zero Tool Binding)', async () => {
       mockGenerateObject.mockResolvedValueOnce({
         object: validExtraction,
       } as any)
 
-      const fakeModel = { modelId: 'test-model' }
+      const fakeModel = { modelId: 'test-model' } as unknown as LanguageModel
       const result = await extractQuoteWithModel(
         fakeModel,
         fenceUntrustedText('untrusted_vendor_quote', sampleRawQuote)
@@ -84,7 +84,7 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
 
       expect(mockGenerateObject).toHaveBeenCalledTimes(1)
       const callArgs = mockGenerateObject.mock.calls[0][0] as any
-      expect(callArgs.tools).toEqual({}) // Strict zero tool binding
+      expect(callArgs).not.toHaveProperty('tools') // zero tool binding: nothing callable is sent
       expect(callArgs.temperature).toBe(0.2)
       expect(callArgs.schema).toBe(QuoteExtractionSchema)
       expect(result.vendorName).toBe('Royal Caterers & Banquet Services')
@@ -95,7 +95,7 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
         object: validExtraction,
       } as any)
 
-      const fakeModel = { modelId: 'test-model' }
+      const fakeModel = { modelId: 'test-model' } as unknown as LanguageModel
       const fakeImage =
         'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='
 
@@ -122,7 +122,7 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
         object: validExtraction,
       } as any)
 
-      const fakeModel = { modelId: 'test-model' }
+      const fakeModel = { modelId: 'test-model' } as unknown as LanguageModel
       const result = await extractQuoteWithModel(
         fakeModel,
         fenceUntrustedText('untrusted_vendor_quote', sampleRawQuote)
@@ -131,7 +131,7 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
       expect(mockGenerateObject).toHaveBeenCalledTimes(2)
       const repairCall = mockGenerateObject.mock.calls[1][0] as any
       expect(repairCall.temperature).toBe(0)
-      expect(repairCall.tools).toEqual({})
+      expect(repairCall).not.toHaveProperty('tools')
       expect(result.tiers).toHaveLength(1)
     })
 
@@ -140,7 +140,7 @@ describe('Quarantined Quote Analyst & Fallback Ladder (QUOTE-01, QUOTE-02, GENUI
       timeoutErr.name = 'TimeoutError'
       mockGenerateObject.mockRejectedValueOnce(timeoutErr)
 
-      const fakeModel = { modelId: 'test-model' }
+      const fakeModel = { modelId: 'test-model' } as unknown as LanguageModel
       await expect(
         extractQuoteWithModel(
           fakeModel,

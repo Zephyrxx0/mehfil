@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Fraunces, Plus_Jakarta_Sans, Noto_Serif_Devanagari } from 'next/font/google'
 import localFont from 'next/font/local'
 import { connection } from 'next/server'
-import { Agentation } from 'agentation'
 import { MotionProvider } from '@/components/providers/MotionProvider'
 import './globals.css'
 
@@ -85,6 +84,17 @@ export const metadata: Metadata = {
   },
 }
 
+/** Visual feedback toolbar for local development only. It is never loaded in production. */
+async function DevToolbar() {
+  // Written as an `if` block so the bundler can see it is dead code in production and drop
+  // the import entirely.
+  if (process.env.NODE_ENV === 'development') {
+    const { Agentation } = await import('agentation')
+    return <Agentation endpoint="http://localhost:4747" />
+  }
+  return null
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // A nonce-based CSP (src/middleware.ts) needs a fresh nonce on every request, which static
   // prerendering cannot provide. Waiting for the connection opts every page into dynamic rendering.
@@ -97,7 +107,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <body className="min-h-screen bg-warm-ivory text-royal-plum antialiased font-sans selection:bg-marigold/30 selection:text-royal-plum">
         <MotionProvider>{children}</MotionProvider>
-        {process.env.NODE_ENV === 'development' && <Agentation endpoint="http://localhost:4747" />}
+        <DevToolbar />
       </body>
     </html>
   )

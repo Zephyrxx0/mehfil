@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const BUDGET_CATEGORIES = [
+const BUDGET_CATEGORIES = [
   'venue',
   'catering',
   'decor',
@@ -13,7 +13,7 @@ export const BUDGET_CATEGORIES = [
 
 export const BudgetCategorySchema = z.enum(BUDGET_CATEGORIES)
 
-export const StyleDimensionsSchema = z
+const StyleDimensionsSchema = z
   .object({
     formality: z.number().int().min(0).max(100),
     energy: z.number().int().min(0).max(100),
@@ -45,15 +45,6 @@ export const StyleDNASchema = z
   })
   .strict()
 
-export const CategoryMultiplierSchema = z.number().min(0.75).max(1.25)
-
-export const PlannerModulationSchema = z
-  .object({
-    multipliers: z.record(BudgetCategorySchema, CategoryMultiplierSchema),
-    rationale: z.string().min(10).max(500),
-  })
-  .strict()
-
 export const AgentRunRecordSchema = z
   .object({
     activeTier: z.union([z.literal(1), z.literal(2), z.literal(3)]),
@@ -67,12 +58,11 @@ export const AgentRunRecordSchema = z
 export type StyleDimensions = z.infer<typeof StyleDimensionsSchema>
 export type NamedPaletteColor = z.infer<typeof NamedPaletteColorSchema>
 export type StyleDNA = z.infer<typeof StyleDNASchema>
-export type PlannerModulation = z.infer<typeof PlannerModulationSchema>
 export type AgentRunRecord = z.infer<typeof AgentRunRecordSchema>
 
 // Quote Quarantine & Extraction Schemas (QUOTE-01, QUOTE-02, ADR-0003)
 
-export const ExtractedQuoteItemSchema = z
+const ExtractedQuoteItemSchema = z
   .object({
     description: z.string().min(1).max(200),
     amountStated: z.number().positive(), // Raw rupee figure from source text
@@ -81,7 +71,7 @@ export const ExtractedQuoteItemSchema = z
   })
   .strict()
 
-export const PackageTierSchema = z
+const PackageTierSchema = z
   .object({
     tierId: z.string().min(1).max(50),
     name: z.string().min(1).max(100),
@@ -105,14 +95,14 @@ export const QuoteExtractionSchema = z
 
 // Generative UI Closed Registry Schemas (GENUI-01, GENUI-02, GENUI-03, ADR-0008)
 
-export const GenerativeUIComponentEnum = z.enum([
+const GenerativeUIComponentEnum = z.enum([
   'VendorChecklist',
   'IdeaGrid',
   'QuoteReport',
   'ScenarioComparison',
 ])
 
-export const LayoutVariantEnum = z.enum(['compact', 'detailed', 'side_by_side'])
+const LayoutVariantEnum = z.enum(['compact', 'detailed', 'side_by_side'])
 
 export const GenerativeUISectionSchema = z
   .object({

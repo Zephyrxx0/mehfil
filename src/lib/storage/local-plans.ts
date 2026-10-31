@@ -5,9 +5,9 @@ const PLAN_PREFIX = 'mehfil_plan_'
 const VERSIONS_PREFIX = 'mehfil_versions_'
 const OWNER_PREFIX = 'mehfil_owner_'
 
-export type LocalSaveOutcome =
+type LocalSaveOutcome =
   | { status: 'saved'; versionId: string; versionNumber: number }
-  | { status: 'conflict'; versionNumber: number; conflictPlan: Plan }
+  | { status: 'conflict'; versionId: string; versionNumber: number; conflictPlan: Plan }
 
 function storage(): Storage | null {
   return typeof window !== 'undefined' && window.localStorage ? window.localStorage : null
@@ -58,6 +58,7 @@ export const localPlans = {
     if (latest && parentVersionId && latest.id !== parentVersionId) {
       return {
         status: 'conflict',
+        versionId: latest.id,
         versionNumber: latest.versionNumber,
         conflictPlan: latest.snapshot,
       }

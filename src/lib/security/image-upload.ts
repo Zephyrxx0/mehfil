@@ -12,7 +12,7 @@ export type AllowedImageType = (typeof ALLOWED_IMAGE_TYPES)[number]
 /** Decoded image ceiling. Leaves headroom under the ~4.5 MB platform body limit. */
 export const MAX_IMAGE_BYTES = 3_000_000
 /** Longest data URL that can hold MAX_IMAGE_BYTES (base64 grows data by 4/3, plus the prefix). */
-export const MAX_IMAGE_DATA_URL_LENGTH = Math.ceil((MAX_IMAGE_BYTES * 4) / 3) + 64
+const MAX_IMAGE_DATA_URL_LENGTH = Math.ceil((MAX_IMAGE_BYTES * 4) / 3) + 64
 
 const DATA_URL_PATTERN = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/]+={0,2})$/
 

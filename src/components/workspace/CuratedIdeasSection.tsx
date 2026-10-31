@@ -38,7 +38,7 @@ export function CuratedIdeasSection({
   }, [plan.brief, plan.styleDNA])
 
   // Summary Metrics
-  const adoptedRecords = plan.adoptedIdeas ?? []
+  const adoptedRecords = useMemo(() => plan.adoptedIdeas ?? [], [plan.adoptedIdeas])
   const adoptedCount = adoptedRecords.length
   const totalInvestedPaise = adoptedRecords.reduce((sum, r) => sum + r.costPaise, 0)
 

@@ -1,12 +1,11 @@
-import type { StyleDNA, StyleDimensions, NamedPaletteColor, AgentRunRecord } from '../ai/schemas'
+import type { StyleDNA, AgentRunRecord } from '../ai/schemas'
 
-export type { StyleDNA, StyleDimensions, NamedPaletteColor, AgentRunRecord }
+export type { StyleDNA, AgentRunRecord }
 
 // All financial values are integers in paise (1 rupee = 100 paise)
 // NEVER use floating-point for money calculations
 
 export type Paise = number // always a whole integer
-export type Rupees = number // always a whole integer, display only
 
 export type EventType = 'wedding' | 'birthday' | 'community'
 
@@ -197,13 +196,14 @@ export interface PlanChangeDelta {
   deltaPaise: Paise
 }
 
-export interface ChangeRecord {
+/** One undoable edit. `previousSnapshot` is the plan as it was before the edit. */
+export interface PlanChangeRecord {
   id: string
-  planVersionId: string
+  timestamp: Date
+  description: string
   deltas: PlanChangeDelta[]
-  explanation: string
-  isFloorProtected: boolean
-  createdAt: string
+  isFloorProtected?: boolean
+  previousSnapshot?: Plan
 }
 
 export interface PlanVersionRecord {
@@ -306,25 +306,10 @@ export interface VendorQuote {
 
 // Generative UI Closed Registry Domain Types (Phase 6: GENUI-01, GENUI-02, GENUI-03, ADR-0008)
 
-export type GenerativeUIComponent =
-  'VendorChecklist' | 'IdeaGrid' | 'QuoteReport' | 'ScenarioComparison'
-
-export type LayoutVariant = 'compact' | 'detailed' | 'side_by_side'
-
-export interface GenerativeUISection {
-  id: string
-  component: GenerativeUIComponent
-  variant: LayoutVariant
-  title: string
-  rationale: string
-  lineIds?: string[]
-  quoteIds?: string[]
-  ideaIds?: string[]
-  highlightEntityId?: string
-}
-
-export interface GenerativeUILayout {
-  layoutTitle: string
-  layoutSummary: string
-  sections: GenerativeUISection[]
-}
+// Derived from the zod schemas in `ai/schemas.ts`, so the validator and the type cannot drift.
+export type {
+  GenerativeUIComponent,
+  GenerativeUILayout,
+  GenerativeUISection,
+  LayoutVariant,
+} from '../ai/schemas'

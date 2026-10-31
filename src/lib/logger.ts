@@ -6,7 +6,7 @@
  * `info`, or `silent` under the test runner so test output stays readable.
  */
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 type ConfiguredLevel = LogLevel | 'silent'
 
 const LEVEL_RANK: Record<ConfiguredLevel, number> = {

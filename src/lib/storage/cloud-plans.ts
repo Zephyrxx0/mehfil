@@ -22,7 +22,7 @@ export interface RpcClient {
   ): PromiseLike<{ data: unknown; error: { message: string } | null }>
 }
 
-export class CloudError extends Error {
+class CloudError extends Error {
   constructor(message: string) {
     super(message)
     this.name = 'CloudError'
@@ -64,7 +64,7 @@ export interface CreatedEvent {
 
 export type CloudSaveOutcome =
   | { status: 'saved'; versionId: string; versionNumber: number }
-  | { status: 'conflict'; versionNumber: number; conflictPlan?: Plan }
+  | { status: 'conflict'; versionId: string; versionNumber: number; conflictPlan?: Plan }
   | { status: 'unauthorized' }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -149,6 +149,7 @@ export class CloudPlans {
       case 'conflict':
         return {
           status: 'conflict',
+          versionId: parsed.data.version_id,
           versionNumber: parsed.data.version_number,
           conflictPlan: parsed.data.snapshot
             ? decodeSnapshot(parsed.data.snapshot, args.eventId)

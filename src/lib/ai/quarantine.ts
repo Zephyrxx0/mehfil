@@ -17,7 +17,6 @@ export interface FencedText {
 // Zero-width, bidi-control and other invisible characters used to hide instructions.
 const INVISIBLE_CHARACTERS = /[\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u2069\uFEFF]/g
 // C0 and C1 control characters except tab (\t) and newline (\n).
-// eslint-disable-next-line no-control-regex
 const CONTROL_CHARACTERS = /[\u0000-\u0008\u000B-\u001F\u007F-\u009F]/g
 
 function randomSuffix(): string {

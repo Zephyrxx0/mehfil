@@ -14,7 +14,7 @@ export interface PlanContextValue {
   onSelectLine?: (lineId: string) => void
 }
 
-export const PlanContext = createContext<PlanContextValue>({})
+const PlanContext = createContext<PlanContextValue>({})
 
 export function usePlanContext(): PlanContextValue {
   return useContext(PlanContext)

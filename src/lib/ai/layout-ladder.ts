@@ -22,7 +22,7 @@ interface LayoutRequest {
  * `generateObject` accepts no tools, so the model cannot call anything: zero tool binding holds
  * by construction.
  */
-export async function generateLayoutWithModel(
+async function generateLayoutWithModel(
   model: LanguageModel,
   request: LayoutRequest,
   timeoutMs = 8000

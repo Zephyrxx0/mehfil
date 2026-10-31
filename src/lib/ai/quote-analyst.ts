@@ -1,4 +1,4 @@
-import { generateObject } from 'ai'
+import { generateObject, type LanguageModel } from 'ai'
 import { QuoteExtractionSchema, type QuoteExtractionInput } from './schemas'
 import { isTimeoutOrAbortError } from './style-analyst'
 import type { FencedText } from './quarantine'
@@ -25,7 +25,7 @@ CRITICAL SECURITY DIRECTIVES:
  * and a 1-shot zero-temperature schema repair retry (QUOTE-01, QUOTE-02, D-03, D-04, GENUI-03).
  */
 export async function extractQuoteWithModel(
-  modelInstance: any,
+  modelInstance: LanguageModel,
   quarantined: FencedText,
   imageBase64?: string,
   timeoutMs = 8000
@@ -45,10 +45,9 @@ export async function extractQuoteWithModel(
       schema: QuoteExtractionSchema,
       system: systemPrompt,
       messages: [{ role: 'user', content: userContent }],
-      tools: {}, // Strict Zero Tool Binding
       abortSignal: AbortSignal.timeout(timeoutMs),
       temperature: 0.2,
-    } as any)
+    })
 
     return QuoteExtractionSchema.parse(object)
   } catch (err: unknown) {
@@ -75,10 +74,9 @@ export async function extractQuoteWithModel(
       schema: QuoteExtractionSchema,
       system: systemPrompt,
       messages: [{ role: 'user', content: repairContent }],
-      tools: {}, // Strict Zero Tool Binding
       abortSignal: AbortSignal.timeout(remainingTimeout),
       temperature: 0,
-    } as any)
+    })
 
     return QuoteExtractionSchema.parse(repaired)
   }

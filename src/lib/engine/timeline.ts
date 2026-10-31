@@ -5,6 +5,7 @@ import type {
   IdeaDisplacementRecord,
   MilestoneBand,
   MilestoneBandId,
+  Plan,
   TimelineSchedule,
   TimelineTask,
 } from './types'
@@ -420,12 +421,12 @@ export const CATEGORY_PRIMARY_TASK_MAP: Record<BudgetCategory, string> = {
 export function completePrimaryBookingTask(
   schedule: TimelineSchedule,
   category: BudgetCategory,
-  quoteId: string
+  quoteId: string,
+  completedAt: string = new Date().toISOString()
 ): TimelineSchedule {
   const taskId = CATEGORY_PRIMARY_TASK_MAP[category]
   if (!taskId) return schedule
 
-  const completedAt = new Date().toISOString()
   const milestoneBands = schedule.milestoneBands.map((band) => ({
     ...band,
     tasks: band.tasks.map((task) => {
@@ -476,4 +477,24 @@ export function reopenPrimaryBookingTask(
     ...schedule,
     milestoneBands,
   }
+}
+
+/**
+ * Marks the primary booking task of every committed budget line as done. The schedule is
+ * derived from the plan, so a committed vendor shows as booked after a reload or on another
+ * device, instead of depending on a click that happened in one browser tab.
+ */
+export function applyCommittedBookings(schedule: TimelineSchedule, plan: Plan): TimelineSchedule {
+  return plan.lines.reduce(
+    (current, line) =>
+      line.isCommitted && line.committedQuoteId
+        ? completePrimaryBookingTask(
+            current,
+            line.category,
+            line.committedQuoteId,
+            line.committedAt
+          )
+        : current,
+    schedule
+  )
 }

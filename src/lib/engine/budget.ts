@@ -177,7 +177,7 @@ export function rebalanceGuestCount(plan: Plan, newGuestCount: number): Plan {
  * Compute 3 deterministic shortfall remedies (ADR-0002).
  * Models MUST NOT compute these — pure code only.
  */
-export function calculateShortfallRemedies(plan: Plan, deficitPaise: Paise): ShortfallRemedy[] {
+function calculateShortfallRemedies(plan: Plan, deficitPaise: Paise): ShortfallRemedy[] {
   const { brief, baselineGuestCount } = plan
 
   // Remedy 1: Increase Budget

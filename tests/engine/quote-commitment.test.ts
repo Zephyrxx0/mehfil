@@ -5,8 +5,10 @@ import {
   completePrimaryBookingTask,
   reopenPrimaryBookingTask,
   CATEGORY_PRIMARY_TASK_MAP,
+  applyCommittedBookings,
 } from '@/lib/engine/timeline'
-import type { Plan, BudgetLine, VendorQuote } from '@/lib/engine/types'
+import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
+import type { Plan, BudgetLine, VendorQuote, EventBrief } from '@/lib/engine/types'
 
 function createSamplePlan(): Plan {
   const lines: BudgetLine[] = [
@@ -383,5 +385,57 @@ describe('unlockQuote', () => {
     // Invariant holds
     const totalCurrent = unlockedPlan.lines.reduce((s, l) => s + l.currentPaise, 0)
     expect(totalCurrent).toBe(unlockedPlan.totalBudgetPaise)
+  })
+})
+
+describe('applyCommittedBookings: bookings are derived from the plan', () => {
+  const brief: EventBrief = {
+    title: 'Booked',
+    eventType: 'wedding',
+    eventDate: '2027-11-20',
+    city: 'Jaipur',
+    guestCount: 200,
+    totalBudgetPaise: 300_000_000,
+    protectedCategory: 'catering',
+  }
+
+  it('leaves the schedule alone when nothing is committed', () => {
+    const plan = instantiatePlanFromBrief(brief)
+    const schedule = calculateBackwardsTimeline(brief.eventDate, brief.guestCount)
+    expect(applyCommittedBookings(schedule, plan)).toEqual(schedule)
+  })
+
+  it('marks the booking task of each committed line as done, with its quote and time', () => {
+    const plan = instantiatePlanFromBrief(brief)
+    const venue = plan.lines.find((l) => l.category === 'venue')!
+    const committed = {
+      ...plan,
+      lines: plan.lines.map((l) =>
+        l.id === venue.id
+          ? {
+              ...l,
+              isCommitted: true,
+              committedQuoteId: 'quote-9',
+              committedAt: '2027-01-02T03:04:05.000Z',
+            }
+          : l
+      ),
+    }
+    const schedule = calculateBackwardsTimeline(brief.eventDate, brief.guestCount)
+    const result = applyCommittedBookings(schedule, committed)
+
+    const done = result.milestoneBands.flatMap((b) => b.tasks).filter((t) => t.isCompleted)
+    expect(done).toHaveLength(1)
+    expect(done[0]).toMatchObject({
+      originQuoteId: 'quote-9',
+      completedAt: '2027-01-02T03:04:05.000Z',
+    })
+  })
+
+  it('un-booking a line (unlock) removes the done mark on the next derivation', () => {
+    const plan = instantiatePlanFromBrief(brief)
+    const schedule = calculateBackwardsTimeline(brief.eventDate, brief.guestCount)
+    const result = applyCommittedBookings(schedule, plan)
+    expect(result.milestoneBands.flatMap((b) => b.tasks).some((t) => t.isCompleted)).toBe(false)
   })
 })

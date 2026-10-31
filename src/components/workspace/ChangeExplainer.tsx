@@ -1,22 +1,8 @@
 import React from 'react'
-import type { Plan, PlanVersionRecord } from '@/lib/engine/types'
+import type { Plan, PlanChangeRecord, PlanVersionRecord } from '@/lib/engine/types'
 import { formatINR } from '@/lib/engine/currency'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-
-export interface PlanChangeDelta {
-  category: string
-  deltaPaise: number
-}
-
-export interface PlanChangeRecord {
-  id: string
-  timestamp: Date
-  description: string
-  deltas: PlanChangeDelta[]
-  isFloorProtected?: boolean
-  previousSnapshot?: Plan
-}
 
 export interface ChangeExplainerProps {
   plan?: Plan

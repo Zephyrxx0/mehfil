@@ -137,7 +137,7 @@ export function QuoteIntakeSheet({
       const quote: VendorQuote = json.data.vendorQuote
       setExtractedQuote(quote)
       onQuoteExtracted?.(quote)
-    } catch (err: any) {
+    } catch (err) {
       logger.error('[QuoteIntakeSheet] Extraction error:', err)
       setErrorMessage(err instanceof Error ? err.message : 'Failed to extract vendor quote.')
     } finally {

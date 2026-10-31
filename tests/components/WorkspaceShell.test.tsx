@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
 import { WorkspaceShell } from '@/components/workspace/WorkspaceShell'
-import type { PlanChangeRecord } from '@/components/workspace/ChangeExplainer'
+import type { PlanChangeRecord } from '@/lib/engine/types'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
 import type { EventBrief } from '@/lib/engine/types'
 

@@ -9,6 +9,7 @@ const logger = createLogger('persistence')
 
 export interface SavePlanResult {
   status: 'saved_cloud' | 'saved_local' | 'conflict' | 'error'
+  /** For a save: the new version. For a conflict: the newest version that won. */
   versionNumber?: number
   versionId?: string
   conflictPlan?: Plan
@@ -99,6 +100,7 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
           return {
             status: 'conflict',
             versionNumber: outcome.versionNumber,
+            versionId: outcome.versionId,
             conflictPlan: outcome.conflictPlan,
           }
         }
@@ -119,6 +121,7 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
         return {
           status: 'conflict' as const,
           versionNumber: outcome.versionNumber,
+          versionId: outcome.versionId,
           conflictPlan: outcome.conflictPlan,
         }
       }

@@ -56,12 +56,12 @@ const VersionRowSchema = z.object({
   snapshot: z.unknown().optional(),
 })
 
-export const EditablePlanResponseSchema = z.object({
+const EditablePlanResponseSchema = z.object({
   event: EventRowSchema,
   version: VersionRowSchema.nullable(),
 })
 
-export const VersionListResponseSchema = z.array(
+const VersionListResponseSchema = z.array(
   VersionRowSchema.extend({
     parent_version_id: z.string().nullable(),
     reason: z.string(),
@@ -84,7 +84,7 @@ export function decodeSnapshot(snapshot: unknown, eventId: string): Plan {
   return { ...(parsed.data as unknown as Plan), id: eventId }
 }
 
-export interface EventRow {
+interface EventRow {
   id: string
   title: string
   event_type: 'wedding' | 'birthday' | 'community'

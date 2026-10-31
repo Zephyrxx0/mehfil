@@ -26,8 +26,14 @@ interface Figure {
   ) => { set: (v: number) => void; destroy: () => void }
 }
 
+/** The slice of the `HL` kernel global that this component calls. */
+interface HairlineKernel {
+  inject: (doc: Document) => void
+  mk: (tag: string, attrs: Record<string, string>, parent: Element) => SVGElement
+}
+
 type HairlineWindow = Window & {
-  HL?: any
+  HL?: HairlineKernel
   hairline?: (figure: Figure) => void
   __hairlineFigures?: Map<string, Figure>
 }
@@ -82,6 +88,7 @@ export function HairlineFigure({ name, className }: HairlineFigureProps) {
       .then((figure) => {
         if (cancelled || !figure) return
         const HL = (window as HairlineWindow).HL
+        if (!HL) return
         HL.inject(document)
         stage.setAttribute('data-hairline', figure.name)
         const svg = HL.mk('svg', { viewBox: '0 0 400 320', 'aria-hidden': 'true' }, stage)

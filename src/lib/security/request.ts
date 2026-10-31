@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 /** Largest JSON body the AI routes accept. Vercel Functions reject bodies over ~4.5 MB. */
-export const MAX_JSON_BODY_BYTES = 4_400_000
+const MAX_JSON_BODY_BYTES = 4_400_000
 
 export type JsonBodyResult = { ok: true; body: unknown } | { ok: false; response: NextResponse }
 

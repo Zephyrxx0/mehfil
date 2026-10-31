@@ -52,7 +52,7 @@ export function StyleDNACard({
   const [isRetrying, setIsRetrying] = useState(false)
 
   const styleDNA: StyleDNA | undefined = plan.styleDNA || currentVersion?.meta?.styleDNA
-  const runRecord = currentVersion?.meta?.run_record || (plan as any).meta?.run_record
+  const runRecord = currentVersion?.meta?.run_record
   const isFallbackTier = runRecord?.activeTier === 3
 
   // Fallback default style profile if none yet attached
