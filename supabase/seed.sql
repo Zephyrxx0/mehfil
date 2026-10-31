@@ -1,3 +1,6 @@
+-- !! LOCAL DEVELOPMENT ONLY. NEVER RUN THIS AGAINST A PRODUCTION DATABASE. !!
+-- The edit and share tokens below are published in this file, so anyone who can read
+-- the repository can open or edit the seeded celebration.
 -- Seed: supabase/seed.sql
 -- Mehfil Milestone 1: Realistic seed data based on South Indian Wedding Archetype
 

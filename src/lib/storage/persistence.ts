@@ -1,6 +1,9 @@
 import type { Plan, PlanVersionRecord } from '@/lib/engine/types'
 import { getClientSupabase } from '@/lib/supabase/client'
 import { generateCapabilityToken, hashCapabilityToken } from '@/lib/engine/crypto'
+import { createLogger } from '@/lib/logger'
+import { createId } from '@/lib/id'
+const logger = createLogger('persistence')
 
 export interface SavePlanResult {
   status: 'saved_cloud' | 'saved_local' | 'conflict' | 'error'
@@ -100,7 +103,7 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
           }
         }
       } catch (e) {
-        console.warn('[HybridPersistence] Cloud save failed, falling back to local storage:', e)
+        logger.warn('[HybridPersistence] Cloud save failed, falling back to local storage:', e)
       }
     }
 
@@ -124,7 +127,7 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
         const nextVersionNumber = history.length > 0 ? history[0].versionNumber + 1 : 1
 
         const newVersion: PlanVersionRecord = {
-          id: `local-v-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          id: createId('local-v'),
           eventId: plan.id,
           versionNumber: nextVersionNumber,
           parentVersionId: parentVersionId || null,
@@ -149,7 +152,10 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
     return { status: 'saved_local' }
   }
 
-  async getPlan(planId: string, editKey?: string): Promise<{ plan: Plan; isReadOnly: boolean } | null> {
+  async getPlan(
+    planId: string,
+    editKey?: string
+  ): Promise<{ plan: Plan; isReadOnly: boolean } | null> {
     const supabase = getClientSupabase()
 
     if (supabase) {
@@ -201,7 +207,10 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
           isAuthorized = true
         } else if (window.localStorage.getItem(LOCAL_OWNER_PREFIX + planId)) {
           isAuthorized = true
-        } else if (typeof document !== 'undefined' && document.cookie.includes(`mehfil_edit_${planId}`)) {
+        } else if (
+          typeof document !== 'undefined' &&
+          document.cookie.includes(`mehfil_edit_${planId}`)
+        ) {
           isAuthorized = true
         }
         return { plan: JSON.parse(local), isReadOnly: !isAuthorized }
@@ -246,7 +255,11 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
     return []
   }
 
-  async restoreVersion(planId: string, targetVersion: number, editKey?: string): Promise<SavePlanResult> {
+  async restoreVersion(
+    planId: string,
+    targetVersion: number,
+    editKey?: string
+  ): Promise<SavePlanResult> {
     const history = await this.getVersionHistory(planId)
     const target = history.find((v) => v.versionNumber === targetVersion)
     if (!target || !target.snapshot) {
@@ -262,7 +275,10 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
     )
   }
 
-  async regenerateShareKey(planId: string, editKey?: string): Promise<{ shareToken: string } | null> {
+  async regenerateShareKey(
+    planId: string,
+    editKey?: string
+  ): Promise<{ shareToken: string } | null> {
     const newShareToken = generateCapabilityToken()
     const supabase = getClientSupabase()
 

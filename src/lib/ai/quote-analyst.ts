@@ -56,7 +56,8 @@ export async function extractQuoteWithModel(
       err instanceof Error ? err.message : String(err)
     }. Please correct the JSON output to strictly match the schema without calculating totals.`
 
-    const repairContent: Array<{ type: 'text'; text: string } | { type: 'image'; image: string }> = []
+    const repairContent: Array<{ type: 'text'; text: string } | { type: 'image'; image: string }> =
+      []
     if (imageBase64) {
       repairContent.push({ type: 'image', image: imageBase64 })
     }

@@ -36,12 +36,7 @@ describe('Curated Ideas Tab & Idea Card Components (IDEA-01, IDEA-02, IDEA-03)',
   it('renders idea card with title, Devanagari script, cost pill in INR, lead time and nuance quote', () => {
     const onToggle = vi.fn()
     render(
-      <CuratedIdeaCard
-        idea={sampleIdea}
-        plan={basePlan}
-        isAdopted={false}
-        onToggle={onToggle}
-      />
+      <CuratedIdeaCard idea={sampleIdea} plan={basePlan} isAdopted={false} onToggle={onToggle} />
     )
 
     // Title and Devanagari flourish
@@ -104,9 +99,7 @@ describe('Curated Ideas Tab & Idea Card Components (IDEA-01, IDEA-02, IDEA-03)',
 
     // Click to adopt
     fireEvent.click(toggle)
-    expect(onAdoptIdea).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'kulhad_chai_bar' })
-    )
+    expect(onAdoptIdea).toHaveBeenCalledWith(expect.objectContaining({ id: 'kulhad_chai_bar' }))
 
     // Rerender as adopted
     const adoptedPlan: Plan = {
@@ -147,7 +140,7 @@ describe('Curated Ideas Tab & Idea Card Components (IDEA-01, IDEA-02, IDEA-03)',
     // Create a plan where flexible lines are already clamped to their 40% floor
     const constrainedLines = basePlan.lines.map((line) => {
       if (line.lineType === 'flexible') {
-        const floor = Math.round((line.baselinePaise * 0.40) / 100) * 100
+        const floor = Math.round((line.baselinePaise * 0.4) / 100) * 100
         return { ...line, currentPaise: floor }
       }
       return line

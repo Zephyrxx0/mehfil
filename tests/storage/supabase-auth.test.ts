@@ -17,12 +17,18 @@ describe('Supabase Schema & Anonymous Persistence Contract (COLLAB-01, D-16)', (
   })
 
   it('stores total budget as BIGINT integer paise to prevent floating-point rounding errors', () => {
-    expect(migrationSql).toMatch(/total_budget_paise BIGINT NOT NULL CHECK \(total_budget_paise >= 0\)/)
+    expect(migrationSql).toMatch(
+      /total_budget_paise BIGINT NOT NULL CHECK \(total_budget_paise >= 0\)/
+    )
   })
 
   it('indexes capability hashes for O(1) unguessable token lookups', () => {
-    expect(migrationSql).toContain('CREATE INDEX IF NOT EXISTS idx_events_edit_key_hash ON public.events(edit_key_hash)')
-    expect(migrationSql).toContain('CREATE INDEX IF NOT EXISTS idx_events_share_key_hash ON public.events(share_key_hash)')
+    expect(migrationSql).toContain(
+      'CREATE INDEX IF NOT EXISTS idx_events_edit_key_hash ON public.events(edit_key_hash)'
+    )
+    expect(migrationSql).toContain(
+      'CREATE INDEX IF NOT EXISTS idx_events_share_key_hash ON public.events(share_key_hash)'
+    )
   })
 
   it('enables Row-Level Security on all collaboration tables', () => {

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Fraunces, Plus_Jakarta_Sans, Noto_Serif_Devanagari } from 'next/font/google'
 import localFont from 'next/font/local'
 import { Agentation } from 'agentation'
+import { MotionProvider } from '@/components/providers/MotionProvider'
 import './globals.css'
 
 // Ewert — the all-caps slab display face used for the hero wordmark ("Meh").
@@ -36,7 +37,7 @@ const notoSerifDevanagari = Noto_Serif_Devanagari({
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://mehfil.app')
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://mehfil.app')
   ),
   title: {
     default: 'Mehfil (महफ़िल) — Celebration Planning with Mathematical Integrity',
@@ -83,21 +84,15 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
       className={`${fraunces.variable} ${plusJakartaSans.variable} ${notoSerifDevanagari.variable} ${ewert.variable}`}
     >
       <body className="min-h-screen bg-warm-ivory text-royal-plum antialiased font-sans selection:bg-marigold/30 selection:text-royal-plum">
-        {children}
-        {process.env.NODE_ENV === 'development' && (
-          <Agentation endpoint="http://localhost:4747" />
-        )}
+        <MotionProvider>{children}</MotionProvider>
+        {process.env.NODE_ENV === 'development' && <Agentation endpoint="http://localhost:4747" />}
       </body>
     </html>
   )

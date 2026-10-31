@@ -6,14 +6,7 @@ import { formatINR } from '@/lib/engine/currency'
 import { usePlanContext } from './PlanContext'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Check,
-  TrendingDown,
-  TrendingUp,
-  FileCheck2,
-  AlertCircle,
-  Sparkles,
-} from 'lucide-react'
+import { Check, TrendingDown, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface ScenarioComparisonProps {
@@ -49,11 +42,12 @@ export function ScenarioComparison({
   ]
 
   // Filter quotes matching quoteIds if provided
-  const resolvedQuotes: VendorQuote[] = quoteIds && quoteIds.length > 0
-    ? quoteIds
-        .map((id) => allAvailableQuotes.find((q) => q.id === id))
-        .filter((q): q is VendorQuote => q !== undefined)
-    : allAvailableQuotes.slice(0, 3)
+  const resolvedQuotes: VendorQuote[] =
+    quoteIds && quoteIds.length > 0
+      ? quoteIds
+          .map((id) => allAvailableQuotes.find((q) => q.id === id))
+          .filter((q): q is VendorQuote => q !== undefined)
+      : allAvailableQuotes.slice(0, 3)
 
   // Track selected tier per quote
   const [selectedTiers, setSelectedTiers] = useState<Record<string, string>>(() => {
@@ -109,10 +103,7 @@ export function ScenarioComparison({
   const baselinePaise = matchingLine?.baselinePaise ?? 0
 
   return (
-    <div
-      className={cn('flex flex-col gap-4', className)}
-      data-testid="scenario-comparison"
-    >
+    <div className={cn('flex flex-col gap-4', className)} data-testid="scenario-comparison">
       {/* Category Baseline Context Banner */}
       {matchingLine && (
         <div className="p-3.5 rounded-2xl bg-soft-ivory border border-royal-plum/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-royal-plum">
@@ -134,14 +125,13 @@ export function ScenarioComparison({
           resolvedQuotes.length === 1
             ? 'grid-cols-1'
             : resolvedQuotes.length === 2
-            ? 'grid-cols-1 md:grid-cols-2'
-            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+              ? 'grid-cols-1 md:grid-cols-2'
+              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
         )}
       >
         {resolvedQuotes.map((quote) => {
           const activeTierId = selectedTiers[quote.id] || quote.tiers[0]?.tierId
-          const activeTier =
-            quote.tiers.find((t) => t.tierId === activeTierId) || quote.tiers[0]
+          const activeTier = quote.tiers.find((t) => t.tierId === activeTierId) || quote.tiers[0]
 
           const activeTierTotalPaise = activeTier?.totalWithAddersPaise ?? 0
           const deltaPaise = activeTierTotalPaise - baselinePaise
@@ -192,9 +182,7 @@ export function ScenarioComparison({
                     ))}
                   </div>
                 ) : (
-                  <div className="text-xs font-medium text-royal-plum/70">
-                    {activeTier?.name}
-                  </div>
+                  <div className="text-xs font-medium text-royal-plum/70">{activeTier?.name}</div>
                 )}
               </div>
 
@@ -209,9 +197,7 @@ export function ScenarioComparison({
                       key={item.id}
                       className="text-xs text-royal-plum flex items-baseline justify-between gap-2"
                     >
-                      <span className="truncate text-royal-plum/80">
-                        {item.description}
-                      </span>
+                      <span className="truncate text-royal-plum/80">{item.description}</span>
                       <span className="shrink-0 font-medium tabular-nums">
                         {formatINR(item.itemPaise)}
                       </span>
@@ -300,4 +286,3 @@ export function ScenarioComparison({
     </div>
   )
 }
-

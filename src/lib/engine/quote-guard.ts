@@ -1,5 +1,6 @@
-import type { Paise, BudgetCategory, ExtractedQuoteItem, QuoteDroppedItem, PackageTier } from './types'
+import type { Paise, ExtractedQuoteItem, QuoteDroppedItem, PackageTier } from './types'
 import type { ExtractedQuoteItemInput, PackageTierInput } from '../ai/schemas'
+import { createId } from '@/lib/id'
 
 /**
  * Extracts candidate numeric rupee values from a verbatim source anchor snippet.
@@ -53,7 +54,9 @@ export function parseAnchorNumber(anchor: string, targetAmount?: number): number
     .replace(/\binr\b/g, ' ')
     .replace(/\/-/g, ' ')
 
-  const genMatches = Array.from(cleaned.matchAll(/\b\d{1,3}(?:,\d{2,3})*(?:\.\d+)?\b|\b\d+(?:\.\d+)?\b/g))
+  const genMatches = Array.from(
+    cleaned.matchAll(/\b\d{1,3}(?:,\d{2,3})*(?:\.\d+)?\b|\b\d+(?:\.\d+)?\b/g)
+  )
   for (const m of genMatches) {
     const val = parseFloat(m[0].replace(/,/g, ''))
     if (!isNaN(val)) candidates.push(val)
@@ -63,7 +66,7 @@ export function parseAnchorNumber(anchor: string, targetAmount?: number): number
 
   // If a target amount was provided, see if any candidate is within 0.01 tolerance
   if (targetAmount !== undefined) {
-    const exactMatch = candidates.find(c => Math.abs(c - targetAmount) <= 0.01)
+    const exactMatch = candidates.find((c) => Math.abs(c - targetAmount) <= 0.01)
     if (exactMatch !== undefined) return exactMatch
   }
 
@@ -90,8 +93,6 @@ export function verifyVerbatimEvidence(
   const normRaw = rawText.toLowerCase()
   const verifiedItems: ExtractedQuoteItem[] = []
   const droppedItems: QuoteDroppedItem[] = []
-
-  let itemCounter = 1
 
   for (const item of rawItems) {
     const normAnchor = item.sourceAnchor.toLowerCase().trim()
@@ -124,7 +125,7 @@ export function verifyVerbatimEvidence(
     const itemPaise = item.pricingType === 'per_guest' ? unitPaise * guestCount : unitPaise
 
     verifiedItems.push({
-      id: `item-${itemCounter++}-${Math.random().toString(36).slice(2, 7)}`,
+      id: createId('item'),
       description: item.description,
       amountStated: item.amountStated,
       pricingType: item.pricingType,
@@ -148,7 +149,7 @@ export function buildPackageTiers(
 ): { tiers: PackageTier[]; allDroppedItems: QuoteDroppedItem[] } {
   const allDroppedItems: QuoteDroppedItem[] = []
 
-  const tiers: PackageTier[] = extractedTiers.map(tier => {
+  const tiers: PackageTier[] = extractedTiers.map((tier) => {
     const { verifiedItems, droppedItems, baseTierPaise } = verifyVerbatimEvidence(
       rawText,
       tier.lineItems,
@@ -161,7 +162,9 @@ export function buildPackageTiers(
     let isStatedTotalConsistent = true
     if (tier.tierTotalStated !== undefined) {
       const lineItemsSumRupees = verifiedItems.reduce((acc, it) => {
-        return acc + (it.pricingType === 'per_guest' ? it.amountStated * guestCount : it.amountStated)
+        return (
+          acc + (it.pricingType === 'per_guest' ? it.amountStated * guestCount : it.amountStated)
+        )
       }, 0)
       const flatSumRupees = verifiedItems.reduce((acc, it) => acc + it.amountStated, 0)
 

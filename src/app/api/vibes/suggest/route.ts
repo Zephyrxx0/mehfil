@@ -4,7 +4,11 @@ import { MAX_DESCRIPTION_LENGTH, suggestVibes } from '@/lib/ai/vibe-suggest'
 import { enforceRateLimit } from '@/lib/security/rate-limit'
 
 const RequestSchema = z.object({
-  description: z.string().trim().min(3, 'Describe the vibe in a few words').max(MAX_DESCRIPTION_LENGTH),
+  description: z
+    .string()
+    .trim()
+    .min(3, 'Describe the vibe in a few words')
+    .max(MAX_DESCRIPTION_LENGTH),
 })
 
 export async function POST(request: Request) {
@@ -15,7 +19,10 @@ export async function POST(request: Request) {
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ success: false, error: 'Invalid JSON request payload' }, { status: 400 })
+    return NextResponse.json(
+      { success: false, error: 'Invalid JSON request payload' },
+      { status: 400 }
+    )
   }
 
   const parsed = RequestSchema.safeParse(body)

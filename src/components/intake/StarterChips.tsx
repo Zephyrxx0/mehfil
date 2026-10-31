@@ -79,7 +79,9 @@ export function StarterChips({ onSelect, disabled }: StarterChipsProps) {
       <h3 id="starters-heading" className="text-sm font-semibold text-royal-plum">
         1-Click Celebration Starters
       </h3>
-      <p className="mt-0.5 text-sm text-royal-plum/60">Skip the steps and open a ready-made plan.</p>
+      <p className="mt-0.5 text-sm text-royal-plum/60">
+        Skip the steps and open a ready-made plan.
+      </p>
       <ul className="mt-3 flex flex-col gap-2">
         {STARTER_OPTIONS.map((starter) => (
           <li key={starter.label}>

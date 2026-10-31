@@ -164,8 +164,8 @@ export function calculateTierTotalWithAdders(
   let total = tier.baseTierPaise
 
   const activeAdders = activeAdderIds
-    ? adders.filter(a => activeAdderIds.includes(a.id))
-    : adders.filter(a => a.isEnabled)
+    ? adders.filter((a) => activeAdderIds.includes(a.id))
+    : adders.filter((a) => a.isEnabled)
 
   for (const adder of activeAdders) {
     if (adder.rateType === 'percentage') {

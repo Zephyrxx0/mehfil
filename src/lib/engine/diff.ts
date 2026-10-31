@@ -76,8 +76,7 @@ export function computePlanDiff(input: PlanDiffInput): PlanDiffResult {
   const prevIdeas = prevPlan.adoptedIdeas ?? []
   const nextIdeas = nextPlan.adoptedIdeas ?? []
   const isIdeaAdopted =
-    actionType === 'adopt_idea' ||
-    (actionType === undefined && nextIdeas.length > prevIdeas.length)
+    actionType === 'adopt_idea' || (actionType === undefined && nextIdeas.length > prevIdeas.length)
   const isIdeaRetracted =
     actionType === 'retract_idea' ||
     (actionType === undefined && prevIdeas.length > nextIdeas.length)
@@ -189,10 +188,7 @@ export function computePlanDiff(input: PlanDiffInput): PlanDiffResult {
   }
 
   // 7. Guest Count Change Action
-  if (
-    actionType === 'guest_scale' ||
-    prevPlan.brief.guestCount !== nextPlan.brief.guestCount
-  ) {
+  if (actionType === 'guest_scale' || prevPlan.brief.guestCount !== nextPlan.brief.guestCount) {
     const prevG = prevPlan.brief.guestCount
     const nextG = nextPlan.brief.guestCount
     const deltaG = nextG - prevG
@@ -217,10 +213,7 @@ export function computePlanDiff(input: PlanDiffInput): PlanDiffResult {
   }
 
   // 8. Total Budget Change Action
-  if (
-    actionType === 'budget_change' ||
-    prevPlan.totalBudgetPaise !== nextPlan.totalBudgetPaise
-  ) {
+  if (actionType === 'budget_change' || prevPlan.totalBudgetPaise !== nextPlan.totalBudgetPaise) {
     const deltaB = nextPlan.totalBudgetPaise - prevPlan.totalBudgetPaise
     const actionVerb = deltaB >= 0 ? 'Increased' : 'Decreased'
     return {

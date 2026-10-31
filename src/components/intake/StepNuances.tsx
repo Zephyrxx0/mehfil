@@ -17,15 +17,9 @@ const CULTURAL_NUANCE_TAGS = [
   'Kids Play Area & Creche',
 ]
 
-export function StepNuances({
-  nuances,
-  customNotes,
-  onChange,
-}: StepNuancesProps) {
+export function StepNuances({ nuances, customNotes, onChange }: StepNuancesProps) {
   const toggleNuance = (tag: string) => {
-    const next = nuances.includes(tag)
-      ? nuances.filter((t) => t !== tag)
-      : [...nuances, tag]
+    const next = nuances.includes(tag) ? nuances.filter((t) => t !== tag) : [...nuances, tag]
     onChange({ nuances: next })
   }
 
@@ -61,7 +55,10 @@ export function StepNuances({
       </div>
 
       <div className="flex flex-col">
-        <label htmlFor="custom-notes" className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
+        <label
+          htmlFor="custom-notes"
+          className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2"
+        >
           Custom Family Notes or Traditions
         </label>
         <textarea

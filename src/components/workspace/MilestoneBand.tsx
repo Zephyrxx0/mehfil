@@ -42,7 +42,10 @@ export function MilestoneBand({ band }: MilestoneBandProps) {
             band.isImmediateAction ? 'border-marigold/30' : 'border-royal-plum/10'
           )}
         >
-          <h4 id={`band-${band.id}`} className="flex items-center gap-2 font-serif text-lg font-bold text-royal-plum">
+          <h4
+            id={`band-${band.id}`}
+            className="flex items-center gap-2 font-serif text-lg font-bold text-royal-plum"
+          >
             {band.isImmediateAction && (
               <span
                 aria-hidden="true"
@@ -51,11 +54,14 @@ export function MilestoneBand({ band }: MilestoneBandProps) {
             )}
             {band.name}
             {band.isImmediateAction && (
-              <span className="font-sans text-sm font-medium text-royal-plum/55">Sprint Triage</span>
+              <span className="font-sans text-sm font-medium text-royal-plum/55">
+                Sprint Triage
+              </span>
             )}
           </h4>
           <p className="text-sm text-royal-plum/60">
-            Target Date: <span className="font-medium tabular-nums text-royal-plum">{band.targetDate}</span>
+            Target Date:{' '}
+            <span className="font-medium tabular-nums text-royal-plum">{band.targetDate}</span>
           </p>
         </header>
 
@@ -74,7 +80,10 @@ export function MilestoneBand({ band }: MilestoneBandProps) {
                   <p className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
                     {task.isCriticalPath && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-terracotta/10 px-2 py-0.5 font-semibold text-terracotta">
-                        <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-terracotta" />
+                        <span
+                          aria-hidden="true"
+                          className="h-1.5 w-1.5 rounded-full bg-terracotta"
+                        />
                         Critical Path
                       </span>
                     )}

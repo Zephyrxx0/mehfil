@@ -198,7 +198,7 @@ Plans:
 **Goal:** Raise Code Quality and Security without touching the engine, the closed registry, or the fallback ladder.
 **Rule:** every phase ends with `tsc`, lint, full test run and a commit. No phase may reduce the test count.
 
-- [ ] **Phase 7: Guardrails & Hygiene** - CQ1 ESLint/Prettier/CI, CQ5 dead code, CQ6 logger, CQ8 package hygiene, S10 ids, A1 MotionConfig.
+- [x] **Phase 7: Guardrails & Hygiene** - CQ1 ESLint/Prettier/CI, CQ5 dead code, CQ6 logger, CQ8 package hygiene, S10 ids, A1 MotionConfig.
 - [ ] **Phase 8: Security Quick Wins** - S3 rate-limit identity + daily model cap, S4 fail-closed claim + signed session cookie, S5 upload limits, S6 stable error codes, S7 random quarantine delimiter, S8 style prompt fencing, S9 CSP.
 - [ ] **Phase 9: Working Cloud Save & Share (S1, S2, T1)** - Token-checked Postgres RPCs replace owner-RLS; server-issued edit/share tokens; honest local-mode share UI; SQL tests on PGlite.
 - [ ] **Phase 10: Structure (CQ2, CQ3, CQ4)** - generic `runLadder`, split orchestrator by agent, split PlanWorkspace into hooks, remove `any`, enable `no-explicit-any`.

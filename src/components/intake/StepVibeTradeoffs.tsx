@@ -48,7 +48,8 @@ export function StepVibeTradeoffs({
           Protected Moment & Festive Trade-offs
         </h3>
         <p className="text-xs text-royal-plum/70">
-          Anchor your celebration&apos;s untouchable centerpiece and balance key aesthetic priorities.
+          Anchor your celebration&apos;s untouchable centerpiece and balance key aesthetic
+          priorities.
         </p>
       </div>
 
@@ -83,7 +84,8 @@ export function StepVibeTradeoffs({
         />
 
         <p className="text-xs text-royal-plum/55">
-          This vision statement locks a 1.25x floor multiplier on its matching budget line so it will never be trimmed.
+          This vision statement locks a 1.25x floor multiplier on its matching budget line so it
+          will never be trimmed.
         </p>
       </div>
 
@@ -106,7 +108,9 @@ export function StepVibeTradeoffs({
               role="radio"
               aria-checked={tradeoffs.feastVsSpectacle === 'feast'}
               tabIndex={0}
-              onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && handleUpdate('feastVsSpectacle', 'feast')}
+              onKeyDown={(e) =>
+                (e.key === ' ' || e.key === 'Enter') && handleUpdate('feastVsSpectacle', 'feast')
+              }
               className={cn(
                 'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
                 tradeoffs.feastVsSpectacle === 'feast'
@@ -141,7 +145,10 @@ export function StepVibeTradeoffs({
               role="radio"
               aria-checked={tradeoffs.feastVsSpectacle === 'spectacle'}
               tabIndex={0}
-              onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && handleUpdate('feastVsSpectacle', 'spectacle')}
+              onKeyDown={(e) =>
+                (e.key === ' ' || e.key === 'Enter') &&
+                handleUpdate('feastVsSpectacle', 'spectacle')
+              }
               className={cn(
                 'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
                 tradeoffs.feastVsSpectacle === 'spectacle'
@@ -173,9 +180,7 @@ export function StepVibeTradeoffs({
 
         {/* Trade-off 2: Intimate vs Grand */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold text-royal-plum/70">
-            2. Gathering Energy
-          </span>
+          <span className="text-xs font-semibold text-royal-plum/70">2. Gathering Energy</span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {/* Option A: Intimate */}
             <motion.div
@@ -184,7 +189,9 @@ export function StepVibeTradeoffs({
               role="radio"
               aria-checked={tradeoffs.intimateVsGrand === 'intimate'}
               tabIndex={0}
-              onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && handleUpdate('intimateVsGrand', 'intimate')}
+              onKeyDown={(e) =>
+                (e.key === ' ' || e.key === 'Enter') && handleUpdate('intimateVsGrand', 'intimate')
+              }
               className={cn(
                 'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
                 tradeoffs.intimateVsGrand === 'intimate'
@@ -219,7 +226,9 @@ export function StepVibeTradeoffs({
               role="radio"
               aria-checked={tradeoffs.intimateVsGrand === 'grand'}
               tabIndex={0}
-              onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && handleUpdate('intimateVsGrand', 'grand')}
+              onKeyDown={(e) =>
+                (e.key === ' ' || e.key === 'Enter') && handleUpdate('intimateVsGrand', 'grand')
+              }
               className={cn(
                 'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
                 tradeoffs.intimateVsGrand === 'grand'
@@ -251,9 +260,7 @@ export function StepVibeTradeoffs({
 
         {/* Trade-off 3: Heritage vs Modern */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold text-royal-plum/70">
-            3. Cultural Styling
-          </span>
+          <span className="text-xs font-semibold text-royal-plum/70">3. Cultural Styling</span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {/* Option A: Heritage */}
             <motion.div
@@ -262,7 +269,9 @@ export function StepVibeTradeoffs({
               role="radio"
               aria-checked={tradeoffs.heritageVsModern === 'heritage'}
               tabIndex={0}
-              onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && handleUpdate('heritageVsModern', 'heritage')}
+              onKeyDown={(e) =>
+                (e.key === ' ' || e.key === 'Enter') && handleUpdate('heritageVsModern', 'heritage')
+              }
               className={cn(
                 'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
                 tradeoffs.heritageVsModern === 'heritage'
@@ -297,7 +306,9 @@ export function StepVibeTradeoffs({
               role="radio"
               aria-checked={tradeoffs.heritageVsModern === 'modern'}
               tabIndex={0}
-              onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && handleUpdate('heritageVsModern', 'modern')}
+              onKeyDown={(e) =>
+                (e.key === ' ' || e.key === 'Enter') && handleUpdate('heritageVsModern', 'modern')
+              }
               className={cn(
                 'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
                 tradeoffs.heritageVsModern === 'modern'

@@ -1,8 +1,4 @@
-import type {
-  EnvironmentalAnalysis,
-  EnvironmentalRiskAdvisory,
-  EventType,
-} from './types'
+import type { EnvironmentalAnalysis, EnvironmentalRiskAdvisory, EventType } from './types'
 
 const NORTH_CENTRAL_HEAT_CITIES = [
   'delhi',
@@ -89,7 +85,7 @@ export function detectEnvironmentalRisks(
   }
 
   // 3. Monsoon Outdoor Hazard (Jun 15 - Aug 31 pan-India, extended to Sep 15 on West Coast)
-  const isWestCoast = WEST_COAST_MONSOON_CITIES.some(c => normCity.includes(c))
+  const isWestCoast = WEST_COAST_MONSOON_CITIES.some((c) => normCity.includes(c))
   const isMonsoonPanIndia = (month === 5 && day >= 15) || month === 6 || month === 7
   const isMonsoonWestCoastExtended = isWestCoast && month === 8 && day <= 15
   if (isMonsoonPanIndia || isMonsoonWestCoastExtended) {
@@ -106,7 +102,7 @@ export function detectEnvironmentalRisks(
   }
 
   // 4. Extreme Summer Heat (May 1 - Jun 30 in North/Central India)
-  const isNorthCentral = NORTH_CENTRAL_HEAT_CITIES.some(c => normCity.includes(c))
+  const isNorthCentral = NORTH_CENTRAL_HEAT_CITIES.some((c) => normCity.includes(c))
   const isSummerHeatWindow = month === 4 || month === 5
   if (isSummerHeatWindow && isNorthCentral) {
     detectedRisks.push({
@@ -130,10 +126,10 @@ export function detectEnvironmentalRisks(
     const holidayName = isRepublicDay
       ? 'Republic Day'
       : isIndependenceDay
-      ? 'Independence Day'
-      : isGandhiJayanti
-      ? 'Gandhi Jayanti'
-      : "New Year's Eve"
+        ? 'Independence Day'
+        : isGandhiJayanti
+          ? 'Gandhi Jayanti'
+          : "New Year's Eve"
 
     detectedRisks.push({
       id: 'holiday_clash',
@@ -147,12 +143,12 @@ export function detectEnvironmentalRisks(
   }
 
   const isPeakSayaSeason = detectedRisks.some(
-    r => r.id === 'peak_saya_winter' || r.id === 'peak_saya_summer'
+    (r) => r.id === 'peak_saya_winter' || r.id === 'peak_saya_summer'
   )
   const hasWeatherHazards = detectedRisks.some(
-    r => r.id === 'monsoon_outdoor' || r.id === 'extreme_summer_heat'
+    (r) => r.id === 'monsoon_outdoor' || r.id === 'extreme_summer_heat'
   )
-  const hasHolidayClash = detectedRisks.some(r => r.id === 'holiday_clash')
+  const hasHolidayClash = detectedRisks.some((r) => r.id === 'holiday_clash')
 
   // Generate calm, reassuring festive summaries (ADR-0005)
   let seasonalSummaryTitle = 'Favorable Celebration Window'

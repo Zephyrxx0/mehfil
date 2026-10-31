@@ -46,7 +46,7 @@ export function CuratedIdeasSection({
     return plan.lines
       .filter((l) => l.lineType === 'flexible' && !l.isProtected)
       .reduce((sum, line) => {
-        const floor = Math.round((line.baselinePaise * 0.40) / 100) * 100
+        const floor = Math.round((line.baselinePaise * 0.4) / 100) * 100
         return sum + Math.max(0, line.currentPaise - floor)
       }, 0)
   }, [plan.lines])
@@ -55,8 +55,7 @@ export function CuratedIdeasSection({
   const filteredIdeas = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
     return personalizedIdeas.filter((idea) => {
-      const matchesCategory =
-        selectedCategory === 'all' || idea.category === selectedCategory
+      const matchesCategory = selectedCategory === 'all' || idea.category === selectedCategory
 
       if (!matchesCategory) return false
 
@@ -90,7 +89,9 @@ export function CuratedIdeasSection({
       <dl className="grid grid-cols-1 divide-y divide-royal-plum/10 border-y border-royal-plum/10 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         <div className="py-4 sm:pr-5">
           <dt className="text-sm text-royal-plum/60">Adopted ideas</dt>
-          <dd className="mt-1 font-serif text-2xl font-bold tabular-nums text-royal-plum">{adoptedCount}</dd>
+          <dd className="mt-1 font-serif text-2xl font-bold tabular-nums text-royal-plum">
+            {adoptedCount}
+          </dd>
           <p className="mt-0.5 text-sm text-royal-plum/60">Curated for {plan.brief.eventType}</p>
         </div>
         <div className="py-4 sm:px-5">
@@ -111,8 +112,14 @@ export function CuratedIdeasSection({
 
       <section aria-labelledby="ideas-heading" className="flex flex-col gap-4">
         <div className="flex flex-wrap items-end justify-between gap-2">
-          <h3 id="ideas-heading" className="flex items-center gap-2.5 font-serif text-xl font-bold text-royal-plum">
-            <span aria-hidden="true" className="h-4 w-1 shrink-0 origin-bottom rounded-full bg-gradient-to-b from-marigold to-gulabi-rose motion-safe:animate-[mehfil-flourish_0.5s_cubic-bezier(0.22,1,0.36,1)_both]" />
+          <h3
+            id="ideas-heading"
+            className="flex items-center gap-2.5 font-serif text-xl font-bold text-royal-plum"
+          >
+            <span
+              aria-hidden="true"
+              className="h-4 w-1 shrink-0 origin-bottom rounded-full bg-gradient-to-b from-marigold to-gulabi-rose motion-safe:animate-[mehfil-flourish_0.5s_cubic-bezier(0.22,1,0.36,1)_both]"
+            />
             <span>Curated Celebration Enhancements</span>
           </h3>
           <span className="text-sm text-royal-plum/60">
@@ -121,7 +128,11 @@ export function CuratedIdeasSection({
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div role="group" aria-label="Filter by category" className="-mx-1 flex items-center gap-1 overflow-x-auto">
+          <div
+            role="group"
+            aria-label="Filter by category"
+            className="-mx-1 flex items-center gap-1 overflow-x-auto"
+          >
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.value}

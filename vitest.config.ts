@@ -6,6 +6,16 @@ export default defineConfig({
   plugins: [react() as any],
   test: {
     environment: 'happy-dom',
+    environmentOptions: {
+      happyDOM: {
+        // Hairline figures load via <script> tags. Tests must not touch the network,
+        // so skip loading without printing a stack trace for every render.
+        settings: {
+          disableJavaScriptFileLoading: true,
+          handleDisabledFileLoadingAsSuccess: true,
+        },
+      },
+    },
     globals: true,
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.test.{ts,tsx}'],

@@ -9,8 +9,7 @@ function getLuminance(hex: string): number {
   const g = parseInt(cleanHex.substring(2, 4), 16) / 255
   const b = parseInt(cleanHex.substring(4, 6), 16) / 255
 
-  const transform = (c: number) =>
-    c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  const transform = (c: number) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4))
 
   const rLin = transform(r)
   const gLin = transform(g)

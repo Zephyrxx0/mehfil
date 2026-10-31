@@ -29,7 +29,9 @@ export function Firework({ type, seconds = 6, offset = 0, className }: FireworkP
           fill={COLOUR[b.colour]}
           fillOpacity={b.opacity}
           className="fw-bloom"
-          style={{ '--fw-seconds': `${seconds}s`, '--fw-delay': delay(b.delay) } as React.CSSProperties}
+          style={
+            { '--fw-seconds': `${seconds}s`, '--fw-delay': delay(b.delay) } as React.CSSProperties
+          }
         />
       ))}
 
@@ -42,7 +44,9 @@ export function Firework({ type, seconds = 6, offset = 0, className }: FireworkP
           strokeWidth={r.weight}
           className="fw-ring"
           vectorEffect="non-scaling-stroke"
-          style={{ '--fw-seconds': `${seconds}s`, '--fw-delay': delay(r.delay) } as React.CSSProperties}
+          style={
+            { '--fw-seconds': `${seconds}s`, '--fw-delay': delay(r.delay) } as React.CSSProperties
+          }
         />
       ))}
 
@@ -57,7 +61,9 @@ export function Firework({ type, seconds = 6, offset = 0, className }: FireworkP
           strokeLinecap="round"
           className="fw-streak"
           vectorEffect="non-scaling-stroke"
-          style={{ '--fw-seconds': `${seconds}s`, '--fw-delay': delay(s.delay) } as React.CSSProperties}
+          style={
+            { '--fw-seconds': `${seconds}s`, '--fw-delay': delay(s.delay) } as React.CSSProperties
+          }
         />
       ))}
 

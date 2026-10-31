@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { BudgetCategorySchema } from '@/lib/ai/schemas'
 import { enforceRateLimit } from '@/lib/security/rate-limit'
-import {
-  analyzeQuoteWithFallbackLadder,
-  extractDeterministicQuote,
-} from '@/lib/ai/orchestrator'
+import { analyzeQuoteWithFallbackLadder, extractDeterministicQuote } from '@/lib/ai/orchestrator'
 import { buildPackageTiers } from '@/lib/engine/quote-guard'
 import { detectQuoteOmissions } from '@/lib/engine/omission-rules'
 import type { VendorQuote } from '@/lib/engine/types'
+import { createLogger } from '@/lib/logger'
+import { createId } from '@/lib/id'
+const logger = createLogger('api.quote-analyst')
 
 const QuoteAnalystRequestSchema = z.object({
   rawText: z.string().min(1).max(20000),
@@ -33,10 +33,7 @@ export async function POST(request: Request) {
 
   const parsed = QuoteAnalystRequestSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json(
-      { success: false, error: parsed.error.issues },
-      { status: 400 }
-    )
+    return NextResponse.json({ success: false, error: parsed.error.issues }, { status: 400 })
   }
 
   const { rawText, imageBase64, category, guestCount } = parsed.data
@@ -48,21 +45,13 @@ export async function POST(request: Request) {
       imageBase64
     )
 
-    const { tiers, allDroppedItems } = buildPackageTiers(
-      extraction.tiers,
-      rawText,
-      guestCount
-    )
+    const { tiers, allDroppedItems } = buildPackageTiers(extraction.tiers, rawText, guestCount)
 
     const baseTierPaise = tiers[0]?.baseTierPaise ?? 0
-    const omissionAdders = detectQuoteOmissions(
-      rawText,
-      extraction.category,
-      baseTierPaise
-    )
+    const omissionAdders = detectQuoteOmissions(rawText, extraction.category, baseTierPaise)
 
     const vendorQuote: VendorQuote = {
-      id: `quote_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      id: createId('quote'),
       vendorName: extraction.vendorName,
       category: extraction.category,
       rawText,
@@ -86,7 +75,7 @@ export async function POST(request: Request) {
       { status: 200 }
     )
   } catch (err: any) {
-    console.error(
+    logger.error(
       '[API /api/ai/quote-analyst] Unexpected exception, executing Tier 3 emergency recovery:',
       err
     )
@@ -98,14 +87,10 @@ export async function POST(request: Request) {
       guestCount
     )
     const baseTierPaise = tiers[0]?.baseTierPaise ?? 0
-    const omissionAdders = detectQuoteOmissions(
-      rawText,
-      fallbackExtraction.category,
-      baseTierPaise
-    )
+    const omissionAdders = detectQuoteOmissions(rawText, fallbackExtraction.category, baseTierPaise)
 
     const fallbackQuote: VendorQuote = {
-      id: `quote_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      id: createId('quote'),
       vendorName: fallbackExtraction.vendorName,
       category: fallbackExtraction.category,
       rawText,

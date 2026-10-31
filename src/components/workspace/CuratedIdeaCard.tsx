@@ -51,7 +51,9 @@ export function CuratedIdeaCard({
       id={`idea-${idea.id}`}
       className={cn(
         'flex items-start justify-between gap-4 px-4 py-4 sm:px-5',
-        isAdopted ? 'relative bg-marigold/10 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-marigold' : ''
+        isAdopted
+          ? 'relative bg-marigold/10 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-marigold'
+          : ''
       )}
     >
       <div className="min-w-0">
@@ -67,7 +69,9 @@ export function CuratedIdeaCard({
         <p className="mt-1 text-sm capitalize text-royal-plum/60">
           <span>{idea.category}</span>
           <span aria-hidden="true"> · </span>
-          <span className="font-medium tabular-nums normal-case text-royal-plum">{formatINR(idea.costPaise)}</span>
+          <span className="font-medium tabular-nums normal-case text-royal-plum">
+            {formatINR(idea.costPaise)}
+          </span>
           <span aria-hidden="true"> · </span>
           <span className="normal-case">{idea.leadDays}d lead</span>
           {isAdopted && (

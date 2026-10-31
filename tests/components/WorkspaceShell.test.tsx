@@ -32,7 +32,13 @@ describe('WorkspaceShell Component', () => {
     render(<WorkspaceShell {...defaultProps} />)
 
     const tabs = screen.getAllByRole('tab')
-    expect(tabs.map((t) => t.textContent)).toEqual(['Budget', 'Timeline', 'Ideas', 'Style', 'History'])
+    expect(tabs.map((t) => t.textContent)).toEqual([
+      'Budget',
+      'Timeline',
+      'Ideas',
+      'Style',
+      'History',
+    ])
     expect(screen.getByRole('tab', { name: 'Budget' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByTestId('pane-budget')).toBeInTheDocument()
   })
@@ -40,7 +46,10 @@ describe('WorkspaceShell Component', () => {
   it('renders tabs as links to their own routes when a basePath is given', () => {
     render(<WorkspaceShell {...defaultProps} basePath="/plan/abc" activeTab="timeline" />)
 
-    expect(screen.getByRole('tab', { name: 'Timeline' })).toHaveAttribute('href', '/plan/abc/timeline')
+    expect(screen.getByRole('tab', { name: 'Timeline' })).toHaveAttribute(
+      'href',
+      '/plan/abc/timeline'
+    )
     expect(screen.getByRole('tab', { name: 'Budget' })).toHaveAttribute('href', '/plan/abc/budget')
     expect(screen.getByRole('tab', { name: 'Timeline' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByTestId('pane-timeline')).toBeInTheDocument()

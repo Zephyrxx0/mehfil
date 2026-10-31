@@ -7,18 +7,7 @@ import { formatINR } from '@/lib/engine/currency'
 import { generatePublicCeremoniesICS, downloadICS } from '@/lib/engine/ics'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Calendar,
-  Clock,
-  Heart,
-  CalendarPlus,
-  Sparkles,
-  MapPin,
-  Users,
-  Compass,
-  ArrowRight,
-  ShieldCheck,
-} from 'lucide-react'
+import { Calendar, Clock, Heart, CalendarPlus, MapPin, Users } from 'lucide-react'
 import Link from 'next/link'
 
 export interface ShareClientViewProps {
@@ -40,7 +29,8 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
               Celebration Link Expired
             </h1>
             <p className="text-sm text-royal-plum/70 leading-relaxed">
-              The celebration organizer has refreshed this link or concluded the planning phase. Please request an updated share link from the family host.
+              The celebration organizer has refreshed this link or concluded the planning phase.
+              Please request an updated share link from the family host.
             </p>
           </div>
 
@@ -54,6 +44,14 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
     )
   }
 
+  return <SharedPlanContent sanitizedPlan={sanitizedPlan} />
+}
+
+interface SharedPlanContentProps {
+  sanitizedPlan: SanitizedSharedPlan
+}
+
+function SharedPlanContent({ sanitizedPlan }: SharedPlanContentProps) {
   // Calculate days remaining until celebration
   const daysRemaining = React.useMemo(() => {
     const today = new Date()
@@ -124,8 +122,8 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
                 {daysRemaining > 0
                   ? `${daysRemaining} days until celebration`
                   : daysRemaining === 0
-                  ? 'Celebration is today!'
-                  : 'Celebration completed'}
+                    ? 'Celebration is today!'
+                    : 'Celebration completed'}
               </span>
             </div>
           </div>
@@ -152,7 +150,8 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
             </h2>
 
             <p className="text-sm text-royal-plum/80 leading-relaxed max-w-xl">
-              The family has designated this ceremony as an uncompromising celebration priority, guaranteeing mathematical allocation protection throughout planning.
+              The family has designated this ceremony as an uncompromising celebration priority,
+              guaranteeing mathematical allocation protection throughout planning.
             </p>
           </section>
         )}
@@ -258,9 +257,7 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-sm font-bold text-royal-plum">
-                        {milestone.title}
-                      </h3>
+                      <h3 className="text-sm font-bold text-royal-plum">{milestone.title}</h3>
                       {milestone.isCeremony && (
                         <Badge variant="secondary" className="text-2xs">
                           Ceremony
@@ -270,9 +267,7 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
                     <p className="text-xs text-royal-plum/60 mt-1 flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5" />
                       <span>{milestone.targetDate}</span>
-                      {milestone.leadDays > 0 && (
-                        <span>• T-{milestone.leadDays} days</span>
-                      )}
+                      {milestone.leadDays > 0 && <span>• T-{milestone.leadDays} days</span>}
                     </p>
                   </div>
                 </div>

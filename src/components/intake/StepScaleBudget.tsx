@@ -56,7 +56,10 @@ export function StepScaleBudget({
       <div className="flex flex-col gap-7">
         {/* Guest Count */}
         <div>
-          <label htmlFor="guest-count" className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
+          <label
+            htmlFor="guest-count"
+            className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2"
+          >
             Expected Guest Count
           </label>
           <div className="flex flex-wrap items-center gap-3">
@@ -94,7 +97,10 @@ export function StepScaleBudget({
         {/* Total Budget */}
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <label htmlFor="total-budget" className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70">
+            <label
+              htmlFor="total-budget"
+              className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70"
+            >
               Total Target Budget
             </label>
             {parsedPaise > 0 && !budgetError && (
@@ -119,7 +125,8 @@ export function StepScaleBudget({
             <p className="mt-2 text-xs text-red-600">{budgetError}</p>
           ) : (
             <p className="mt-2 text-xs text-royal-plum/60">
-              Accepts authentic Indian shorthand: <strong>25L</strong> (₹25 Lakh), <strong>5L</strong>, or <strong>1.5Cr</strong>.
+              Accepts authentic Indian shorthand: <strong>25L</strong> (₹25 Lakh),{' '}
+              <strong>5L</strong>, or <strong>1.5Cr</strong>.
             </p>
           )}
         </div>

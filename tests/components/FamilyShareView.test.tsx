@@ -1,5 +1,5 @@
 import React from 'react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ShareClientView } from '@/app/share/[token]/ShareClientView'
 import type { SanitizedSharedPlan } from '@/lib/engine/types'
@@ -74,7 +74,9 @@ describe('Celebratory Family Share View & Filtered .ics Export (D-05, D-06, D-07
     expect(screen.getByText('Cherished Priority')).toBeInTheDocument()
     expect(screen.getByText('Royal Heritage Mandap')).toBeInTheDocument()
     expect(
-      screen.getByText(/The family has designated this ceremony as an uncompromising celebration priority/i)
+      screen.getByText(
+        /The family has designated this ceremony as an uncompromising celebration priority/i
+      )
     ).toBeInTheDocument()
   })
 
@@ -109,7 +111,9 @@ describe('Celebratory Family Share View & Filtered .ics Export (D-05, D-06, D-07
 
     expect(screen.getByText('Celebration Link Expired')).toBeInTheDocument()
     expect(
-      screen.getByText(/The celebration organizer has refreshed this link or concluded the planning phase/i)
+      screen.getByText(
+        /The celebration organizer has refreshed this link or concluded the planning phase/i
+      )
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Return to Mehfil Home/i })).toBeInTheDocument()
   })

@@ -35,14 +35,10 @@ export function extractDeterministicStyleDNA(
         : 60
     ),
     energy: Math.round(
-      swatches.length > 0
-        ? swatches.reduce((sum, s) => sum + s.dimensions.energy, 0) / count
-        : 60
+      swatches.length > 0 ? swatches.reduce((sum, s) => sum + s.dimensions.energy, 0) / count : 60
     ),
     scale: Math.round(
-      swatches.length > 0
-        ? swatches.reduce((sum, s) => sum + s.dimensions.scale, 0) / count
-        : 60
+      swatches.length > 0 ? swatches.reduce((sum, s) => sum + s.dimensions.scale, 0) / count : 60
     ),
     heritageVsModern: Math.round(
       swatches.length > 0
@@ -55,9 +51,7 @@ export function extractDeterministicStyleDNA(
         : 50
     ),
     music: Math.round(
-      swatches.length > 0
-        ? swatches.reduce((sum, s) => sum + s.dimensions.music, 0) / count
-        : 60
+      swatches.length > 0 ? swatches.reduce((sum, s) => sum + s.dimensions.music, 0) / count : 60
     ),
     decorDensity: Math.round(
       swatches.length > 0
@@ -110,9 +104,7 @@ export function extractDeterministicStyleDNA(
 
   // 4. Palette extraction
   const rawPalette =
-    swatches.length > 0 && swatches[0].palette.length >= 3
-      ? swatches[0].palette
-      : DEFAULT_PALETTE
+    swatches.length > 0 && swatches[0].palette.length >= 3 ? swatches[0].palette : DEFAULT_PALETTE
 
   const namedPalette: NamedPaletteColor[] = rawPalette.slice(0, 4).map((hex, i) => ({
     name: DEFAULT_COLOR_NAMES[i] || `Shade ${i + 1}`,
@@ -120,17 +112,22 @@ export function extractDeterministicStyleDNA(
   }))
 
   // 5. Clean vibe statement and quote
-  const titles = swatches.slice(0, 2).map((s) => s.title).join(' & ')
+  const titles = swatches
+    .slice(0, 2)
+    .map((s) => s.title)
+    .join(' & ')
   const baseStatement = titles
     ? `A celebration infused with ${titles}, emphasizing ${protectedCategory.replace('_', ' ')}.`
     : `A festive celebration emphasizing ${protectedCategory.replace('_', ' ')}.`
 
-  const vibeStatement = baseStatement.length > 200 ? baseStatement.slice(0, 197) + '...' : baseStatement
+  const vibeStatement =
+    baseStatement.length > 200 ? baseStatement.slice(0, 197) + '...' : baseStatement
 
   const trimmedQuote = protectedMomentText.trim()
-  const protectedMomentQuote = trimmedQuote.length > 200
-    ? trimmedQuote.slice(0, 197) + '...'
-    : trimmedQuote || 'Soulful celebratory moment with cherished guests.'
+  const protectedMomentQuote =
+    trimmedQuote.length > 200
+      ? trimmedQuote.slice(0, 197) + '...'
+      : trimmedQuote || 'Soulful celebratory moment with cherished guests.'
 
   const result: StyleDNA = {
     dimensions: baseDim,

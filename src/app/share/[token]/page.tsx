@@ -4,7 +4,9 @@ import { hashCapabilityToken } from '@/lib/engine/crypto'
 import { sanitizePlanForSharing } from '@/lib/engine/sanitization'
 import { calculateBackwardsTimeline } from '@/lib/engine/timeline'
 import { ShareClientView } from './ShareClientView'
-import type { Plan, SanitizedSharedPlan } from '@/lib/engine/types'
+import type { Plan } from '@/lib/engine/types'
+import { createLogger } from '@/lib/logger'
+const logger = createLogger('share-page')
 
 interface SharePageProps {
   params: Promise<{ token: string }>
@@ -61,7 +63,9 @@ export default async function SharePage({ params }: SharePageProps) {
       // 2. Fallback query (restricted to safe public fields, never edit_key_hash)
       const { data: event, error: eventErr } = await supabase
         .from('events')
-        .select('id, title, event_type, event_date, city, guest_count, total_budget_paise, protected_category, status')
+        .select(
+          'id, title, event_type, event_date, city, guest_count, total_budget_paise, protected_category, status'
+        )
         .eq('share_key_hash', tokenHash)
         .eq('status', 'active')
         .single()
@@ -101,7 +105,7 @@ export default async function SharePage({ params }: SharePageProps) {
         return <ShareClientView sanitizedPlan={sanitized} />
       }
     } catch (e) {
-      console.warn('[SharePage] Cloud share lookup error:', e)
+      logger.warn('[SharePage] Cloud share lookup error:', e)
     }
   }
 

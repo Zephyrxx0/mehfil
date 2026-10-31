@@ -4,12 +4,7 @@ import React, { useState } from 'react'
 import type { Plan, PlanVersionRecord } from '@/lib/engine/types'
 import type { StyleDNA, StyleDimensions } from '@/lib/ai/schemas'
 import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,9 +86,7 @@ export function StyleDNACard({
     plan.brief.vibeStatement ||
     'A vibrant Indian celebration balanced with rich cultural traditions and modern elegance.'
 
-  const protectedQuote =
-    styleDNA?.protectedMomentQuote ||
-    plan.brief.protectedMomentQuote
+  const protectedQuote = styleDNA?.protectedMomentQuote || plan.brief.protectedMomentQuote
 
   const handleRetry = async () => {
     if (!onRetryExtraction) return
@@ -110,8 +103,14 @@ export function StyleDNACard({
       <section aria-labelledby="style-dna-heading" className="flex flex-col gap-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h3 id="style-dna-heading" className="flex items-center gap-2.5 font-serif text-xl font-bold text-royal-plum">
-              <span aria-hidden="true" className="h-4 w-1 shrink-0 origin-bottom rounded-full bg-gradient-to-b from-marigold to-gulabi-rose motion-safe:animate-[mehfil-flourish_0.5s_cubic-bezier(0.22,1,0.36,1)_both]" />
+            <h3
+              id="style-dna-heading"
+              className="flex items-center gap-2.5 font-serif text-xl font-bold text-royal-plum"
+            >
+              <span
+                aria-hidden="true"
+                className="h-4 w-1 shrink-0 origin-bottom rounded-full bg-gradient-to-b from-marigold to-gulabi-rose motion-safe:animate-[mehfil-flourish_0.5s_cubic-bezier(0.22,1,0.36,1)_both]"
+              />
               <span>Style DNA</span>
             </h3>
             <p className="mt-0.5 text-sm text-royal-plum/60">Aesthetic Identity</p>
@@ -179,7 +178,10 @@ export function StyleDNACard({
                         <span className="font-semibold tabular-nums text-royal-plum">{value}%</span>
                       </div>
                       <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-royal-plum/10">
-                        <div className="h-full rounded-full bg-marigold" style={{ width: `${value}%` }} />
+                        <div
+                          className="h-full rounded-full bg-marigold"
+                          style={{ width: `${value}%` }}
+                        />
                       </div>
                     </li>
                   ))}
@@ -190,7 +192,9 @@ export function StyleDNACard({
             {protectedQuote && (
               <div className="border-l-2 border-gulabi-rose bg-gulabi-rose/10 px-4 py-3">
                 <h4 className="text-sm font-semibold text-royal-plum">Protected Moment Quote</h4>
-                <p className="mt-1 font-serif text-base italic text-royal-plum">&ldquo;{protectedQuote}&rdquo;</p>
+                <p className="mt-1 font-serif text-base italic text-royal-plum">
+                  &ldquo;{protectedQuote}&rdquo;
+                </p>
               </div>
             )}
 
@@ -198,10 +202,17 @@ export function StyleDNACard({
             {isFallbackTier && (
               <div className="flex flex-wrap items-center justify-between gap-3 border-y border-royal-plum/10 py-3">
                 <p className="text-sm text-royal-plum/75">
-                  Showing standard style profile for now; your custom vibe will be infused when you retry.
+                  Showing standard style profile for now; your custom vibe will be infused when you
+                  retry.
                 </p>
                 {onRetryExtraction && !isReadOnly && (
-                  <Button type="button" variant="outline" size="sm" disabled={isRetrying} onClick={handleRetry}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isRetrying}
+                    onClick={handleRetry}
+                  >
                     {isRetrying ? 'Retrying...' : 'Retry Extraction'}
                   </Button>
                 )}
@@ -244,7 +255,9 @@ export function StyleDNACard({
               Reset to Baseline (v1)?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-xs text-royal-plum/70 leading-relaxed">
-              Reset celebration plan to baseline archetype? All custom vibe multipliers will be reverted to default weights. Your current plan remains safely saved in version history.
+              Reset celebration plan to baseline archetype? All custom vibe multipliers will be
+              reverted to default weights. Your current plan remains safely saved in version
+              history.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

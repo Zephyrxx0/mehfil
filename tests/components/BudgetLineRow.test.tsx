@@ -10,7 +10,7 @@ describe('BudgetLineRow Component (MOMENT-03, BUDGET-04, D-05, D-08)', () => {
     category: 'decor',
     name: 'Decor & Production',
     baselinePaise: 500_000_00, // ₹5,00,000
-    currentPaise: 450_000_00,  // ₹4,50,000
+    currentPaise: 450_000_00, // ₹4,50,000
     lineType: 'flexible',
     isProtected: false,
     elasticityRank: 3,
@@ -21,7 +21,7 @@ describe('BudgetLineRow Component (MOMENT-03, BUDGET-04, D-05, D-08)', () => {
     category: 'photo_film',
     name: 'Photography & Cinema',
     baselinePaise: 300_000_00, // ₹3,00,000
-    currentPaise: 375_000_00,  // ₹3,75,000
+    currentPaise: 375_000_00, // ₹3,75,000
     lineType: 'fixed',
     isProtected: true,
     protectedQuote: 'Candid golden hour portraits with Dadi and Nani',

@@ -30,11 +30,7 @@ export interface RateLimitResult {
 /**
  * Checks a sliding-window rate limit for a given key (e.g. client IP + route).
  */
-export function checkRateLimit(
-  key: string,
-  limit = 15,
-  windowMs = 60_000
-): RateLimitResult {
+export function checkRateLimit(key: string, limit = 15, windowMs = 60_000): RateLimitResult {
   const now = Date.now()
   let record = rateLimitMap.get(key)
 

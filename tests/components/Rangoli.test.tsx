@@ -81,7 +81,9 @@ describe('Rangoli component', () => {
 
     const dots = container.querySelectorAll('.rangoli-dot')
     expect(dots.length).toBeGreaterThan(50)
-    const delays = new Set([...dots].map((d) => (d as SVGElement).style.getPropertyValue('--rangoli-delay')))
+    const delays = new Set(
+      [...dots].map((d) => (d as SVGElement).style.getPropertyValue('--rangoli-delay'))
+    )
     expect(delays.size).toBeGreaterThan(10)
   })
 })

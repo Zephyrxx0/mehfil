@@ -147,9 +147,7 @@ describe('ShareSaveModal UI Component (D-01, D-08, COLLAB-02, COLLAB-03)', () =>
 
     expect(screen.getByTestId('cloud-unconfigured-notice')).toBeInTheDocument()
     expect(screen.getByText('Saved to this device only')).toBeInTheDocument()
-    expect(
-      screen.getByText(/Cloud database sync isn't configured yet/i)
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Cloud database sync isn't configured yet/i)).toBeInTheDocument()
   })
 
   it('hides unconfigured notice when cloud database is configured', () => {

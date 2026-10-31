@@ -27,9 +27,7 @@ describe('BriefWizard Component', () => {
     vi.useFakeTimers()
     const handlePlanCreated = vi.fn()
 
-    render(
-      <BriefWizard onPlanCreated={handlePlanCreated} />
-    )
+    render(<BriefWizard onPlanCreated={handlePlanCreated} />)
 
     const firstChip = screen.getByText(STARTER_OPTIONS[0].label)
     fireEvent.click(firstChip)

@@ -24,6 +24,8 @@ import {
 } from 'lucide-react'
 import { QuoteCheckCard } from './QuoteCheckCard'
 import { cn } from '@/lib/utils'
+import { createLogger } from '@/lib/logger'
+const logger = createLogger('quote-intake')
 
 export interface QuoteIntakeSheetProps {
   open: boolean
@@ -68,13 +70,12 @@ export function QuoteIntakeSheet({
     }
   }, [open, initialCategory])
 
-  const categoryName =
-    CATEGORIES.find(c => c.id === category)?.label || category
+  const categoryName = CATEGORIES.find((c) => c.id === category)?.label || category
 
   const isInputValid = rawText.trim().length >= 10 || !!imageBase64
 
   const handleSelectSample = (sampleId: string) => {
-    const sample = SAMPLE_QUOTES.find(s => s.id === sampleId)
+    const sample = SAMPLE_QUOTES.find((s) => s.id === sampleId)
     if (!sample) return
     setCategory(sample.category)
     setRawText(sample.rawText)
@@ -124,9 +125,7 @@ export function QuoteIntakeSheet({
 
       if (!response.ok || !json.success) {
         throw new Error(
-          typeof json.error === 'string'
-            ? json.error
-            : 'Quote extraction failed. Please try again.'
+          typeof json.error === 'string' ? json.error : 'Quote extraction failed. Please try again.'
         )
       }
 
@@ -134,10 +133,8 @@ export function QuoteIntakeSheet({
       setExtractedQuote(quote)
       onQuoteExtracted?.(quote)
     } catch (err: any) {
-      console.error('[QuoteIntakeSheet] Extraction error:', err)
-      setErrorMessage(
-        err instanceof Error ? err.message : 'Failed to extract vendor quote.'
-      )
+      logger.error('[QuoteIntakeSheet] Extraction error:', err)
+      setErrorMessage(err instanceof Error ? err.message : 'Failed to extract vendor quote.')
     } finally {
       setIsLoading(false)
     }
@@ -185,8 +182,8 @@ export function QuoteIntakeSheet({
           <SheetDescription className="text-xs text-royal-plum/70 leading-relaxed bg-soft-ivory p-3 rounded-xl border border-royal-plum/8 flex items-start gap-2">
             <ShieldAlert className="w-4 h-4 text-marigold shrink-0 mt-0.5" />
             <span>
-              Untrusted vendor quotes are safely quarantined with zero database access.
-              Numbers are verified verbatim before touching your plan.
+              Untrusted vendor quotes are safely quarantined with zero database access. Numbers are
+              verified verbatim before touching your plan.
             </span>
           </SheetDescription>
         </SheetHeader>
@@ -209,11 +206,18 @@ export function QuoteIntakeSheet({
           <div className="flex flex-col gap-5">
             {/* Category Switcher */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-royal-plum/80 uppercase tracking-wider font-mono">
+              <span
+                id="vendor-category-label"
+                className="text-xs font-semibold text-royal-plum/80 uppercase tracking-wider font-mono"
+              >
                 Vendor Category
-              </label>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {CATEGORIES.map(cat => (
+              </span>
+              <div
+                role="group"
+                aria-labelledby="vendor-category-label"
+                className="flex flex-wrap items-center gap-1.5"
+              >
+                {CATEGORIES.map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
@@ -237,7 +241,7 @@ export function QuoteIntakeSheet({
                 Try a realistic Indian celebration quote:
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {SAMPLE_QUOTES.map(sample => (
+                {SAMPLE_QUOTES.map((sample) => (
                   <button
                     key={sample.id}
                     type="button"
@@ -278,7 +282,7 @@ export function QuoteIntakeSheet({
                   <textarea
                     rows={7}
                     value={rawText}
-                    onChange={e => setRawText(e.target.value)}
+                    onChange={(e) => setRawText(e.target.value)}
                     placeholder="Paste a WhatsApp message, vendor email, or invoice breakdown here..."
                     className="w-full p-4 rounded-2xl bg-white border border-royal-plum/15 focus:border-royal-plum focus:ring-1 focus:ring-royal-plum text-sm text-royal-plum placeholder:text-royal-plum/40 font-normal resize-y min-h-[160px]"
                   />

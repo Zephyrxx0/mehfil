@@ -33,13 +33,21 @@ describe('Plan Versioning & Optimistic Concurrency Engine (COLLAB-04, D-10, D-15
 
     // Scale guests and save v2 with parent pointer to v1
     const planV2 = rebalanceGuestCount(basePlan, 250)
-    const res2 = await adapter.savePlan(planV2, res1.versionId, 'Scaled guest count to 250 (+50 guests)')
+    const res2 = await adapter.savePlan(
+      planV2,
+      res1.versionId,
+      'Scaled guest count to 250 (+50 guests)'
+    )
     expect(res2.status).toBe('saved_local')
     expect(res2.versionNumber).toBe(2)
 
     // Scale guests again and save v3 with parent pointer to v2
     const planV3 = rebalanceGuestCount(planV2, 300)
-    const res3 = await adapter.savePlan(planV3, res2.versionId, 'Scaled guest count to 300 (+50 guests)')
+    const res3 = await adapter.savePlan(
+      planV3,
+      res2.versionId,
+      'Scaled guest count to 300 (+50 guests)'
+    )
     expect(res3.status).toBe('saved_local')
     expect(res3.versionNumber).toBe(3)
 
@@ -88,7 +96,7 @@ describe('Plan Versioning & Optimistic Concurrency Engine (COLLAB-04, D-10, D-15
     const res2 = await adapter.savePlan(planV2, res1.versionId, 'Scaled to 250')
     // Create v3
     const planV3 = rebalanceGuestCount(planV2, 350)
-    const res3 = await adapter.savePlan(planV3, res2.versionId, 'Scaled to 350')
+    await adapter.savePlan(planV3, res2.versionId, 'Scaled to 350')
 
     // Forward restore to v1: creates v4 with allocations matching v1
     const restoreResult = await adapter.restoreVersion(basePlan.id, 1)

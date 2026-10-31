@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  detectQuoteOmissions,
-  calculateTierTotalWithAdders,
-} from '@/lib/engine/omission-rules'
+import { detectQuoteOmissions, calculateTierTotalWithAdders } from '@/lib/engine/omission-rules'
 import type { PackageTier, QuoteOmissionAdder } from '@/lib/engine/types'
 
 describe('Category Omission Rules Engine', () => {
@@ -14,16 +11,16 @@ describe('Category Omission Rules Engine', () => {
     const baseTierPaise = 950 * 100 * 200 // ₹1,90,000 = 19,000,000 paise
     const omissions = detectQuoteOmissions(rawQuote, 'catering', baseTierPaise)
 
-    expect(omissions.some(o => o.id === 'omission_gst_5')).toBe(true)
-    expect(omissions.some(o => o.id === 'omission_waitstaff')).toBe(true)
+    expect(omissions.some((o) => o.id === 'omission_gst_5')).toBe(true)
+    expect(omissions.some((o) => o.id === 'omission_waitstaff')).toBe(true)
 
-    const gstAdder = omissions.find(o => o.id === 'omission_gst_5')!
+    const gstAdder = omissions.find((o) => o.id === 'omission_gst_5')!
     expect(gstAdder.rateType).toBe('percentage')
     expect(gstAdder.percentageValue).toBe(5)
     // 5% of 19,000,000 paise = 950,000 paise (₹9,500)
     expect(gstAdder.amountPaise).toBe(950000)
 
-    const staffAdder = omissions.find(o => o.id === 'omission_waitstaff')!
+    const staffAdder = omissions.find((o) => o.id === 'omission_waitstaff')!
     expect(staffAdder.rateType).toBe('fixed')
     expect(staffAdder.fixedPaise).toBe(800000)
   })
@@ -34,8 +31,8 @@ describe('Category Omission Rules Engine', () => {
       All GST included. Service staff & waitstaff provided.
     `
     const omissions = detectQuoteOmissions(rawQuote, 'catering', 1000000)
-    expect(omissions.some(o => o.id === 'omission_gst_5')).toBe(false)
-    expect(omissions.some(o => o.id === 'omission_waitstaff')).toBe(false)
+    expect(omissions.some((o) => o.id === 'omission_gst_5')).toBe(false)
+    expect(omissions.some((o) => o.id === 'omission_waitstaff')).toBe(false)
   })
 
   it('flags 18% GST and generator backup for decor quotes without them', () => {
@@ -45,13 +42,13 @@ describe('Category Omission Rules Engine', () => {
     `
     const omissions = detectQuoteOmissions(quoteNoGen, 'decor', 13500000)
 
-    const gstAdder = omissions.find(o => o.id === 'omission_gst_18')
+    const gstAdder = omissions.find((o) => o.id === 'omission_gst_18')
     expect(gstAdder).toBeDefined()
     expect(gstAdder?.percentageValue).toBe(18)
     // 18% of 13,500,000 = 2,430,000 paise (₹24,300)
     expect(gstAdder?.amountPaise).toBe(2430000)
 
-    const genAdder = omissions.find(o => o.id === 'omission_generator')
+    const genAdder = omissions.find((o) => o.id === 'omission_generator')
     expect(genAdder).toBeDefined()
     expect(genAdder?.fixedPaise).toBe(1500000)
   })
@@ -63,8 +60,8 @@ describe('Category Omission Rules Engine', () => {
     `
     const omissions = detectQuoteOmissions(rawQuote, 'entertainment', 6000000)
 
-    expect(omissions.some(o => o.id === 'omission_gst_18')).toBe(false) // taxes included
-    const overtimeAdder = omissions.find(o => o.id === 'omission_overtime')
+    expect(omissions.some((o) => o.id === 'omission_gst_18')).toBe(false) // taxes included
+    const overtimeAdder = omissions.find((o) => o.id === 'omission_overtime')
     expect(overtimeAdder).toBeDefined()
     expect(overtimeAdder?.fixedPaise).toBe(1000000) // ₹10,000
   })
@@ -75,7 +72,7 @@ describe('Category Omission Rules Engine', () => {
       GST included.
     `
     const omissions = detectQuoteOmissions(rawQuote, 'photo_film', 12000000)
-    const travelAdder = omissions.find(o => o.id === 'omission_crew_travel')
+    const travelAdder = omissions.find((o) => o.id === 'omission_crew_travel')
     expect(travelAdder).toBeDefined()
     expect(travelAdder?.fixedPaise).toBe(1500000) // ₹15,000
   })

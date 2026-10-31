@@ -21,7 +21,11 @@ interface StepEventBasicsProps {
 const EVENT_TYPES: { type: EventType; label: string; desc: string }[] = [
   { type: 'wedding', label: 'Wedding', desc: 'Multi-day celebration with full rituals' },
   { type: 'birthday', label: 'Milestone Birthday', desc: '50th, 60th, or milestone gathering' },
-  { type: 'community', label: 'Cultural Soiree', desc: 'Diwali gala, society meet, or musical mehfil' },
+  {
+    type: 'community',
+    label: 'Cultural Soiree',
+    desc: 'Diwali gala, society meet, or musical mehfil',
+  },
 ]
 
 export function StepEventBasics({
@@ -36,10 +40,17 @@ export function StepEventBasics({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
+        <span
+          id="celebration-type-label"
+          className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2"
+        >
           Celebration Type
-        </label>
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+        </span>
+        <div
+          role="group"
+          aria-labelledby="celebration-type-label"
+          className="grid grid-cols-1 gap-2.5 sm:grid-cols-3"
+        >
           {EVENT_TYPES.map((t) => {
             const isSelected = eventType === t.type
             return (
@@ -64,7 +75,10 @@ export function StepEventBasics({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="celebration-name" className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
+          <label
+            htmlFor="celebration-name"
+            className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2"
+          >
             Celebration Name
           </label>
           <input
@@ -78,7 +92,10 @@ export function StepEventBasics({
         </div>
 
         <div>
-          <label htmlFor="celebration-city" className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
+          <label
+            htmlFor="celebration-city"
+            className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2"
+          >
             Destination City
           </label>
           <input
@@ -93,10 +110,17 @@ export function StepEventBasics({
       </div>
 
       <div className="sm:max-w-[calc(50%-0.5rem)]">
-        <label htmlFor="celebration-date" className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
+        <label
+          htmlFor="celebration-date"
+          className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2"
+        >
           Celebration Date
         </label>
-        <DatePicker id="celebration-date" value={eventDate} onChange={(v) => onChange({ eventDate: v })} />
+        <DatePicker
+          id="celebration-date"
+          value={eventDate}
+          onChange={(v) => onChange({ eventDate: v })}
+        />
         {datePassed ? (
           <p role="alert" className="mt-1.5 text-xs font-medium text-terracotta">
             That date has already passed. Pick today or a later day.

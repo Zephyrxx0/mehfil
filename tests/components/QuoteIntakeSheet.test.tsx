@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import React from 'react'
 import { QuoteIntakeSheet } from '@/components/quotes/QuoteIntakeSheet'
-import { SAMPLE_QUOTES } from '@/data/sample-quotes'
 
 describe('QuoteIntakeSheet Component (QUOTE-01, QUOTE-02, D-01, D-02)', () => {
   const mockQuoteResponse = {
@@ -61,10 +60,13 @@ describe('QuoteIntakeSheet Component (QUOTE-01, QUOTE-02, D-01, D-02)', () => {
   }
 
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => mockQuoteResponse,
-    }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => mockQuoteResponse,
+      })
+    )
   })
 
   afterEach(() => {
@@ -73,13 +75,7 @@ describe('QuoteIntakeSheet Component (QUOTE-01, QUOTE-02, D-01, D-02)', () => {
 
   it('renders sheet when open with category selector and sample quote chips', () => {
     const onOpenChange = vi.fn()
-    render(
-      <QuoteIntakeSheet
-        open={true}
-        onOpenChange={onOpenChange}
-        category="catering"
-      />
-    )
+    render(<QuoteIntakeSheet open={true} onOpenChange={onOpenChange} category="catering" />)
 
     // Security notice & Header
     expect(screen.getByText(/महफ़िल Quote Sandbox/i)).toBeInTheDocument()
@@ -98,13 +94,7 @@ describe('QuoteIntakeSheet Component (QUOTE-01, QUOTE-02, D-01, D-02)', () => {
 
   it('clicking a sample quote chip populates the raw text area and category', () => {
     const onOpenChange = vi.fn()
-    render(
-      <QuoteIntakeSheet
-        open={true}
-        onOpenChange={onOpenChange}
-        category="catering"
-      />
-    )
+    render(<QuoteIntakeSheet open={true} onOpenChange={onOpenChange} category="catering" />)
 
     const mandapSample = screen.getByText(/Shadi Mandap/i)
     fireEvent.click(mandapSample)
@@ -132,19 +122,26 @@ describe('QuoteIntakeSheet Component (QUOTE-01, QUOTE-02, D-01, D-02)', () => {
     )
 
     const textarea = screen.getByPlaceholderText(/Paste a WhatsApp message/i)
-    fireEvent.change(textarea, { target: { value: 'Buffet rate Rs 950/- per plate with live tandoor' } })
+    fireEvent.change(textarea, {
+      target: { value: 'Buffet rate Rs 950/- per plate with live tandoor' },
+    })
 
     const extractBtn = screen.getByRole('button', { name: /Extract Quote Breakdown/i })
     fireEvent.click(extractBtn)
 
-    expect(fetch).toHaveBeenCalledWith('/api/ai/quote-analyst', expect.objectContaining({
-      method: 'POST',
-      body: expect.stringContaining('Buffet rate Rs 950/- per plate'),
-    }))
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/ai/quote-analyst',
+      expect.objectContaining({
+        method: 'POST',
+        body: expect.stringContaining('Buffet rate Rs 950/- per plate'),
+      })
+    )
 
     await waitFor(() => {
       expect(onQuoteExtracted).toHaveBeenCalledWith(mockQuoteResponse.data.vendorQuote)
-      expect(screen.getAllByText(/Royal Caterers & Banquet Services/i).length).toBeGreaterThanOrEqual(1)
+      expect(
+        screen.getAllByText(/Royal Caterers & Banquet Services/i).length
+      ).toBeGreaterThanOrEqual(1)
     })
   })
 })

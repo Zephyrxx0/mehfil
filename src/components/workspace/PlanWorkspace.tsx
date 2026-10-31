@@ -1,7 +1,13 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import type { BudgetCategory, Plan, ShortfallRemedy, PlanVersionRecord, CuratedIdea } from '@/lib/engine/types'
+import type {
+  BudgetCategory,
+  Plan,
+  ShortfallRemedy,
+  PlanVersionRecord,
+  CuratedIdea,
+} from '@/lib/engine/types'
 import type { StyleDNA, StyleDimensions, AgentRunRecord } from '@/lib/ai/schemas'
 import {
   rebalanceGuestCount,
@@ -25,6 +31,9 @@ import { UndoActionBar } from './UndoActionBar'
 import type { SyncState } from './SyncStatusBadge'
 import type { PlanChangeRecord, PlanChangeDelta } from './ChangeExplainer'
 import type { PlanTabId } from './tabs'
+import { createLogger } from '@/lib/logger'
+import { createId } from '@/lib/id'
+const logger = createLogger('plan-workspace')
 
 export interface PlanWorkspaceProps {
   initialPlan: Plan
@@ -68,7 +77,7 @@ export function PlanWorkspace({
   const [showV2Banner, setShowV2Banner] = useState<boolean>(false)
   const [v2Rationale, setV2Rationale] = useState<string>('')
   const hasTriggeredInitialExtraction = useRef(false)
-  
+
   // Versions & Sync state (D-09, D-10, D-14, D-15)
   const [versions, setVersions] = useState<PlanVersionRecord[]>(() => {
     if (initialVersions && initialVersions.length > 0) return initialVersions
@@ -84,7 +93,7 @@ export function PlanWorkspace({
       },
     ]
   })
-  
+
   const [currentVersionNumber, setCurrentVersionNumber] = useState<number>(() => {
     if (initialVersions && initialVersions.length > 0) {
       return Math.max(...initialVersions.map((v) => v.versionNumber))
@@ -120,7 +129,7 @@ export function PlanWorkspace({
           }
         }
       } catch (err) {
-        console.warn('[PlanWorkspace] Failed to fetch version history:', err)
+        logger.warn('[PlanWorkspace] Failed to fetch version history:', err)
       }
     }
     loadHistory()
@@ -192,7 +201,7 @@ export function PlanWorkspace({
 
       // Add to legacy undo stack
       const record: PlanChangeRecord = {
-        id: `change-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        id: createId('change'),
         timestamp: new Date(),
         description: rationale,
         deltas,
@@ -211,11 +220,7 @@ export function PlanWorkspace({
 
   // Trigger Style DNA Extraction API call
   const triggerStyleDNAExtraction = useCallback(
-    async (
-      swatchIds: string[],
-      protectedMomentQuote?: string,
-      tradeoffs?: any
-    ) => {
+    async (swatchIds: string[], protectedMomentQuote?: string, tradeoffs?: any) => {
       setIsExtractingStyle(true)
       try {
         const response = await fetch('/api/style-dna', {
@@ -243,7 +248,7 @@ export function PlanWorkspace({
           throw new Error('API payload unsuccessful')
         }
       } catch (err) {
-        console.warn('[PlanWorkspace] Extraction error, applying Tier 3 heuristic locally:', err)
+        logger.warn('[PlanWorkspace] Extraction error, applying Tier 3 heuristic locally:', err)
         const fallbackDNA = extractDeterministicStyleDNA(
           swatchIds,
           protectedMomentQuote || '',
@@ -354,7 +359,7 @@ export function PlanWorkspace({
       setPlan(modulatedPlan)
 
       const changeRecord: PlanChangeRecord = {
-        id: `change-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        id: createId('change'),
         timestamp: new Date(),
         description: `Retuned Style: ${rationale}`,
         deltas,
@@ -425,7 +430,12 @@ export function PlanWorkspace({
     if (swatches.length >= VIBE_MIN) {
       await triggerStyleDNAExtraction(swatches, quote, tradeoffs)
     }
-  }, [plan.brief.protectedMomentQuote, plan.brief.tradeoffs, plan.brief.vibeSwatches, triggerStyleDNAExtraction])
+  }, [
+    plan.brief.protectedMomentQuote,
+    plan.brief.tradeoffs,
+    plan.brief.vibeSwatches,
+    triggerStyleDNAExtraction,
+  ])
 
   // Core commit worker: computes diff and commits to persistence
   const commitPlan = useCallback(
@@ -454,7 +464,7 @@ export function PlanWorkspace({
         return
       }
 
-      const nextVerNum = saveResult.versionNumber ?? (currentVersionNumber + 1)
+      const nextVerNum = saveResult.versionNumber ?? currentVersionNumber + 1
       const nextVerId = saveResult.versionId ?? `ver-${nextPlan.id}-${nextVerNum}`
 
       const newRecord: PlanVersionRecord = {
@@ -528,7 +538,7 @@ export function PlanWorkspace({
         : `Scaled guest count from ${prevGuest} to ${newCount} (${guestDelta} guests)`
 
     const record: PlanChangeRecord = {
-      id: `change-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      id: createId('change'),
       timestamp: new Date(),
       description,
       deltas,
@@ -598,7 +608,7 @@ export function PlanWorkspace({
     }
 
     const record: PlanChangeRecord = {
-      id: `change-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      id: createId('change'),
       timestamp: new Date(),
       description: `Locked Protected Moment for ${category.replace('_', ' ')} (floor locked)`,
       deltas,
@@ -613,69 +623,75 @@ export function PlanWorkspace({
   }
 
   // Handle Curated Idea Adoption (IDEA-02, BUDGET-04, ADR-0004)
-  const handleAdoptIdea = useCallback((idea: CuratedIdea) => {
-    if (isReadOnly) return
-    const prevPlan = plan
-    const nextPlan = adoptIdea(plan, idea)
+  const handleAdoptIdea = useCallback(
+    (idea: CuratedIdea) => {
+      if (isReadOnly) return
+      const prevPlan = plan
+      const nextPlan = adoptIdea(plan, idea)
 
-    const deltas: PlanChangeDelta[] = []
-    for (const nextLine of nextPlan.lines) {
-      const prevLine = plan.lines.find((l) => l.id === nextLine.id)
-      const prevPaise = prevLine ? prevLine.currentPaise : nextLine.baselinePaise
-      const deltaPaise = nextLine.currentPaise - prevPaise
-      if (deltaPaise !== 0) {
-        deltas.push({ category: nextLine.name, deltaPaise })
+      const deltas: PlanChangeDelta[] = []
+      for (const nextLine of nextPlan.lines) {
+        const prevLine = plan.lines.find((l) => l.id === nextLine.id)
+        const prevPaise = prevLine ? prevLine.currentPaise : nextLine.baselinePaise
+        const deltaPaise = nextLine.currentPaise - prevPaise
+        if (deltaPaise !== 0) {
+          deltas.push({ category: nextLine.name, deltaPaise })
+        }
       }
-    }
 
-    const description = `Adopted ${idea.title} (${formatINR(idea.costPaise)})`
-    const record: PlanChangeRecord = {
-      id: `change-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      timestamp: new Date(),
-      description,
-      deltas,
-      isFloorProtected: Boolean(nextPlan.brief.protectedCategory),
-      previousSnapshot: prevPlan,
-    }
+      const description = `Adopted ${idea.title} (${formatINR(idea.costPaise)})`
+      const record: PlanChangeRecord = {
+        id: createId('change'),
+        timestamp: new Date(),
+        description,
+        deltas,
+        isFloorProtected: Boolean(nextPlan.brief.protectedCategory),
+        previousSnapshot: prevPlan,
+      }
 
-    setSnapshotStack((prev) => [record, ...prev])
-    setPlan(nextPlan)
-    setUndoState({ message: description, previousPlan: prevPlan })
-    scheduleDebouncedCommit(nextPlan, prevPlan, 'budget_change')
-  }, [isReadOnly, plan, scheduleDebouncedCommit])
+      setSnapshotStack((prev) => [record, ...prev])
+      setPlan(nextPlan)
+      setUndoState({ message: description, previousPlan: prevPlan })
+      scheduleDebouncedCommit(nextPlan, prevPlan, 'budget_change')
+    },
+    [isReadOnly, plan, scheduleDebouncedCommit]
+  )
 
   // Handle Curated Idea Retraction (IDEA-03, ADR-0004)
-  const handleRetractIdea = useCallback((ideaId: string) => {
-    if (isReadOnly) return
-    const prevPlan = plan
-    const ideaTitle = plan.adoptedIdeas?.find((r) => r.ideaId === ideaId)?.title || 'idea'
-    const nextPlan = retractIdea(plan, ideaId)
+  const handleRetractIdea = useCallback(
+    (ideaId: string) => {
+      if (isReadOnly) return
+      const prevPlan = plan
+      const ideaTitle = plan.adoptedIdeas?.find((r) => r.ideaId === ideaId)?.title || 'idea'
+      const nextPlan = retractIdea(plan, ideaId)
 
-    const deltas: PlanChangeDelta[] = []
-    for (const nextLine of nextPlan.lines) {
-      const prevLine = plan.lines.find((l) => l.id === nextLine.id)
-      const prevPaise = prevLine ? prevLine.currentPaise : nextLine.baselinePaise
-      const deltaPaise = nextLine.currentPaise - prevPaise
-      if (deltaPaise !== 0) {
-        deltas.push({ category: nextLine.name, deltaPaise })
+      const deltas: PlanChangeDelta[] = []
+      for (const nextLine of nextPlan.lines) {
+        const prevLine = plan.lines.find((l) => l.id === nextLine.id)
+        const prevPaise = prevLine ? prevLine.currentPaise : nextLine.baselinePaise
+        const deltaPaise = nextLine.currentPaise - prevPaise
+        if (deltaPaise !== 0) {
+          deltas.push({ category: nextLine.name, deltaPaise })
+        }
       }
-    }
 
-    const description = `Retracted ${ideaTitle}`
-    const record: PlanChangeRecord = {
-      id: `change-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      timestamp: new Date(),
-      description,
-      deltas,
-      isFloorProtected: Boolean(nextPlan.brief.protectedCategory),
-      previousSnapshot: prevPlan,
-    }
+      const description = `Retracted ${ideaTitle}`
+      const record: PlanChangeRecord = {
+        id: createId('change'),
+        timestamp: new Date(),
+        description,
+        deltas,
+        isFloorProtected: Boolean(nextPlan.brief.protectedCategory),
+        previousSnapshot: prevPlan,
+      }
 
-    setSnapshotStack((prev) => [record, ...prev])
-    setPlan(nextPlan)
-    setUndoState({ message: description, previousPlan: prevPlan })
-    scheduleDebouncedCommit(nextPlan, prevPlan, 'budget_change')
-  }, [isReadOnly, plan, scheduleDebouncedCommit])
+      setSnapshotStack((prev) => [record, ...prev])
+      setPlan(nextPlan)
+      setUndoState({ message: description, previousPlan: prevPlan })
+      scheduleDebouncedCommit(nextPlan, prevPlan, 'budget_change')
+    },
+    [isReadOnly, plan, scheduleDebouncedCommit]
+  )
 
   // Handle ADR-0002 shortfall remedies (BUDGET-03, D-13)
   const handleApplyRemedy = (remedy: ShortfallRemedy) => {
@@ -700,7 +716,7 @@ export function PlanWorkspace({
       }
       const nextPlan = rebalanceGuestCount(updatedPlan, plan.brief.guestCount)
       const record: PlanChangeRecord = {
-        id: `change-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        id: createId('change'),
         timestamp: new Date(),
         description: `Increased total budget by ${formatINR(remedy.deltaValue)}`,
         deltas: [{ category: 'Total Budget', deltaPaise: remedy.deltaValue }],
@@ -726,7 +742,7 @@ export function PlanWorkspace({
         }
       }
       const record: PlanChangeRecord = {
-        id: `change-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        id: createId('change'),
         timestamp: new Date(),
         description: 'Applied remedy: Trimmed flexible lines to their floors',
         deltas,
@@ -764,12 +780,14 @@ export function PlanWorkspace({
       clearTimeout(debounceTimerRef.current)
     }
 
-    const prevPlan = plan
-    const restoredPlan: Plan = targetVersion.snapshot ? { ...targetVersion.snapshot } : {
-      ...plan,
-      lines: (targetVersion as any).lines || plan.lines,
-      totalBudgetPaise: (targetVersion as any).totals?.totalBudgetPaise || plan.totalBudgetPaise,
-    }
+    const restoredPlan: Plan = targetVersion.snapshot
+      ? { ...targetVersion.snapshot }
+      : {
+          ...plan,
+          lines: (targetVersion as any).lines || plan.lines,
+          totalBudgetPaise:
+            (targetVersion as any).totals?.totalBudgetPaise || plan.totalBudgetPaise,
+        }
 
     setPlan(restoredPlan)
     setSyncStatus('syncing')
@@ -787,7 +805,7 @@ export function PlanWorkspace({
       return
     }
 
-    const nextVerNum = saveResult.versionNumber ?? (currentVersionNumber + 1)
+    const nextVerNum = saveResult.versionNumber ?? currentVersionNumber + 1
     const nextVerId = saveResult.versionId ?? `ver-${restoredPlan.id}-${nextVerNum}`
 
     const newRecord: PlanVersionRecord = {
@@ -852,7 +870,9 @@ export function PlanWorkspace({
         changes={snapshotStack}
         versions={versions}
         currentVersionNumber={currentVersionNumber}
-        currentVersion={versions.find((v) => v.versionNumber === currentVersionNumber) || versions[0]}
+        currentVersion={
+          versions.find((v) => v.versionNumber === currentVersionNumber) || versions[0]
+        }
         previousGuestCount={previousGuestCount}
         syncStatus={syncStatus}
         isReadOnly={isReadOnly}

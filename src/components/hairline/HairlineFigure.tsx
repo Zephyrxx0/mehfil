@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
+import { createLogger } from '@/lib/logger'
+const logger = createLogger('hairline')
 
 /**
  * Hosts one Hairline figure (isometric line art that answers the pointer).
@@ -57,7 +59,7 @@ async function loadFigure(name: HairlineName): Promise<Figure | undefined> {
     registry.set(figure.name, figure)
   }
   if (!registry.has(name)) {
-    await import(/* webpackIgnore: true */ `/hairline/${name}.js`)
+    await import(/* webpackIgnore: true */ /* @vite-ignore */ `/hairline/${name}.js`)
   }
   return registry.get(name)
 }
@@ -88,7 +90,7 @@ export function HairlineFigure({ name, className }: HairlineFigureProps) {
       })
       .catch((err) => {
         // Decorative only: a failed figure must never break the page.
-        console.warn('[HairlineFigure]', err)
+        logger.warn('[HairlineFigure]', err)
       })
 
     return () => {

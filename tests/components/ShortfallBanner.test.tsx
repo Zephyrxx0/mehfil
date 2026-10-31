@@ -47,12 +47,7 @@ describe('ShortfallBanner Component (BUDGET-03, ADR-0002, D-13)', () => {
   }
 
   it('renders nothing when plan is feasible', () => {
-    const { container } = render(
-      <ShortfallBanner
-        plan={basePlan}
-        onApplyRemedy={vi.fn()}
-      />
-    )
+    const { container } = render(<ShortfallBanner plan={basePlan} onApplyRemedy={vi.fn()} />)
     expect(container).toBeEmptyDOMElement()
   })
 
@@ -71,9 +66,7 @@ describe('ShortfallBanner Component (BUDGET-03, ADR-0002, D-13)', () => {
 
     // Permissive posture badge & explanation
     expect(screen.getByText(/stays fully editable and savable/i)).toBeInTheDocument()
-    expect(
-      screen.getByText(/stays fully editable and savable/i)
-    ).toBeInTheDocument()
+    expect(screen.getByText(/stays fully editable and savable/i)).toBeInTheDocument()
 
     // Undo button
     expect(screen.getByRole('button', { name: /Undo to 250 Guests/i })).toBeInTheDocument()
@@ -81,12 +74,7 @@ describe('ShortfallBanner Component (BUDGET-03, ADR-0002, D-13)', () => {
 
   it('provides 1-click execution for all 3 deterministic calculation remedies (D-13)', () => {
     const onApplyRemedy = vi.fn()
-    render(
-      <ShortfallBanner
-        plan={infeasiblePlan}
-        onApplyRemedy={onApplyRemedy}
-      />
-    )
+    render(<ShortfallBanner plan={infeasiblePlan} onApplyRemedy={onApplyRemedy} />)
 
     // Remedy 1: Increase Budget
     const increaseBtn = screen.getByRole('button', { name: /Add ₹45,000 to Budget/i })

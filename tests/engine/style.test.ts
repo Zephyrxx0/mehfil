@@ -7,7 +7,7 @@ import {
 import { extractDeterministicStyleDNA } from '@/lib/ai/heuristic'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
 import { StyleDNASchema } from '@/lib/ai/schemas'
-import type { EventBrief, BudgetCategory, Plan } from '@/lib/engine/types'
+import type { EventBrief, BudgetCategory } from '@/lib/engine/types'
 import { SWATCHES } from '@/data/swatches'
 
 const sampleBrief: EventBrief = {
@@ -301,8 +301,12 @@ describe('Deterministic Heuristic Extractor - Tier 3 (D-16, ADR-0007)', () => {
       heritageVsModern: 'modern',
     })
 
-    expect(feastDNA.dimensions.feastVsSpectacle).toBeLessThan(spectacleDNA.dimensions.feastVsSpectacle)
+    expect(feastDNA.dimensions.feastVsSpectacle).toBeLessThan(
+      spectacleDNA.dimensions.feastVsSpectacle
+    )
     expect(feastDNA.dimensions.scale).toBeLessThan(spectacleDNA.dimensions.scale)
-    expect(feastDNA.dimensions.heritageVsModern).toBeLessThan(spectacleDNA.dimensions.heritageVsModern)
+    expect(feastDNA.dimensions.heritageVsModern).toBeLessThan(
+      spectacleDNA.dimensions.heritageVsModern
+    )
   })
 })

@@ -68,7 +68,8 @@ export function HeroSection() {
         <TitleDraw className="w-full" />
 
         <p className="mt-8 max-w-md text-balance text-base leading-relaxed text-royal-plum/80 [text-shadow:0_0_6px_hsl(var(--background)),0_0_14px_hsl(var(--background))] sm:text-lg">
-          One plan for the budget, the timeline and the people. Change one thing and the rest rebalances.
+          One plan for the budget, the timeline and the people. Change one thing and the rest
+          rebalances.
         </p>
 
         <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">

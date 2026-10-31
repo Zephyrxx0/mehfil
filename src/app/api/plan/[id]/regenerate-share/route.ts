@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSupabase } from '@/lib/supabase/server'
-import { generateCapabilityToken, hashCapabilityToken, constantTimeCompare } from '@/lib/engine/crypto'
+import {
+  generateCapabilityToken,
+  hashCapabilityToken,
+  constantTimeCompare,
+} from '@/lib/engine/crypto'
 import { cookies } from 'next/headers'
 
-export async function POST(
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const { id: planId } = await context.params
   const cookieStore = await cookies()
   const authCookie = cookieStore.get(`mehfil_edit_${planId}`)?.value

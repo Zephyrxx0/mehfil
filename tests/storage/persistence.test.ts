@@ -126,7 +126,9 @@ describe('Local-First Persistence Adapter & Concurrency (D-13, D-14, D-15, COLLA
 
   describe('SyncStatusBadge UI Component (D-14, 03-UI-SPEC.md §1)', () => {
     it('renders cloud_saved state with green dot and "Saved to Cloud"', () => {
-      render(React.createElement(SyncStatusBadge, { status: 'cloud_saved', lastSavedAt: new Date() }))
+      render(
+        React.createElement(SyncStatusBadge, { status: 'cloud_saved', lastSavedAt: new Date() })
+      )
       expect(screen.getByText('Saved to Cloud')).toBeInTheDocument()
       const badge = screen.getByTestId('sync-status-badge')
       expect(badge).toBeInTheDocument()
@@ -138,7 +140,9 @@ describe('Local-First Persistence Adapter & Concurrency (D-13, D-14, D-15, COLLA
     })
 
     it('renders local_saved state with lightning icon and "Saved Locally"', () => {
-      render(React.createElement(SyncStatusBadge, { status: 'local_saved', lastSavedAt: new Date() }))
+      render(
+        React.createElement(SyncStatusBadge, { status: 'local_saved', lastSavedAt: new Date() })
+      )
       expect(screen.getByText('Saved Locally')).toBeInTheDocument()
     })
   })

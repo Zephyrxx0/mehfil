@@ -5,14 +5,12 @@ describe('HTTP Security Headers Configuration (Task 2.1)', () => {
   it('defines comprehensive security headers including CSP', async () => {
     expect(nextConfig.headers).toBeDefined()
     const headerConfigs = await nextConfig.headers!()
-    
+
     // Find the global route rule
     const globalRule = headerConfigs.find((rule) => rule.source === '/(.*)')
     expect(globalRule).toBeDefined()
 
-    const headersMap = new Map(
-      globalRule!.headers.map((h) => [h.key, h.value])
-    )
+    const headersMap = new Map(globalRule!.headers.map((h) => [h.key, h.value]))
 
     // Verify critical headers
     expect(headersMap.get('X-Frame-Options')).toBe('DENY')

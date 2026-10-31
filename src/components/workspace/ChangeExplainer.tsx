@@ -24,7 +24,6 @@ export interface ChangeExplainerProps {
   history?: PlanChangeRecord[]
   versions?: PlanVersionRecord[]
   currentVersionNumber?: number
-  previousGuestCount?: number
   onUndo?: (item: PlanChangeRecord, index: number) => void
   onRestoreVersion?: (targetVersion: number) => void
   isReadOnly?: boolean
@@ -54,7 +53,6 @@ export function ChangeExplainer({
   history,
   versions,
   currentVersionNumber,
-  previousGuestCount,
   onUndo,
   onRestoreVersion,
   isReadOnly = false,
@@ -63,8 +61,10 @@ export function ChangeExplainer({
   const footer = plan && (
     <p className="border-t border-royal-plum/10 pt-4 text-sm text-royal-plum/60">
       Sum of allocations exactly equals{' '}
-      <span className="font-semibold tabular-nums text-royal-plum">{formatINR(plan.totalBudgetPaise)}</span>.
-      Zero paise leakage.
+      <span className="font-semibold tabular-nums text-royal-plum">
+        {formatINR(plan.totalBudgetPaise)}
+      </span>
+      . Zero paise leakage.
     </p>
   )
 
@@ -96,16 +96,22 @@ export function ChangeExplainer({
                 key={ver.id || ver.versionNumber}
                 className={cn(
                   'flex flex-col gap-2 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6 sm:px-5',
-                  isCurrent ? 'relative bg-marigold/10 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-marigold' : ''
+                  isCurrent
+                    ? 'relative bg-marigold/10 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-marigold'
+                    : ''
                 )}
               >
                 <div className="min-w-0">
                   <p className="flex flex-wrap items-baseline gap-x-2 text-sm text-royal-plum/60">
-                    <span className="font-semibold tabular-nums text-royal-plum">v{ver.versionNumber}</span>
+                    <span className="font-semibold tabular-nums text-royal-plum">
+                      v{ver.versionNumber}
+                    </span>
                     <span>{formatRelativeTime(ver.createdAt)}</span>
                     {isCurrent && <span className="font-medium text-royal-plum">Current</span>}
                   </p>
-                  <p className="mt-1 break-words text-base leading-snug text-royal-plum">{ver.reason}</p>
+                  <p className="mt-1 break-words text-base leading-snug text-royal-plum">
+                    {ver.reason}
+                  </p>
                   {isFloorProtected && (
                     <p className="mt-1 text-sm text-royal-plum/70">Protected Moment held firm</p>
                   )}
@@ -179,14 +185,22 @@ export function ChangeExplainer({
               <div className="flex items-start justify-between gap-4">
                 <p className="text-base leading-snug text-royal-plum">{item.description}</p>
                 {onUndo && !isReadOnly && (
-                  <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={() => onUndo(item, index)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0"
+                    onClick={() => onUndo(item, index)}
+                  >
                     Undo
                   </Button>
                 )}
               </div>
 
               {item.isFloorProtected && (
-                <p className="text-sm text-royal-plum/70">Protected Moment — Non-negotiable floor locked</p>
+                <p className="text-sm text-royal-plum/70">
+                  Protected Moment — Non-negotiable floor locked
+                </p>
               )}
 
               {item.deltas && item.deltas.length > 0 && (
@@ -198,8 +212,8 @@ export function ChangeExplainer({
                     const text = isPositive
                       ? `+${formatted} to ${delta.category}`
                       : isNegative
-                      ? `-${formatted} from ${delta.category}`
-                      : `${formatted} ${delta.category}`
+                        ? `-${formatted} from ${delta.category}`
+                        : `${formatted} ${delta.category}`
                     return (
                       <li
                         key={dIdx}

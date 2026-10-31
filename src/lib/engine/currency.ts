@@ -11,12 +11,14 @@ export function formatINR(paise: Paise, options?: { compact?: boolean }): string
 
   if (options?.compact) {
     // Compact Indian notation
-    if (rupees >= 10_000_000) {  // >= 1 crore
+    if (rupees >= 10_000_000) {
+      // >= 1 crore
       const crores = rupees / 10_000_000
       // Use 1 decimal if not whole, otherwise no decimal
       const formatted = crores % 1 === 0 ? crores.toFixed(0) : crores.toFixed(1)
       return `₹${formatted}Cr`
-    } else if (rupees >= 100_000) {  // >= 1 lakh
+    } else if (rupees >= 100_000) {
+      // >= 1 lakh
       const lakhs = rupees / 100_000
       const formatted = lakhs % 1 === 0 ? lakhs.toFixed(0) : lakhs.toFixed(1)
       return `₹${formatted}L`
@@ -50,7 +52,7 @@ function formatIndianNumber(n: number): string {
   }
 
   // Combine (remove empty groups from leading slices)
-  const allGroups = groups.filter(g => g.length > 0)
+  const allGroups = groups.filter((g) => g.length > 0)
   const result = allGroups.join(',') + ',' + lastThree
   return (n < 0 ? '-' : '') + result
 }
@@ -62,7 +64,7 @@ function formatIndianNumber(n: number): string {
  */
 export function parseINRInput(str: string): Paise {
   // Strip ₹ prefix and commas
-  let s = str.trim().replace(/₹/g, '').replace(/,/g, '').trim()
+  const s = str.trim().replace(/₹/g, '').replace(/,/g, '').trim()
 
   // Check for Cr suffix (crore)
   if (/cr$/i.test(s)) {

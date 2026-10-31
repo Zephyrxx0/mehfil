@@ -9,9 +9,10 @@
 
 > **"Words from models, numbers from code."**
 
-In traditional planning tools, families struggle between rigid, lifeless spreadsheets and hallucination-prone AI chatbots that invent dates or generate distorted financial sums. 
+In traditional planning tools, families struggle between rigid, lifeless spreadsheets and hallucination-prone AI chatbots that invent dates or generate distorted financial sums.
 
 **Mehfil** guarantees:
+
 1. **Mathematical Consistency**: Pure TypeScript code owns 100% of arithmetic and dates. AI models are structurally restricted to semantic descriptions and visual categorization—never numbers or schedules.
 2. **Integer Paise Precision**: All currency calculations use integer paise (`INR`) to eliminate IEEE-754 floating-point rounding errors. Zero-sum rebalancing uses the largest remainder method.
 3. **Protected Floors**: Crucial emotional elements (e.g. Grandma's heritage catering or a signature mandap) can be designated as **Protected Moments**, locking their budget floor against automatic displacement.
@@ -43,13 +44,13 @@ In traditional planning tools, families struggle between rigid, lifeless spreads
 
 Mehfil follows a strict 3-hue festive palette honoring celebratory traditions while ensuring **WCAG AAA (4.5:1+)** contrast compliance:
 
-| Token | Name | Value | Purpose |
-|---|---|---|---|
-| `--background` | **Warm Ivory** | `hsl(43, 85%, 97%)` | Primary canvas & cards |
-| `--foreground` | **Royal Plum** | `hsl(300, 29%, 20%)` | High-contrast ink & typography |
-| `--primary` | **Marigold** | `hsl(38, 92%, 50%)` | Festive accents, active buttons |
-| `--secondary` | **Gulabi Rose** | `hsl(338, 70%, 55%)` | Celebratory highlights & badges |
-| `--maroon` | **Deep Maroon** | `hsl(348, 60%, 25%)` | Distinctive decorative accents |
+| Token          | Name            | Value                | Purpose                         |
+| -------------- | --------------- | -------------------- | ------------------------------- |
+| `--background` | **Warm Ivory**  | `hsl(43, 85%, 97%)`  | Primary canvas & cards          |
+| `--foreground` | **Royal Plum**  | `hsl(300, 29%, 20%)` | High-contrast ink & typography  |
+| `--primary`    | **Marigold**    | `hsl(38, 92%, 50%)`  | Festive accents, active buttons |
+| `--secondary`  | **Gulabi Rose** | `hsl(338, 70%, 55%)` | Celebratory highlights & badges |
+| `--maroon`     | **Deep Maroon** | `hsl(348, 60%, 25%)` | Distinctive decorative accents  |
 
 > **Rule**: Pastels are used exclusively as fills—never as text on light backgrounds.
 
@@ -105,6 +106,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ### 3. Database Setup (If using Supabase)
 
 If connecting to a live Supabase project, execute the SQL migrations located in `supabase/migrations/`:
+
 1. `20261027000000_create_collaboration_schema.sql` (Creates events, plan versions, and audit logs)
 2. `20261030000000_allow_shared_plan_read.sql` (Enables sanitized public share RPC)
 

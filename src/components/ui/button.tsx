@@ -10,16 +10,11 @@ export const buttonVariants = cva(
       variant: {
         default:
           'bg-marigold text-royal-plum shadow-[0_4px_20px_-2px_rgba(247,200,115,0.4)] hover:bg-marigold/90',
-        secondary:
-          'bg-gulabi-rose text-royal-plum shadow-xs hover:bg-gulabi-rose/90',
-        outline:
-          'border border-royal-plum/10 bg-transparent text-royal-plum hover:bg-royal-plum/5',
-        ghost:
-          'text-royal-plum hover:bg-royal-plum/5',
-        destructive:
-          'bg-terracotta text-warm-ivory shadow-xs hover:bg-terracotta/90',
-        pill:
-          'bg-marigold text-royal-plum font-bold shadow-[0_8px_24px_-4px_rgba(247,200,115,0.45)] hover:bg-marigold/95',
+        secondary: 'bg-gulabi-rose text-royal-plum shadow-xs hover:bg-gulabi-rose/90',
+        outline: 'border border-royal-plum/10 bg-transparent text-royal-plum hover:bg-royal-plum/5',
+        ghost: 'text-royal-plum hover:bg-royal-plum/5',
+        destructive: 'bg-terracotta text-warm-ivory shadow-xs hover:bg-terracotta/90',
+        pill: 'bg-marigold text-royal-plum font-bold shadow-[0_8px_24px_-4px_rgba(247,200,115,0.45)] hover:bg-marigold/95',
       },
       size: {
         default: 'h-10 px-5 py-2',
@@ -37,8 +32,7 @@ export const buttonVariants = cva(
 )
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
 
@@ -46,11 +40,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
     return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      />
+      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
     )
   }
 )

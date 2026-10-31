@@ -4,10 +4,7 @@ import { hashCapabilityToken, constantTimeCompare } from '@/lib/engine/crypto'
 import { cookies } from 'next/headers'
 import { enforceRateLimit } from '@/lib/security/rate-limit'
 
-export async function POST(
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   // Rate limit: 10 attempts per minute per IP to protect against key brute-forcing
   const rateLimitResponse = enforceRateLimit(req, 'claim-plan', 10, 60_000)
   if (rateLimitResponse) return rateLimitResponse
@@ -50,7 +47,10 @@ export async function POST(
   const isMatch = constantTimeCompare(tokenHash, event.edit_key_hash)
 
   if (!isMatch) {
-    return NextResponse.json({ authorized: false, error: 'Invalid capability token' }, { status: 401 })
+    return NextResponse.json(
+      { authorized: false, error: 'Invalid capability token' },
+      { status: 401 }
+    )
   }
 
   // 3. Set HttpOnly authorization cookie

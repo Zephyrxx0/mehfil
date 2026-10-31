@@ -66,7 +66,9 @@ export function DescribeVibeDialog({ open, onOpenChange, onSuggested }: Describe
       })
       const json = await res.json()
       if (!res.ok || !json?.success) {
-        throw new Error(typeof json?.error === 'string' ? json.error : 'Could not find vibes just now')
+        throw new Error(
+          typeof json?.error === 'string' ? json.error : 'Could not find vibes just now'
+        )
       }
       onSuggested(json.data as VibeSuggestionResult)
       setText('')
@@ -85,8 +87,9 @@ export function DescribeVibeDialog({ open, onOpenChange, onSuggested }: Describe
         <DialogHeader>
           <DialogTitle>Describe your vibe</DialogTitle>
           <DialogDescription>
-            Write a few words about how the celebration should look and feel. We will pick {VIBE_MIN} to {VIBE_MAX} matching
-            references for you. You can still change them afterwards.
+            Write a few words about how the celebration should look and feel. We will pick{' '}
+            {VIBE_MIN} to {VIBE_MAX} matching references for you. You can still change them
+            afterwards.
           </DialogDescription>
         </DialogHeader>
 
@@ -99,6 +102,7 @@ export function DescribeVibeDialog({ open, onOpenChange, onSuggested }: Describe
             value={text}
             onChange={(e) => setText(e.target.value.slice(0, MAX_DESCRIPTION_LENGTH))}
             rows={4}
+            // eslint-disable-next-line jsx-a11y/no-autofocus -- opened by a user action; focus must land here
             autoFocus
             placeholder="e.g. Warm candlelit courtyard, marigold and brass, family close by"
             className="w-full resize-none rounded-xl border border-royal-plum/15 bg-white/80 p-3.5 text-sm text-royal-plum placeholder:text-royal-plum/40 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"

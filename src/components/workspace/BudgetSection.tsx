@@ -82,7 +82,9 @@ export function BudgetSection({
               </span>
             )}
           </dd>
-          <p className="mt-1 text-sm text-royal-plum/60">Baseline: {plan.baselineGuestCount} guests</p>
+          <p className="mt-1 text-sm text-royal-plum/60">
+            Baseline: {plan.baselineGuestCount} guests
+          </p>
         </div>
 
         <div className="border-l border-royal-plum/10 py-4 pl-4 sm:px-5">
@@ -99,8 +101,14 @@ export function BudgetSection({
       <section aria-labelledby="allocation-heading">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
           <div>
-            <h3 id="allocation-heading" className="flex items-center gap-2.5 font-serif text-xl font-bold text-royal-plum">
-              <span aria-hidden="true" className="h-4 w-1 shrink-0 origin-bottom rounded-full bg-gradient-to-b from-marigold to-gulabi-rose motion-safe:animate-[mehfil-flourish_0.5s_cubic-bezier(0.22,1,0.36,1)_both]" />
+            <h3
+              id="allocation-heading"
+              className="flex items-center gap-2.5 font-serif text-xl font-bold text-royal-plum"
+            >
+              <span
+                aria-hidden="true"
+                className="h-4 w-1 shrink-0 origin-bottom rounded-full bg-gradient-to-b from-marigold to-gulabi-rose motion-safe:animate-[mehfil-flourish_0.5s_cubic-bezier(0.22,1,0.36,1)_both]"
+              />
               <span>Where the money goes</span>
             </h3>
             <p className="mt-0.5 text-sm text-royal-plum/60">
@@ -108,7 +116,13 @@ export function BudgetSection({
             </p>
           </div>
           {onOpenInspector && (
-            <Button type="button" variant="outline" size="sm" onClick={onOpenInspector} className="self-start">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onOpenInspector}
+              className="self-start"
+            >
               Smart Inspector
             </Button>
           )}

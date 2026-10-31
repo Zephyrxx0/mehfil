@@ -96,7 +96,10 @@ describe('SharePage Security Hardening & RPC (Task 3.2)', () => {
     })
 
     mockSingle.mockResolvedValue({ data: null, error: { message: 'Not found' } })
-    mockEq.mockReturnValue({ single: mockSingle, eq: vi.fn().mockReturnValue({ single: mockSingle }) })
+    mockEq.mockReturnValue({
+      single: mockSingle,
+      eq: vi.fn().mockReturnValue({ single: mockSingle }),
+    })
     mockSelect.mockReturnValue({ eq: mockEq })
     mockFrom.mockReturnValue({ select: mockSelect })
 

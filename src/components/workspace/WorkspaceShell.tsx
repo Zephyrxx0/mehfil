@@ -34,6 +34,8 @@ import { QuoteIntakeSheet } from '@/components/quotes/QuoteIntakeSheet'
 import { SmartInspectorSheet } from '@/components/quotes/SmartInspectorSheet'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { createLogger } from '@/lib/logger'
+const logger = createLogger('workspace-shell')
 
 export interface WorkspaceShellProps {
   plan: Plan
@@ -134,9 +136,13 @@ export function WorkspaceShell({
   }, [plan])
 
   const [isQuoteIntakeOpen, setIsQuoteIntakeOpen] = useState(false)
-  const [activeQuoteCategory, setActiveQuoteCategory] = useState<BudgetCategory | undefined>(undefined)
+  const [activeQuoteCategory, setActiveQuoteCategory] = useState<BudgetCategory | undefined>(
+    undefined
+  )
   const [isSmartInspectorOpen, setIsSmartInspectorOpen] = useState(false)
-  const [smartInspectorLayout, setSmartInspectorLayout] = useState<GenerativeUILayout | undefined>(undefined)
+  const [smartInspectorLayout, setSmartInspectorLayout] = useState<GenerativeUILayout | undefined>(
+    undefined
+  )
   const [smartInspectorTier, setSmartInspectorTier] = useState<1 | 2 | 3 | undefined>(undefined)
   const [activeQuotes, setActiveQuotes] = useState<VendorQuote[]>(() => plan.quotes || [])
 
@@ -188,7 +194,7 @@ export function WorkspaceShell({
       onCommitQuoteProp?.(finalPlan)
       setIsQuoteIntakeOpen(false)
     } catch (err: any) {
-      console.error('[WorkspaceShell] Quote commit error:', err)
+      logger.error('[WorkspaceShell] Quote commit error:', err)
     }
   }
 
@@ -201,7 +207,7 @@ export function WorkspaceShell({
       setCurrentPlan(nextPlan)
       onUnlockQuoteProp?.(nextPlan)
     } catch (err: any) {
-      console.error('[WorkspaceShell] Quote unlock error:', err)
+      logger.error('[WorkspaceShell] Quote unlock error:', err)
     }
   }
 
@@ -234,7 +240,9 @@ export function WorkspaceShell({
 
         <div className="flex items-center gap-3">
           {syncStatus && <SyncStatusBadge status={syncStatus} />}
-          {isReadOnly && <span className="hidden text-sm text-royal-plum/70 sm:inline">Read-Only View</span>}
+          {isReadOnly && (
+            <span className="hidden text-sm text-royal-plum/70 sm:inline">Read-Only View</span>
+          )}
           {isReadOnly && onUnlockEdit && (
             <Button
               type="button"
@@ -288,7 +296,10 @@ export function WorkspaceShell({
         aria-label="Workspace sections"
         className="sticky top-0 z-30 border-y border-royal-plum/10 bg-warm-ivory/95 backdrop-blur-sm"
       >
-        <ul role="tablist" className="mx-auto flex w-full max-w-4xl gap-0.5 overflow-x-auto px-2 [scrollbar-width:none] sm:gap-4 sm:px-6 [&::-webkit-scrollbar]:hidden">
+        <ul
+          role="tablist"
+          className="mx-auto flex w-full max-w-4xl gap-0.5 overflow-x-auto px-2 [scrollbar-width:none] sm:gap-4 sm:px-6 [&::-webkit-scrollbar]:hidden"
+        >
           {PLAN_TABS.map(({ id, label }) => {
             const isActive = activeTab === id
             const classes = cn(
@@ -346,69 +357,68 @@ export function WorkspaceShell({
           {notices}
 
           <div key={activeTab} className="flex flex-col gap-6 motion-safe:animate-rise">
-          {activeTab === 'budget' && (
-            <div data-testid="pane-budget" className="flex flex-col gap-6">
-              {v2Banner}
-              {shortfall}
-              <BudgetSection
-                plan={currentPlan}
-                onGuestCountChange={onGuestCountChange}
-                onSetProtected={onSetProtected}
-                onCheckQuote={handleCheckQuote}
-                onUnlockQuote={handleUnlockQuote}
-                onOpenInspector={() => handleOpenSmartInspector()}
-                isReadOnly={isReadOnly}
-              />
-            </div>
-          )}
+            {activeTab === 'budget' && (
+              <div data-testid="pane-budget" className="flex flex-col gap-6">
+                {v2Banner}
+                {shortfall}
+                <BudgetSection
+                  plan={currentPlan}
+                  onGuestCountChange={onGuestCountChange}
+                  onSetProtected={onSetProtected}
+                  onCheckQuote={handleCheckQuote}
+                  onUnlockQuote={handleUnlockQuote}
+                  onOpenInspector={() => handleOpenSmartInspector()}
+                  isReadOnly={isReadOnly}
+                />
+              </div>
+            )}
 
-          {activeTab === 'timeline' && (
-            <div data-testid="pane-timeline">
-              <TimelineSection plan={currentPlan} schedule={timelineSchedule} />
-            </div>
-          )}
+            {activeTab === 'timeline' && (
+              <div data-testid="pane-timeline">
+                <TimelineSection plan={currentPlan} schedule={timelineSchedule} />
+              </div>
+            )}
 
-          {activeTab === 'ideas' && (
-            <div data-testid="pane-ideas" className="flex flex-col gap-6">
-              {shortfall}
-              <CuratedIdeasSection
-                plan={currentPlan}
-                isReadOnly={isReadOnly}
-                onAdoptIdea={onAdoptIdea ?? (() => {})}
-                onRetractIdea={onRetractIdea ?? (() => {})}
-              />
-            </div>
-          )}
+            {activeTab === 'ideas' && (
+              <div data-testid="pane-ideas" className="flex flex-col gap-6">
+                {shortfall}
+                <CuratedIdeasSection
+                  plan={currentPlan}
+                  isReadOnly={isReadOnly}
+                  onAdoptIdea={onAdoptIdea ?? (() => {})}
+                  onRetractIdea={onRetractIdea ?? (() => {})}
+                />
+              </div>
+            )}
 
-          {activeTab === 'style' && (
-            <div data-testid="pane-style" className="flex flex-col gap-6">
-              {v2Banner}
-              <StyleDNACard
-                plan={currentPlan}
-                currentVersion={effectiveCurrentVersion}
-                isReadOnly={isReadOnly}
-                isExtracting={isExtracting}
-                onRetuneStyle={onRetuneStyle}
-                onResetToBaseline={onResetToBaseline}
-                onRetryExtraction={onRetryExtraction}
-              />
-            </div>
-          )}
+            {activeTab === 'style' && (
+              <div data-testid="pane-style" className="flex flex-col gap-6">
+                {v2Banner}
+                <StyleDNACard
+                  plan={currentPlan}
+                  currentVersion={effectiveCurrentVersion}
+                  isReadOnly={isReadOnly}
+                  isExtracting={isExtracting}
+                  onRetuneStyle={onRetuneStyle}
+                  onResetToBaseline={onResetToBaseline}
+                  onRetryExtraction={onRetryExtraction}
+                />
+              </div>
+            )}
 
-          {activeTab === 'history' && (
-            <div data-testid="pane-history">
-              <ChangeExplainer
-                plan={currentPlan}
-                changes={changeList}
-                versions={versions}
-                currentVersionNumber={currentVersionNumber}
-                onRestoreVersion={onRestoreVersion}
-                isReadOnly={isReadOnly}
-                previousGuestCount={previousGuestCount}
-                onUndo={onUndo}
-              />
-            </div>
-          )}
+            {activeTab === 'history' && (
+              <div data-testid="pane-history">
+                <ChangeExplainer
+                  plan={currentPlan}
+                  changes={changeList}
+                  versions={versions}
+                  currentVersionNumber={currentVersionNumber}
+                  onRestoreVersion={onRestoreVersion}
+                  isReadOnly={isReadOnly}
+                  onUndo={onUndo}
+                />
+              </div>
+            )}
           </div>
         </div>
       </main>

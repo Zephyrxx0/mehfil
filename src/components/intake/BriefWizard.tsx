@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { clampToToday, isPastDate, parseISODate, rollForwardToFuture } from '@/lib/dates'
 import { VIBE_MAX, VIBE_MIN } from '@/lib/vibe-limits'
+import { createLogger } from '@/lib/logger'
+const logger = createLogger('brief-wizard')
 
 export type WizardStep = 1 | 2 | 3 | 4 | 5
 
@@ -72,7 +74,9 @@ export function BriefWizard({
   // Form State
   const [title, setTitle] = useState(initialBrief?.title ?? 'My Celebration')
   const [eventType, setEventType] = useState<EventType>(initialBrief?.eventType ?? 'wedding')
-  const [eventDate, setEventDate] = useState(initialBrief?.eventDate ?? rollForwardToFuture(DEFAULT_EVENT_DATE))
+  const [eventDate, setEventDate] = useState(
+    initialBrief?.eventDate ?? rollForwardToFuture(DEFAULT_EVENT_DATE)
+  )
   const [city, setCity] = useState(initialBrief?.city ?? 'Delhi')
   const [guestCount, setGuestCount] = useState(initialBrief?.guestCount ?? 300)
   const [rawBudgetInput, setRawBudgetInput] = useState(
@@ -121,7 +125,7 @@ export function BriefWizard({
     })()
 
     run.catch((err) => {
-      console.error('[BriefWizard] failed to create plan:', err)
+      logger.error('[BriefWizard] failed to create plan:', err)
       isSubmittingRef.current = false
       setIsRevealing(false)
       setSubmitError('We could not open your plan just now. Please try again.')
@@ -263,7 +267,8 @@ export function BriefWizard({
               onChange={(fields) => {
                 if (fields.guestCount !== undefined) setGuestCount(fields.guestCount)
                 if (fields.rawBudgetInput !== undefined) setRawBudgetInput(fields.rawBudgetInput)
-                if (fields.protectedCategory !== undefined) setProtectedCategory(fields.protectedCategory)
+                if (fields.protectedCategory !== undefined)
+                  setProtectedCategory(fields.protectedCategory)
               }}
             />
           )}
@@ -280,7 +285,10 @@ export function BriefWizard({
           )}
 
           {step === 4 && (
-            <StepVibeSwatches selectedSwatchIds={selectedSwatchIds} onChange={setSelectedSwatchIds} />
+            <StepVibeSwatches
+              selectedSwatchIds={selectedSwatchIds}
+              onChange={setSelectedSwatchIds}
+            />
           )}
 
           {step === 5 && (
@@ -300,73 +308,73 @@ export function BriefWizard({
             </p>
           )}
           <div className="flex items-center justify-between gap-3">
-          <Button
-            type="button"
-            variant="ghost"
-            className={cn(step === 1 && 'invisible')}
-            tabIndex={step === 1 ? -1 : 0}
-            aria-hidden={step === 1}
-            onClick={() => setStep((s) => Math.max(1, s - 1) as WizardStep)}
-          >
-            Back
-          </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className={cn(step === 1 && 'invisible')}
+              tabIndex={step === 1 ? -1 : 0}
+              aria-hidden={step === 1}
+              onClick={() => setStep((s) => Math.max(1, s - 1) as WizardStep)}
+            >
+              Back
+            </Button>
 
-          <div className="flex items-center gap-2">
-            {step === 3 && (
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isRevealing}
-                onClick={() => handleGenerate(false)}
-              >
-                Skip &amp; Generate
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {step === 3 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isRevealing}
+                  onClick={() => handleGenerate(false)}
+                >
+                  Skip &amp; Generate
+                </Button>
+              )}
 
-            {step < 4 && (
-              <Button
-                type="button"
-                className="min-w-28"
-                disabled={!canGoNext}
-                aria-disabled={!canGoNext}
-                onClick={() => setStep((s) => (s + 1) as WizardStep)}
-              >
-                Next
-              </Button>
-            )}
+              {step < 4 && (
+                <Button
+                  type="button"
+                  className="min-w-28"
+                  disabled={!canGoNext}
+                  aria-disabled={!canGoNext}
+                  onClick={() => setStep((s) => (s + 1) as WizardStep)}
+                >
+                  Next
+                </Button>
+              )}
 
-            {step === 4 && (
-              <Button
-                type="button"
-                className="min-w-28"
-                disabled={!isSwatchesValid}
-                aria-disabled={!isSwatchesValid}
-                onClick={() => setStep(5)}
-              >
-                Confirm {VIBE_MIN} to {VIBE_MAX} Vibes
-              </Button>
-            )}
+              {step === 4 && (
+                <Button
+                  type="button"
+                  className="min-w-28"
+                  disabled={!isSwatchesValid}
+                  aria-disabled={!isSwatchesValid}
+                  onClick={() => setStep(5)}
+                >
+                  Confirm {VIBE_MIN} to {VIBE_MAX} Vibes
+                </Button>
+              )}
 
-            {step === 5 && (
-              <Button
-                type="button"
-                className="min-w-40"
-                disabled={isRevealing}
-                aria-disabled={isRevealing}
-                aria-busy={isRevealing}
-                onClick={() => handleGenerate(true)}
-              >
-                {isRevealing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-                    Infusing...
-                  </>
-                ) : (
-                  'Infuse Style DNA'
-                )}
-              </Button>
-            )}
-          </div>
+              {step === 5 && (
+                <Button
+                  type="button"
+                  className="min-w-40"
+                  disabled={isRevealing}
+                  aria-disabled={isRevealing}
+                  aria-busy={isRevealing}
+                  onClick={() => handleGenerate(true)}
+                >
+                  {isRevealing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                      Infusing...
+                    </>
+                  ) : (
+                    'Infuse Style DNA'
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

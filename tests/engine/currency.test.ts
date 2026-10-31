@@ -3,11 +3,11 @@ import { formatINR, parseINRInput } from '@/lib/engine/currency'
 
 describe('formatINR', () => {
   it('formats whole rupees in Indian numbering', () => {
-    expect(formatINR(250_000_000)).toBe('₹25,00,000')  // ₹25 lakh
-    expect(formatINR(50_000_000)).toBe('₹5,00,000')    // ₹5 lakh
-    expect(formatINR(10_000_000)).toBe('₹1,00,000')    // ₹1 lakh
-    expect(formatINR(100_000)).toBe('₹1,000')           // ₹1000
-    expect(formatINR(500)).toBe('₹5')                   // ₹5
+    expect(formatINR(250_000_000)).toBe('₹25,00,000') // ₹25 lakh
+    expect(formatINR(50_000_000)).toBe('₹5,00,000') // ₹5 lakh
+    expect(formatINR(10_000_000)).toBe('₹1,00,000') // ₹1 lakh
+    expect(formatINR(100_000)).toBe('₹1,000') // ₹1000
+    expect(formatINR(500)).toBe('₹5') // ₹5
   })
 
   it('formats compact lakh notation', () => {
@@ -23,8 +23,8 @@ describe('formatINR', () => {
   })
 
   it('rounds paise to nearest rupee', () => {
-    expect(formatINR(150)).toBe('₹2')    // 1.5 rupees rounds to 2
-    expect(formatINR(149)).toBe('₹1')    // 1.49 rounds to 1
+    expect(formatINR(150)).toBe('₹2') // 1.5 rupees rounds to 2
+    expect(formatINR(149)).toBe('₹1') // 1.49 rounds to 1
     expect(formatINR(0)).toBe('₹0')
   })
 })
@@ -43,7 +43,7 @@ describe('parseINRInput', () => {
   })
 
   it('parses crore notation', () => {
-    expect(parseINRInput('1Cr')).toBe(1_000_000_000)   // 1 crore in paise
+    expect(parseINRInput('1Cr')).toBe(1_000_000_000) // 1 crore in paise
     expect(parseINRInput('2.5Cr')).toBe(2_500_000_000) // 2.5 crore in paise
   })
 

@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { extractStyleDNAWithFallbackLadder } from '@/lib/ai/orchestrator'
 import { extractDeterministicStyleDNA } from '@/lib/ai/heuristic'
 import { enforceRateLimit } from '@/lib/security/rate-limit'
+import { createLogger } from '@/lib/logger'
+const logger = createLogger('api.style-dna')
 
 const StyleDNARequestSchema = z.object({
   selectedSwatchIds: z.array(z.string()).min(3).max(6),
@@ -21,7 +23,7 @@ export async function POST(request: Request) {
   let body: any
   try {
     body = await request.json()
-  } catch (parseError) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Invalid JSON request payload' },
       { status: 400 }
@@ -30,10 +32,7 @@ export async function POST(request: Request) {
 
   const parsed = StyleDNARequestSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json(
-      { success: false, error: parsed.error.issues },
-      { status: 400 }
-    )
+    return NextResponse.json({ success: false, error: parsed.error.issues }, { status: 400 })
   }
 
   const { selectedSwatchIds, protectedMomentQuote, tradeoffs } = parsed.data
@@ -54,7 +53,10 @@ export async function POST(request: Request) {
     )
   } catch (err: any) {
     // Zero-failure fallback guarantee (GENUI-03, D-13)
-    console.error('[API /api/style-dna] Unexpected exception, executing Tier 3 emergency recovery:', err)
+    logger.error(
+      '[API /api/style-dna] Unexpected exception, executing Tier 3 emergency recovery:',
+      err
+    )
 
     const fallbackDNA = extractDeterministicStyleDNA(
       selectedSwatchIds,

@@ -167,9 +167,7 @@ describe('Pure TypeScript Deterministic Diff Engine (D-12, COLLAB-04, ADR-0004)'
           title: 'Artisanal Kulhad Chai Bar',
           targetCategory: 'catering',
           costPaise: 5000000, // ₹50,000
-          displacedDonors: [
-            { lineId: 'line-decor', category: 'decor', displacedPaise: 5000000 },
-          ],
+          displacedDonors: [{ lineId: 'line-decor', category: 'decor', displacedPaise: 5000000 }],
           adoptedAt: '2026-10-27T10:00:00.000Z',
         },
       ],
@@ -199,9 +197,7 @@ describe('Pure TypeScript Deterministic Diff Engine (D-12, COLLAB-04, ADR-0004)'
           title: 'Artisanal Kulhad Chai Bar',
           targetCategory: 'catering',
           costPaise: 5000000,
-          displacedDonors: [
-            { lineId: 'line-decor', category: 'decor', displacedPaise: 5000000 },
-          ],
+          displacedDonors: [{ lineId: 'line-decor', category: 'decor', displacedPaise: 5000000 }],
           adoptedAt: '2026-10-27T10:00:00.000Z',
         },
       ],

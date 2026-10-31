@@ -2,12 +2,7 @@
 
 import React from 'react'
 import type { GenerativeUILayout, BudgetCategory, Plan, CuratedIdea } from '@/lib/engine/types'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { PlanProvider } from './registry/PlanContext'
 import { VendorChecklist } from './registry/VendorChecklist'
 import { IdeaGrid } from './registry/IdeaGrid'
@@ -120,16 +115,11 @@ export function SmartInspectorSheet({
                   )}
 
                   {section.component === 'QuoteReport' && (
-                    <QuoteReport
-                      quoteId={section.quoteIds?.[0]}
-                    />
+                    <QuoteReport quoteId={section.quoteIds?.[0]} />
                   )}
 
                   {section.component === 'ScenarioComparison' && (
-                    <ScenarioComparison
-                      quoteIds={section.quoteIds}
-                      lineId={section.lineIds?.[0]}
-                    />
+                    <ScenarioComparison quoteIds={section.quoteIds} lineId={section.lineIds?.[0]} />
                   )}
                 </div>
               </div>
@@ -140,4 +130,3 @@ export function SmartInspectorSheet({
     </Sheet>
   )
 }
-

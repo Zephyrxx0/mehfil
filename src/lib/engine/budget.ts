@@ -26,10 +26,10 @@ export function apportionRupees(totalPaise: Paise, ratios: number[]): Paise[] {
   const totalRupees = Math.round(totalPaise / 100)
 
   // Compute quotas (floating point OK here — only for computing remainders)
-  const quotas = ratios.map(r => r * totalRupees)
+  const quotas = ratios.map((r) => r * totalRupees)
 
   // Take floors
-  const floors = quotas.map(q => Math.floor(q))
+  const floors = quotas.map((q) => Math.floor(q))
   const remainders = quotas.map((q, i) => q - floors[i])
 
   // How many extra rupees to distribute?
@@ -37,9 +37,7 @@ export function apportionRupees(totalPaise: Paise, ratios: number[]): Paise[] {
   const extra = totalRupees - sumFloors
 
   // Largest-remainder: sort by remainder descending, give extra to top N
-  const indices = remainders
-    .map((r, i) => ({ r, i }))
-    .sort((a, b) => b.r - a.r)
+  const indices = remainders.map((r, i) => ({ r, i })).sort((a, b) => b.r - a.r)
 
   const rupees = [...floors]
   for (let k = 0; k < extra; k++) {
@@ -47,7 +45,7 @@ export function apportionRupees(totalPaise: Paise, ratios: number[]): Paise[] {
   }
 
   // Convert to paise
-  const paises = rupees.map(r => r * 100)
+  const paises = rupees.map((r) => r * 100)
 
   // Verify invariant
   const sum = paises.reduce((a, b) => a + b, 0)
@@ -73,13 +71,15 @@ export function rebalanceGuestCount(plan: Plan, newGuestCount: number): Plan {
   if (newGuestCount <= 0) throw new Error('Guest count must be positive')
 
   const ratio = newGuestCount / plan.baselineGuestCount
-  const lines = plan.lines.map(l => ({ ...l }))  // shallow copy
+  const lines = plan.lines.map((l) => ({ ...l })) // shallow copy
 
   // Step 1: Fix per-guest lines based on new guest count
-  const perGuestLines = lines.filter(l => l.lineType === 'per_guest' && !l.isProtected)
-  const protectedLines = lines.filter(l => l.isProtected)
-  const fixedLines = lines.filter(l => (l.lineType === 'fixed' || l.lineType === 'buffer') && !l.isProtected)
-  const elasticLines = lines.filter(l => l.lineType === 'flexible' && !l.isProtected)
+  const perGuestLines = lines.filter((l) => l.lineType === 'per_guest' && !l.isProtected)
+  const protectedLines = lines.filter((l) => l.isProtected)
+  const fixedLines = lines.filter(
+    (l) => (l.lineType === 'fixed' || l.lineType === 'buffer') && !l.isProtected
+  )
+  const elasticLines = lines.filter((l) => l.lineType === 'flexible' && !l.isProtected)
 
   // Compute fixed total (unchanged)
   const fixedTotal = fixedLines.reduce((s, l) => s + l.currentPaise, 0)
@@ -89,12 +89,14 @@ export function rebalanceGuestCount(plan: Plan, newGuestCount: number): Plan {
 
   // Per-guest lines: scale proportionally using Hare-Niemeyer
   const baselinePerGuestTotal = perGuestLines.reduce((s, l) => s + l.baselinePaise, 0)
-  const newPerGuestTotal = Math.round(baselinePerGuestTotal * ratio / 100) * 100  // round to nearest rupee
+  const newPerGuestTotal = Math.round((baselinePerGuestTotal * ratio) / 100) * 100 // round to nearest rupee
 
   if (perGuestLines.length > 0 && baselinePerGuestTotal > 0) {
-    const perGuestRatios = perGuestLines.map(l => l.baselinePaise / baselinePerGuestTotal)
+    const perGuestRatios = perGuestLines.map((l) => l.baselinePaise / baselinePerGuestTotal)
     const newAllocations = apportionRupees(newPerGuestTotal, perGuestRatios)
-    perGuestLines.forEach((l, i) => { l.currentPaise = newAllocations[i] })
+    perGuestLines.forEach((l, i) => {
+      l.currentPaise = newAllocations[i]
+    })
   }
 
   // Step 2: What's left for elastic lines?
@@ -102,7 +104,7 @@ export function rebalanceGuestCount(plan: Plan, newGuestCount: number): Plan {
   const elasticBudget = plan.totalBudgetPaise - allocatedSoFar
 
   // Step 3: Apply elastic budget with 40% floor constraint (D-11, ADR-0002)
-  const floorValues = elasticLines.map(l => Math.round(l.baselinePaise * 0.40 / 100) * 100)
+  const floorValues = elasticLines.map((l) => Math.round((l.baselinePaise * 0.4) / 100) * 100)
   const sumFloors = floorValues.reduce((s, v) => s + v, 0)
 
   let isInfeasible = false
@@ -121,7 +123,7 @@ export function rebalanceGuestCount(plan: Plan, newGuestCount: number): Plan {
     const totalElasticBaseline = elasticLines.reduce((s, l) => s + l.baselinePaise, 0)
 
     if (totalElasticBaseline > 0) {
-      const elasticRatios = elasticLines.map(l => l.baselinePaise / totalElasticBaseline)
+      const elasticRatios = elasticLines.map((l) => l.baselinePaise / totalElasticBaseline)
       const extraAllocations = apportionRupees(extraBudget, elasticRatios)
       elasticLines.forEach((l, i) => {
         l.currentPaise = floorValues[i] + extraAllocations[i]
@@ -136,12 +138,12 @@ export function rebalanceGuestCount(plan: Plan, newGuestCount: number): Plan {
 
   // Merge updated lines back
   const lineMap = new Map([
-    ...perGuestLines.map(l => [l.id, l] as [string, BudgetLine]),
-    ...protectedLines.map(l => [l.id, l] as [string, BudgetLine]),
-    ...fixedLines.map(l => [l.id, l] as [string, BudgetLine]),
-    ...elasticLines.map(l => [l.id, l] as [string, BudgetLine]),
+    ...perGuestLines.map((l) => [l.id, l] as [string, BudgetLine]),
+    ...protectedLines.map((l) => [l.id, l] as [string, BudgetLine]),
+    ...fixedLines.map((l) => [l.id, l] as [string, BudgetLine]),
+    ...elasticLines.map((l) => [l.id, l] as [string, BudgetLine]),
   ])
-  const newLines = plan.lines.map(l => lineMap.get(l.id) ?? l)
+  const newLines = plan.lines.map((l) => lineMap.get(l.id) ?? l)
 
   // Verify invariant (for feasible plans)
   if (!isInfeasible) {
@@ -149,8 +151,9 @@ export function rebalanceGuestCount(plan: Plan, newGuestCount: number): Plan {
     if (sum !== plan.totalBudgetPaise) {
       // Fix any integer rounding by adjusting the most elastic line
       const diff = plan.totalBudgetPaise - sum
-      const adjustTarget = newLines.find(l => l.lineType === 'flexible' && !l.isProtected)
-        ?? newLines[newLines.length - 1]
+      const adjustTarget =
+        newLines.find((l) => l.lineType === 'flexible' && !l.isProtected) ??
+        newLines[newLines.length - 1]
       adjustTarget.currentPaise += diff
     }
   }
@@ -187,14 +190,14 @@ export function calculateShortfallRemedies(plan: Plan, deficitPaise: Paise): Sho
 
   // Remedy 2: Reduce Guest Count to feasible maximum
   // The elastic donor capacity = sum of (currentPaise - floor) across elastic lines
-  const elasticLines = plan.lines.filter(l => l.lineType === 'flexible' && !l.isProtected)
+  const elasticLines = plan.lines.filter((l) => l.lineType === 'flexible' && !l.isProtected)
   const totalElasticCapacity = elasticLines.reduce((s, l) => {
-    const floor = Math.round(l.baselinePaise * 0.40 / 100) * 100
+    const floor = Math.round((l.baselinePaise * 0.4) / 100) * 100
     return s + Math.max(0, l.currentPaise - floor)
   }, 0)
 
   // Current demand from per-guest lines
-  const perGuestLines = plan.lines.filter(l => l.lineType === 'per_guest' && !l.isProtected)
+  const perGuestLines = plan.lines.filter((l) => l.lineType === 'per_guest' && !l.isProtected)
   const perGuestBaseline = perGuestLines.reduce((s, l) => s + l.baselinePaise, 0)
 
   // Per-guest paise per person at baseline
@@ -203,9 +206,8 @@ export function calculateShortfallRemedies(plan: Plan, deficitPaise: Paise): Sho
   // Maximum feasible guests: how many guests can we afford with available elastic capacity?
   const currentPerGuestTotal = perGuestLines.reduce((s, l) => s + l.currentPaise, 0)
   const availableForPerGuest = currentPerGuestTotal + totalElasticCapacity
-  const maxFeasibleGuests = paisePerGuest > 0
-    ? Math.floor(availableForPerGuest / paisePerGuest)
-    : brief.guestCount
+  const maxFeasibleGuests =
+    paisePerGuest > 0 ? Math.floor(availableForPerGuest / paisePerGuest) : brief.guestCount
 
   const reduceGuestsRemedy: ShortfallRemedy = {
     type: 'reduce_guests',
@@ -216,12 +218,13 @@ export function calculateShortfallRemedies(plan: Plan, deficitPaise: Paise): Sho
 
   // Remedy 3: Trim elastic lines to their floors
   const trimableLines = elasticLines
-    .filter(l => l.currentPaise > Math.round(l.baselinePaise * 0.40 / 100) * 100)
+    .filter((l) => l.currentPaise > Math.round((l.baselinePaise * 0.4) / 100) * 100)
     .sort((a, b) => (a.elasticityRank ?? 99) - (b.elasticityRank ?? 99))
 
-  const trimDescription = trimableLines.length > 0
-    ? `Trim ${trimableLines.map(l => l.name).join(', ')} to their minimum floors to free up ₹${Math.ceil(totalElasticCapacity / 100).toLocaleString('en-IN')}`
-    : 'No additional flexible trim capacity available'
+  const trimDescription =
+    trimableLines.length > 0
+      ? `Trim ${trimableLines.map((l) => l.name).join(', ')} to their minimum floors to free up ₹${Math.ceil(totalElasticCapacity / 100).toLocaleString('en-IN')}`
+      : 'No additional flexible trim capacity available'
 
   const trimRemedy: ShortfallRemedy = {
     type: 'trim_elastic',
@@ -251,16 +254,16 @@ export function applyTrimElasticRemedy(plan: Plan, deficitPaise?: Paise): Plan {
     }
   }
 
-  const lines = plan.lines.map(l => ({ ...l }))
+  const lines = plan.lines.map((l) => ({ ...l }))
   const elasticLines = lines
-    .filter(l => l.lineType === 'flexible' && !l.isProtected)
+    .filter((l) => l.lineType === 'flexible' && !l.isProtected)
     .sort((a, b) => (a.elasticityRank ?? 99) - (b.elasticityRank ?? 99))
 
   let remainingDeficit = deficit
 
   for (const line of elasticLines) {
     if (remainingDeficit <= 0) break
-    const floor = Math.round(line.baselinePaise * 0.40 / 100) * 100
+    const floor = Math.round((line.baselinePaise * 0.4) / 100) * 100
     const available = Math.max(0, line.currentPaise - floor)
     if (available > 0) {
       const trimAmount = Math.min(remainingDeficit, available)
@@ -300,7 +303,7 @@ export function applyTrimElasticRemedy(plan: Plan, deficitPaise?: Paise): Plan {
  * Only one line can be Protected at a time.
  */
 export function setProtectedMoment(plan: Plan, category: BudgetCategory): Plan {
-  const newLines = plan.lines.map(l => ({
+  const newLines = plan.lines.map((l) => ({
     ...l,
     isProtected: l.category === category,
   }))
@@ -318,15 +321,15 @@ export function setProtectedMoment(plan: Plan, category: BudgetCategory): Plan {
  *   plan becomes infeasible with shortfallPaise, and deterministic remedies are computed (D-04, ADR-0002).
  */
 export function adoptIdea(plan: Plan, idea: CuratedIdea): Plan {
-  const lines = plan.lines.map(l => ({ ...l }))
-  const targetLine = lines.find(l => l.category === idea.category)
+  const lines = plan.lines.map((l) => ({ ...l }))
+  const targetLine = lines.find((l) => l.category === idea.category)
   if (!targetLine) {
     throw new Error(`Target category ${idea.category} not found in plan`)
   }
 
   // Identify flexible donor candidate lines: flexible, not protected, and not the target category
   const donorCandidates = lines
-    .filter(l => l.lineType === 'flexible' && !l.isProtected && l.category !== idea.category)
+    .filter((l) => l.lineType === 'flexible' && !l.isProtected && l.category !== idea.category)
     .sort((a, b) => (a.elasticityRank ?? 99) - (b.elasticityRank ?? 99))
 
   let neededPaise = idea.costPaise
@@ -334,7 +337,7 @@ export function adoptIdea(plan: Plan, idea: CuratedIdea): Plan {
 
   for (const donor of donorCandidates) {
     if (neededPaise <= 0) break
-    const floor = Math.round(donor.baselinePaise * 0.40 / 100) * 100
+    const floor = Math.round((donor.baselinePaise * 0.4) / 100) * 100
     const available = Math.max(0, donor.currentPaise - floor)
     if (available > 0) {
       const deduction = Math.min(neededPaise, available)
@@ -402,13 +405,13 @@ export function adoptIdea(plan: Plan, idea: CuratedIdea): Plan {
  * - Cleanses shortfall and infeasible status if the idea caused shortfall
  */
 export function retractIdea(plan: Plan, ideaId: string): Plan {
-  const record = plan.adoptedIdeas?.find(r => r.ideaId === ideaId)
+  const record = plan.adoptedIdeas?.find((r) => r.ideaId === ideaId)
   if (!record) {
     return plan
   }
 
-  const lines = plan.lines.map(l => ({ ...l }))
-  const targetLine = lines.find(l => l.category === record.targetCategory)
+  const lines = plan.lines.map((l) => ({ ...l }))
+  const targetLine = lines.find((l) => l.category === record.targetCategory)
   if (targetLine) {
     targetLine.currentPaise -= record.costPaise
   }
@@ -416,13 +419,13 @@ export function retractIdea(plan: Plan, ideaId: string): Plan {
   // Reverse restore displaced paise: iterate record.displacedDonors in reverse order
   const reversedDonors = [...record.displacedDonors].reverse()
   for (const donor of reversedDonors) {
-    const line = lines.find(l => l.id === donor.lineId)
+    const line = lines.find((l) => l.id === donor.lineId)
     if (line) {
       line.currentPaise += donor.displacedPaise
     }
   }
 
-  const remainingAdoptedIdeas = (plan.adoptedIdeas ?? []).filter(r => r.ideaId !== ideaId)
+  const remainingAdoptedIdeas = (plan.adoptedIdeas ?? []).filter((r) => r.ideaId !== ideaId)
 
   const newPlan: Plan = {
     ...plan,
@@ -448,8 +451,9 @@ export function retractIdea(plan: Plan, ideaId: string): Plan {
     const sum = newPlan.lines.reduce((s, l) => s + l.currentPaise, 0)
     if (sum !== newPlan.totalBudgetPaise) {
       const diff = newPlan.totalBudgetPaise - sum
-      const adjustTarget = newPlan.lines.find(l => l.lineType === 'flexible' && !l.isProtected)
-        ?? newPlan.lines[newPlan.lines.length - 1]
+      const adjustTarget =
+        newPlan.lines.find((l) => l.lineType === 'flexible' && !l.isProtected) ??
+        newPlan.lines[newPlan.lines.length - 1]
       adjustTarget.currentPaise += diff
     }
   }
@@ -475,7 +479,7 @@ export function previewQuoteDisplacement(
   tierId: string,
   activeAdderIds?: string[]
 ): QuoteDisplacementPreview {
-  const tier = quote.tiers.find(t => t.tierId === tierId) ?? quote.tiers[0]
+  const tier = quote.tiers.find((t) => t.tierId === tierId) ?? quote.tiers[0]
   if (!tier) {
     throw new Error(`Tier ${tierId} not found in quote ${quote.id}`)
   }
@@ -484,14 +488,14 @@ export function previewQuoteDisplacement(
   let committedPaise = tier.baseTierPaise
   if (activeAdderIds !== undefined) {
     const addersTotal = (quote.omissionAdders ?? [])
-      .filter(a => activeAdderIds.includes(a.id))
+      .filter((a) => activeAdderIds.includes(a.id))
       .reduce((sum, a) => sum + a.amountPaise, 0)
     committedPaise += addersTotal
   } else {
     committedPaise = tier.totalWithAddersPaise ?? tier.baseTierPaise
   }
 
-  const targetLine = plan.lines.find(l => l.category === quote.category)
+  const targetLine = plan.lines.find((l) => l.category === quote.category)
   if (!targetLine) {
     throw new Error(`Target category line ${quote.category} not found in plan`)
   }
@@ -510,7 +514,9 @@ export function previewQuoteDisplacement(
 
   // Delta > 0: Need to fund excess outlay via flexible donor lines
   const donorCandidates = plan.lines
-    .filter(l => l.lineType === 'flexible' && !l.isProtected && !l.isCommitted && l.id !== targetLine.id)
+    .filter(
+      (l) => l.lineType === 'flexible' && !l.isProtected && !l.isCommitted && l.id !== targetLine.id
+    )
     .sort((a, b) => (a.elasticityRank ?? 99) - (b.elasticityRank ?? 99))
 
   let neededPaise = deltaPaise
@@ -518,7 +524,7 @@ export function previewQuoteDisplacement(
 
   for (const donor of donorCandidates) {
     if (neededPaise <= 0) break
-    const floor = Math.round(donor.baselinePaise * 0.40 / 100) * 100
+    const floor = Math.round((donor.baselinePaise * 0.4) / 100) * 100
     const available = Math.max(0, donor.currentPaise - floor)
     if (available > 0) {
       const deduction = Math.min(neededPaise, available)
@@ -555,7 +561,7 @@ export function commitQuote(
   tierId: string,
   activeAdderIds?: string[]
 ): Plan {
-  const tier = quote.tiers.find(t => t.tierId === tierId) ?? quote.tiers[0]
+  const tier = quote.tiers.find((t) => t.tierId === tierId) ?? quote.tiers[0]
   if (!tier) {
     throw new Error(`Tier ${tierId} not found in quote ${quote.id}`)
   }
@@ -563,15 +569,15 @@ export function commitQuote(
   let committedPaise = tier.baseTierPaise
   if (activeAdderIds !== undefined) {
     const addersTotal = (quote.omissionAdders ?? [])
-      .filter(a => activeAdderIds.includes(a.id))
+      .filter((a) => activeAdderIds.includes(a.id))
       .reduce((sum, a) => sum + a.amountPaise, 0)
     committedPaise += addersTotal
   } else {
     committedPaise = tier.totalWithAddersPaise ?? tier.baseTierPaise
   }
 
-  const lines = plan.lines.map(l => ({ ...l }))
-  const targetLine = lines.find(l => l.category === quote.category)
+  const lines = plan.lines.map((l) => ({ ...l }))
+  const targetLine = lines.find((l) => l.category === quote.category)
   if (!targetLine) {
     throw new Error(`Target category line ${quote.category} not found in plan`)
   }
@@ -582,14 +588,17 @@ export function commitQuote(
   if (deltaPaise > 0) {
     // Excess outlay: drain flexible donor lines in elasticity order down to 40% floor
     const donorCandidates = lines
-      .filter(l => l.lineType === 'flexible' && !l.isProtected && !l.isCommitted && l.id !== targetLine.id)
+      .filter(
+        (l) =>
+          l.lineType === 'flexible' && !l.isProtected && !l.isCommitted && l.id !== targetLine.id
+      )
       .sort((a, b) => (a.elasticityRank ?? 99) - (b.elasticityRank ?? 99))
 
     let neededPaise = deltaPaise
 
     for (const donor of donorCandidates) {
       if (neededPaise <= 0) break
-      const floor = Math.round(donor.baselinePaise * 0.40 / 100) * 100
+      const floor = Math.round((donor.baselinePaise * 0.4) / 100) * 100
       const available = Math.max(0, donor.currentPaise - floor)
       if (available > 0) {
         const deduction = Math.min(neededPaise, available)
@@ -605,7 +614,7 @@ export function commitQuote(
     // Under budget savings: restore previously trimmed flexible lines back toward baseline
     let surplusPaise = -deltaPaise
     const flexibleLinesToRestore = lines
-      .filter(l => l.lineType === 'flexible' && !l.isProtected && l.id !== targetLine.id)
+      .filter((l) => l.lineType === 'flexible' && !l.isProtected && l.id !== targetLine.id)
       .sort((a, b) => (b.elasticityRank ?? 99) - (a.elasticityRank ?? 99))
 
     for (const line of flexibleLinesToRestore) {
@@ -620,11 +629,11 @@ export function commitQuote(
 
     // Allocate any leftover surplus to contingency buffer
     if (surplusPaise > 0) {
-      const contingency = lines.find(l => l.category === 'contingency')
+      const contingency = lines.find((l) => l.category === 'contingency')
       if (contingency) {
         contingency.currentPaise += surplusPaise
       } else {
-        const bufferLine = lines.find(l => l.lineType === 'buffer')
+        const bufferLine = lines.find((l) => l.lineType === 'buffer')
         if (bufferLine) {
           bufferLine.currentPaise += surplusPaise
         } else if (flexibleLinesToRestore.length > 0) {
@@ -646,7 +655,7 @@ export function commitQuote(
 
   // Track quote in plan
   const existingQuotes = plan.quotes ?? []
-  const quotes = [...existingQuotes.filter(q => q.id !== quote.id), quote]
+  const quotes = [...existingQuotes.filter((q) => q.id !== quote.id), quote]
 
   const newPlan: Plan = {
     ...plan,
@@ -672,9 +681,10 @@ export function commitQuote(
     const sum = newPlan.lines.reduce((s, l) => s + l.currentPaise, 0)
     if (sum !== newPlan.totalBudgetPaise) {
       const diff = newPlan.totalBudgetPaise - sum
-      const adjustTarget = newPlan.lines.find(l => l.category === 'contingency')
-        ?? newPlan.lines.find(l => l.lineType === 'flexible' && !l.isProtected && !l.isCommitted)
-        ?? newPlan.lines[newPlan.lines.length - 1]
+      const adjustTarget =
+        newPlan.lines.find((l) => l.category === 'contingency') ??
+        newPlan.lines.find((l) => l.lineType === 'flexible' && !l.isProtected && !l.isCommitted) ??
+        newPlan.lines[newPlan.lines.length - 1]
       adjustTarget.currentPaise += diff
     }
   }
@@ -688,8 +698,8 @@ export function commitQuote(
  * - Restores category line back to baselinePaise and rebalances flexible lines / contingency
  */
 export function unlockQuote(plan: Plan, category: BudgetCategory): Plan {
-  const lines = plan.lines.map(l => ({ ...l }))
-  const targetLine = lines.find(l => l.category === category)
+  const lines = plan.lines.map((l) => ({ ...l }))
+  const targetLine = lines.find((l) => l.category === category)
   if (!targetLine || !targetLine.isCommitted) {
     return plan
   }
@@ -710,7 +720,7 @@ export function unlockQuote(plan: Plan, category: BudgetCategory): Plan {
   if (delta > 0) {
     // Target was under baseline, returning to baseline requires more money
     let needed = delta
-    const contingency = lines.find(l => l.category === 'contingency')
+    const contingency = lines.find((l) => l.category === 'contingency')
     if (contingency && contingency.currentPaise > contingency.baselinePaise) {
       const take = Math.min(needed, contingency.currentPaise - contingency.baselinePaise)
       contingency.currentPaise -= take
@@ -718,12 +728,15 @@ export function unlockQuote(plan: Plan, category: BudgetCategory): Plan {
     }
 
     const donors = lines
-      .filter(l => l.lineType === 'flexible' && !l.isProtected && !l.isCommitted && l.id !== targetLine.id)
+      .filter(
+        (l) =>
+          l.lineType === 'flexible' && !l.isProtected && !l.isCommitted && l.id !== targetLine.id
+      )
       .sort((a, b) => (a.elasticityRank ?? 99) - (b.elasticityRank ?? 99))
 
     for (const donor of donors) {
       if (needed <= 0) break
-      const floor = Math.round(donor.baselinePaise * 0.40 / 100) * 100
+      const floor = Math.round((donor.baselinePaise * 0.4) / 100) * 100
       const avail = Math.max(0, donor.currentPaise - floor)
       if (avail > 0) {
         const take = Math.min(needed, avail)
@@ -735,7 +748,7 @@ export function unlockQuote(plan: Plan, category: BudgetCategory): Plan {
     // Target was over baseline, returning to baseline frees up money
     let surplus = -delta
     const flexibleLines = lines
-      .filter(l => l.lineType === 'flexible' && !l.isProtected && l.id !== targetLine.id)
+      .filter((l) => l.lineType === 'flexible' && !l.isProtected && l.id !== targetLine.id)
       .sort((a, b) => (b.elasticityRank ?? 99) - (a.elasticityRank ?? 99))
 
     for (const line of flexibleLines) {
@@ -749,7 +762,7 @@ export function unlockQuote(plan: Plan, category: BudgetCategory): Plan {
     }
 
     if (surplus > 0) {
-      const contingency = lines.find(l => l.category === 'contingency')
+      const contingency = lines.find((l) => l.category === 'contingency')
       if (contingency) {
         contingency.currentPaise += surplus
       } else if (flexibleLines.length > 0) {
@@ -767,7 +780,10 @@ export function unlockQuote(plan: Plan, category: BudgetCategory): Plan {
     shortfallPaise = sum - plan.totalBudgetPaise
   } else if (sum < plan.totalBudgetPaise) {
     const diff = plan.totalBudgetPaise - sum
-    const cont = lines.find(l => l.category === 'contingency') ?? lines.find(l => l.lineType === 'flexible') ?? lines[lines.length - 1]
+    const cont =
+      lines.find((l) => l.category === 'contingency') ??
+      lines.find((l) => l.lineType === 'flexible') ??
+      lines[lines.length - 1]
     cont.currentPaise += diff
   }
 
@@ -776,6 +792,9 @@ export function unlockQuote(plan: Plan, category: BudgetCategory): Plan {
     lines,
     isInfeasible,
     shortfallPaise,
-    remedies: isInfeasible && shortfallPaise ? calculateShortfallRemedies({ ...plan, lines }, shortfallPaise) : undefined,
+    remedies:
+      isInfeasible && shortfallPaise
+        ? calculateShortfallRemedies({ ...plan, lines }, shortfallPaise)
+        : undefined,
   }
 }

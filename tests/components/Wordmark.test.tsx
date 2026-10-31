@@ -7,7 +7,7 @@ import { TITLE_VIEWBOX } from '@/components/hero/title-paths'
 describe('Wordmark Component (Brand Consistency)', () => {
   it('renders the authentic landing page Ewert vector glyphs', () => {
     const { container } = render(<Wordmark size="md" />)
-    
+
     // Screen reader accessible name
     expect(screen.getByText('Mehfil (महफ़िल)')).toBeInTheDocument()
 

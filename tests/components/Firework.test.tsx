@@ -27,7 +27,13 @@ describe('firework geometry', () => {
   it('gives each type a different look', () => {
     const sigs = TYPES.map((t) => {
       const s = buildFirework(t)
-      return JSON.stringify([s.streaks.length, s.sparks.length, s.rings.length, s.twinkles.length, s.spin ?? 0])
+      return JSON.stringify([
+        s.streaks.length,
+        s.sparks.length,
+        s.rings.length,
+        s.twinkles.length,
+        s.spin ?? 0,
+      ])
     })
     expect(new Set(sigs).size).toBe(TYPES.length)
   })
@@ -85,7 +91,9 @@ describe('Firework component', () => {
 describe('landing page fireworks', () => {
   it('has five different fireworks in the marked areas', () => {
     const { container } = render(<HeroSection />)
-    const types = [...container.querySelectorAll('[data-firework]')].map((n) => n.getAttribute('data-firework'))
+    const types = [...container.querySelectorAll('[data-firework]')].map((n) =>
+      n.getAttribute('data-firework')
+    )
     expect(types.sort()).toEqual(['chakri', 'palm', 'peony', 'ring', 'willow'])
   })
 })

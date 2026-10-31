@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  GenerativeUISectionSchema,
-  GenerativeUILayoutSchema,
-  GenerativeUIComponentEnum,
-  LayoutVariantEnum,
-} from '@/lib/ai/schemas'
+import { GenerativeUISectionSchema, GenerativeUILayoutSchema } from '@/lib/ai/schemas'
 import {
   generateDeterministicLayout,
   generateLayoutWithFallbackLadder,
@@ -139,7 +134,8 @@ describe('Closed Registry Generative UI Schema & Entity ID Binding (GENUI-01, GE
   it('validates a complete GenerativeUILayoutSchema structure', () => {
     const validLayout = {
       layoutTitle: 'Wedding Feast & Decor Planning Layout',
-      layoutSummary: 'Unified layout combining catering scenario analysis with timeline vendor checklist.',
+      layoutSummary:
+        'Unified layout combining catering scenario analysis with timeline vendor checklist.',
       sections: [
         {
           id: 'sec-1',
@@ -217,14 +213,9 @@ describe('Deterministic Layout & 3-Tier Fallback Ladder (GENUI-03, D-15, ADR-000
       }),
     }
 
-    const result = await generateLayoutWithFallbackLadder(
-      plan,
-      'Curate layout',
-      'catering',
-      {
-        modelResolver: () => mockBadModel,
-      }
-    )
+    const result = await generateLayoutWithFallbackLadder(plan, 'Curate layout', 'catering', {
+      modelResolver: () => mockBadModel,
+    })
 
     // Must fallback to Tier 3 with valid schema and zero crash
     expect(result.runRecord.activeTier).toBe(3)

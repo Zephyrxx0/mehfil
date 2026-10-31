@@ -14,11 +14,7 @@ describe('UndoActionBar Component (D-14, Tier 1 Instant Undo)', () => {
 
   it('renders nothing when message is null', () => {
     const { container } = render(
-      <UndoActionBar
-        message={null}
-        onUndo={vi.fn()}
-        onDismiss={vi.fn()}
-      />
+      <UndoActionBar message={null} onUndo={vi.fn()} onDismiss={vi.fn()} />
     )
     expect(container).toBeEmptyDOMElement()
   })

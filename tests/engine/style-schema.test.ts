@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import {
-  StyleDimensionsSchema,
   NamedPaletteColorSchema,
   NamedPaletteSchema,
   StyleDNASchema,
@@ -27,7 +26,8 @@ describe('Style DNA Zod Schemas & Identity Safeguards (D-05, D-06, VIBE-03)', ()
       { name: 'Royal Plum', hex: '#3A2442' },
       { name: 'Warm Ivory', hex: '#FFF8EE' },
     ],
-    vibeStatement: 'An exuberant evening filled with energetic acoustic rhythms, warm ambient lanterns, and rich marigold garlands.',
+    vibeStatement:
+      'An exuberant evening filled with energetic acoustic rhythms, warm ambient lanterns, and rich marigold garlands.',
     protectedCategory: 'entertainment',
     protectedMomentQuote: 'Soulful live sufi qawwali session under starry lanterns.',
   }
@@ -141,7 +141,8 @@ describe('Style DNA Zod Schemas & Identity Safeguards (D-05, D-06, VIBE-03)', ()
         misc: 1.0,
         contingency: 0.8,
       },
-      rationale: 'Elevated Decor and Entertainment for grand aesthetic and protected moment floor; trimmed favors.',
+      rationale:
+        'Elevated Decor and Entertainment for grand aesthetic and protected moment floor; trimmed favors.',
     }
     expect(PlannerModulationSchema.safeParse(validModulation).success).toBe(true)
 

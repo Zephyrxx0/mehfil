@@ -207,10 +207,7 @@ describe('Generative UI Primitives with Pure Entity ID Binding (GENUI-01, GENUI-
 
     render(
       <PlanProvider plan={plan}>
-        <QuoteReport
-          quoteId="quote_caterer_royal"
-          onCommitQuote={handleCommit}
-        />
+        <QuoteReport quoteId="quote_caterer_royal" onCommitQuote={handleCommit} />
       </PlanProvider>
     )
 
@@ -279,4 +276,3 @@ describe('Generative UI Primitives with Pure Entity ID Binding (GENUI-01, GENUI-
     expect(container.textContent).toContain('Royal Caterers & Feast')
   })
 })
-

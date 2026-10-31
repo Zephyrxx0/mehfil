@@ -21,7 +21,20 @@ import {
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog'
 import { QRCodeSVG } from 'qrcode.react'
-import { Copy, Check, MessageCircle, RefreshCw, KeyRound, Share2, ShieldAlert, Lock, Loader2, CloudOff } from 'lucide-react'
+import {
+  Copy,
+  Check,
+  MessageCircle,
+  RefreshCw,
+  KeyRound,
+  Share2,
+  ShieldAlert,
+  Lock,
+  Loader2,
+  CloudOff,
+} from 'lucide-react'
+import { createLogger } from '@/lib/logger'
+const logger = createLogger('share-modal')
 
 export interface ShareSaveModalProps {
   open: boolean
@@ -46,22 +59,22 @@ export function ShareSaveModal({
     customIsCloudConfigured ??
     Boolean(
       process.env.NEXT_PUBLIC_SUPABASE_URL &&
-        !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id') &&
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-        !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('your-anon-key')
+      !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id') &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('your-anon-key')
     )
 
   const [copiedEditKey, setCopiedEditKey] = React.useState(false)
   const [copiedShareLink, setCopiedShareLink] = React.useState(false)
-  const [shareToken, setShareToken] = React.useState<string>(initialShareToken || 'share-token-preview')
+  const [shareToken, setShareToken] = React.useState<string>(
+    initialShareToken || 'share-token-preview'
+  )
   const [isRegenerating, setIsRegenerating] = React.useState(false)
   const [isAlertOpen, setIsAlertOpen] = React.useState(false)
 
   // Construct absolute capability URLs safely on browser mount
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://mehfil.app'
-  const editUrl = editKey
-    ? `${origin}/plan/${planId}?key=${editKey}`
-    : `${origin}/plan/${planId}`
+  const editUrl = editKey ? `${origin}/plan/${planId}?key=${editKey}` : `${origin}/plan/${planId}`
   const shareUrl = `${origin}/share/${shareToken}`
 
   const copyToClipboard = async (text: string, isEdit: boolean) => {
@@ -77,7 +90,7 @@ export function ShareSaveModal({
         setTimeout(() => setCopiedShareLink(false), 2000)
       }
     } catch {
-      console.warn('Clipboard write failed')
+      logger.warn('Clipboard write failed')
     }
   }
 
@@ -92,7 +105,7 @@ export function ShareSaveModal({
         setShareToken(data.shareToken)
       }
     } catch (e) {
-      console.warn('Failed to regenerate share key:', e)
+      logger.warn('Failed to regenerate share key:', e)
     } finally {
       setIsRegenerating(false)
       setIsAlertOpen(false)
@@ -116,7 +129,8 @@ export function ShareSaveModal({
               <span>Share & Save Celebration</span>
             </DialogTitle>
             <DialogDescription className="text-sm text-royal-plum/70">
-              Manage secret editing capability keys or share a celebratory sanitized view with family.
+              Manage secret editing capability keys or share a celebratory sanitized view with
+              family.
             </DialogDescription>
           </DialogHeader>
 
@@ -127,11 +141,11 @@ export function ShareSaveModal({
             >
               <CloudOff className="h-5 w-5 text-royal-plum/70 shrink-0 mt-0.5" />
               <div className="space-y-0.5 text-xs text-royal-plum leading-relaxed">
-                <p className="font-semibold text-royal-plum">
-                  Saved to this device only
-                </p>
+                <p className="font-semibold text-royal-plum">Saved to this device only</p>
                 <p className="text-royal-plum/80">
-                  Cloud database sync isn&apos;t configured yet. Your celebration is safely stored in this browser, but shared links and QR codes won&apos;t open on other phones or computers.
+                  Cloud database sync isn&apos;t configured yet. Your celebration is safely stored
+                  in this browser, but shared links and QR codes won&apos;t open on other phones or
+                  computers.
                 </p>
               </div>
             </div>
@@ -154,17 +168,19 @@ export function ShareSaveModal({
               <div className="rounded-2xl border border-terracotta/30 bg-terracotta/10 p-3.5 flex items-start gap-3">
                 <ShieldAlert className="h-5 w-5 text-terracotta shrink-0 mt-0.5" />
                 <p className="text-xs text-royal-plum leading-relaxed">
-                  <strong>Keep this private.</strong> Anyone with this capability key can modify budgets, guests, and dates.
+                  <strong>Keep this private.</strong> Anyone with this capability key can modify
+                  budgets, guests, and dates.
                 </p>
               </div>
 
               {/* URL Box */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-royal-plum/80">
+                <label htmlFor="edit-url" className="text-xs font-semibold text-royal-plum/80">
                   Private Edit URL
                 </label>
                 <div className="flex gap-2">
                   <input
+                    id="edit-url"
                     type="text"
                     readOnly
                     value={editUrl}
@@ -228,17 +244,20 @@ export function ShareSaveModal({
               <div className="rounded-2xl border border-marigold/40 bg-marigold/15 p-3.5 flex items-start gap-3">
                 <Lock className="h-5 w-5 text-royal-plum/70 shrink-0 mt-0.5" />
                 <p className="text-xs text-royal-plum leading-relaxed">
-                  <strong>Sanitized View:</strong> Strips vendor contract prices, draft notes, and contingency margins. Family only sees high-level category totals and ceremony milestones.
+                  <strong>Sanitized View:</strong> Strips vendor contract prices, draft notes, and
+                  contingency margins. Family only sees high-level category totals and ceremony
+                  milestones.
                 </p>
               </div>
 
               {/* Share URL Box */}
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-royal-plum/80">
+                <label htmlFor="share-url" className="text-xs font-semibold text-royal-plum/80">
                   Celebration Share Link
                 </label>
                 <div className="flex gap-2">
                   <input
+                    id="share-url"
                     type="text"
                     readOnly
                     value={shareUrl}
@@ -283,9 +302,7 @@ export function ShareSaveModal({
               {/* Regenerate Trigger */}
               <div className="pt-2 border-t border-royal-plum/10 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-royal-plum">
-                    Need to revoke access?
-                  </p>
+                  <p className="text-xs font-semibold text-royal-plum">Need to revoke access?</p>
                   <p className="text-2xs text-royal-plum/60">
                     Regenerating invalidates previously shared links.
                   </p>
@@ -317,7 +334,8 @@ export function ShareSaveModal({
           <AlertDialogHeader>
             <AlertDialogTitle>Invalidate Old Link & Create New?</AlertDialogTitle>
             <AlertDialogDescription>
-              Anyone with the previous link will immediately lose access and see an expired celebration screen. This action cannot be undone.
+              Anyone with the previous link will immediately lose access and see an expired
+              celebration screen. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

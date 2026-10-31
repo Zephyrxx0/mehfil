@@ -14,6 +14,8 @@ import {
   type GenerativeUISection,
 } from './schemas'
 import type { BudgetCategory, Plan } from '@/lib/engine/types'
+import { createLogger } from '@/lib/logger'
+const logger = createLogger('orchestrator')
 
 export interface FallbackLadderOptions {
   timeoutMs?: number
@@ -80,12 +82,11 @@ export async function extractStyleDNAWithFallbackLadder(
 
   // Environment Key Check (D-16, T-04-06)
   const hasApiKey = Boolean(
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() ||
-    process.env.GEMINI_API_KEY?.trim()
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim()
   )
 
   if (!hasApiKey && !options?.modelResolver) {
-    console.log(
+    logger.info(
       '[Orchestrator] No Google AI API key detected. Seamlessly executing Tier 3 deterministic heuristic extractor.'
     )
     const styleDNA = extractDeterministicStyleDNA(
@@ -101,7 +102,7 @@ export async function extractStyleDNAWithFallbackLadder(
       fallbackReason: 'api_key_missing',
       timestamp: new Date().toISOString(),
     }
-    console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+    logger.info('agent_run_record', { runRecord })
     return { styleDNA, runRecord }
   }
 
@@ -120,7 +121,7 @@ export async function extractStyleDNAWithFallbackLadder(
       fallbackReason: 'forced_tier_3',
       timestamp: new Date().toISOString(),
     }
-    console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+    logger.info('agent_run_record', { runRecord })
     return { styleDNA, runRecord }
   }
 
@@ -146,11 +147,11 @@ export async function extractStyleDNAWithFallbackLadder(
         modelId: 'gemma-4-31b-it',
         timestamp: new Date().toISOString(),
       }
-      console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+      logger.info('agent_run_record', { runRecord })
       return { styleDNA, runRecord }
     } catch (err: any) {
       tier1Error = err instanceof Error ? err : new Error(String(err))
-      console.warn(
+      logger.warn(
         `[Orchestrator] Tier 1 (gemma-4-31b-it) failed: ${tier1Error.message}. Escalating to Tier 2 (gemini-3.5-flash-lite).`
       )
     }
@@ -174,22 +175,18 @@ export async function extractStyleDNAWithFallbackLadder(
         ...(fallbackReason ? { fallbackReason } : {}),
         timestamp: new Date().toISOString(),
       }
-      console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+      logger.info('agent_run_record', { runRecord })
       return { styleDNA, runRecord }
     } catch (err: any) {
       tier2Error = err instanceof Error ? err : new Error(String(err))
-      console.warn(
+      logger.warn(
         `[Orchestrator] Tier 2 (gemini-3.5-flash-lite) failed: ${tier2Error.message}. Escalating to Tier 3 (deterministic heuristic).`
       )
     }
   }
 
   // Tier 3: Deterministic Heuristic
-  const styleDNA = extractDeterministicStyleDNA(
-    selectedSwatchIds,
-    protectedMomentQuote,
-    tradeoffs
-  )
+  const styleDNA = extractDeterministicStyleDNA(selectedSwatchIds, protectedMomentQuote, tradeoffs)
   const durationMs = Math.max(0, Date.now() - startTime)
   const fallbackReason = tier2Error
     ? `Tier 1 & 2 failed: ${tier2Error.message}`
@@ -204,7 +201,7 @@ export async function extractStyleDNAWithFallbackLadder(
     fallbackReason,
     timestamp: new Date().toISOString(),
   }
-  console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+  logger.info('agent_run_record', { runRecord })
   return { styleDNA, runRecord }
 }
 
@@ -256,7 +253,11 @@ export function extractDeterministicQuote(
     return {
       vendorName: 'Shadi Mandap & Floral Design Studio',
       category: 'decor',
-      statedInclusions: ['All artificial & fresh floral materials', 'Setup & strike crew', 'Brass lamps'],
+      statedInclusions: [
+        'All artificial & fresh floral materials',
+        'Setup & strike crew',
+        'Brass lamps',
+      ],
       statedExclusions: ['All government taxes extra', 'Sound and DG power generator set'],
       paymentTerms: '50% on contract sign-off, 50% on setup day before ceremony start.',
       tiers: [
@@ -270,19 +271,22 @@ export function extractDeterministicQuote(
               description: 'Grand Floral Entrance Arch',
               amountStated: 40000,
               pricingType: 'flat',
-              sourceAnchor: 'Grand Floral Entrance Arch (Fresh Marigold & Mogra with Brass Urli decor): Rs 40,000',
+              sourceAnchor:
+                'Grand Floral Entrance Arch (Fresh Marigold & Mogra with Brass Urli decor): Rs 40,000',
             },
             {
               description: 'Sacred Vedic Mandap Setup',
               amountStated: 95000,
               pricingType: 'flat',
-              sourceAnchor: 'Sacred Vedic Mandap Setup (4-pillar carved setup with hanging floral strings & havan kund): Rs 95,000',
+              sourceAnchor:
+                'Sacred Vedic Mandap Setup (4-pillar carved setup with hanging floral strings & havan kund): Rs 95,000',
             },
             {
               description: 'Reception Stage Backdrop',
               amountStated: 45000,
               pricingType: 'flat',
-              sourceAnchor: 'Reception Stage Backdrop (Gulabi Rose draping with floral chandeliers): Rs 45,000',
+              sourceAnchor:
+                'Reception Stage Backdrop (Gulabi Rose draping with floral chandeliers): Rs 45,000',
             },
           ],
         },
@@ -336,8 +340,15 @@ export function extractDeterministicQuote(
     return {
       vendorName: 'Royal Heritage Lawns & Haveli',
       category: 'venue',
-      statedInclusions: ['Basic perimeter security', 'Housekeeping & cleanup', 'Parking valet space'],
-      statedExclusions: ['18% GST extra as per statutory norms', 'Electricity consumption meter reading'],
+      statedInclusions: [
+        'Basic perimeter security',
+        'Housekeeping & cleanup',
+        'Parking valet space',
+      ],
+      statedExclusions: [
+        '18% GST extra as per statutory norms',
+        'Electricity consumption meter reading',
+      ],
       paymentTerms: '50% advance to block dates, 50% 15 days prior to event.',
       tiers: [
         {
@@ -365,7 +376,10 @@ export function extractDeterministicQuote(
   }
 
   // Generic heuristic fallback for arbitrary text
-  const lines = rawText.split('\n').map((l) => l.trim()).filter(Boolean)
+  const lines = rawText
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
   const lineItems: Array<{
     description: string
     amountStated: number
@@ -397,7 +411,8 @@ export function extractDeterministicQuote(
     })
   }
 
-  const vendorName = lines[0]?.replace(/^[*#\s]+|[*#\s]+$/g, '').slice(0, 50) || 'Celebration Vendor'
+  const vendorName =
+    lines[0]?.replace(/^[*#\s]+|[*#\s]+$/g, '').slice(0, 50) || 'Celebration Vendor'
 
   return {
     vendorName,
@@ -432,12 +447,11 @@ export async function analyzeQuoteWithFallbackLadder(
   const quarantinedText = `<untrusted_vendor_quote>\n${rawText}\n</untrusted_vendor_quote>`
 
   const hasApiKey = Boolean(
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() ||
-    process.env.GEMINI_API_KEY?.trim()
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim()
   )
 
   if (!hasApiKey && !options?.modelResolver) {
-    console.log(
+    logger.info(
       '[Orchestrator] No Google AI API key detected. Seamlessly executing Tier 3 deterministic quote extractor.'
     )
     const extraction = extractDeterministicQuote(rawText, category)
@@ -449,7 +463,7 @@ export async function analyzeQuoteWithFallbackLadder(
       fallbackReason: 'api_key_missing',
       timestamp: new Date().toISOString(),
     }
-    console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+    logger.info('agent_run_record', { runRecord })
     return { extraction, runRecord }
   }
 
@@ -463,7 +477,7 @@ export async function analyzeQuoteWithFallbackLadder(
       fallbackReason: 'forced_tier_3',
       timestamp: new Date().toISOString(),
     }
-    console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+    logger.info('agent_run_record', { runRecord })
     return { extraction, runRecord }
   }
 
@@ -484,11 +498,11 @@ export async function analyzeQuoteWithFallbackLadder(
         modelId: 'gemma-4-31b-it',
         timestamp: new Date().toISOString(),
       }
-      console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+      logger.info('agent_run_record', { runRecord })
       return { extraction, runRecord }
     } catch (err: any) {
       tier1Error = err instanceof Error ? err : new Error(String(err))
-      console.warn(
+      logger.warn(
         `[Orchestrator] Tier 1 (gemma-4-31b-it) failed: ${tier1Error.message}. Escalating to Tier 2 (gemini-3.5-flash-lite).`
       )
     }
@@ -508,11 +522,11 @@ export async function analyzeQuoteWithFallbackLadder(
         ...(fallbackReason ? { fallbackReason } : {}),
         timestamp: new Date().toISOString(),
       }
-      console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+      logger.info('agent_run_record', { runRecord })
       return { extraction, runRecord }
     } catch (err: any) {
       tier2Error = err instanceof Error ? err : new Error(String(err))
-      console.warn(
+      logger.warn(
         `[Orchestrator] Tier 2 (gemini-3.5-flash-lite) failed: ${tier2Error.message}. Escalating to Tier 3 (deterministic heuristic).`
       )
     }
@@ -534,7 +548,7 @@ export async function analyzeQuoteWithFallbackLadder(
     fallbackReason,
     timestamp: new Date().toISOString(),
   }
-  console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+  logger.info('agent_run_record', { runRecord })
   return { extraction, runRecord }
 }
 
@@ -640,7 +654,12 @@ export function generateDeterministicLayout(
       title: 'Curated Milestone Enhancement Ideas',
       rationale:
         'Explore cultural and experiential enhancements with protected moment immunity and donor displacement.',
-      ideaIds: ['idea-royal-thali', 'idea-shehnai-welcome', 'idea-drone-photog', 'idea-mithai-favors'],
+      ideaIds: [
+        'idea-royal-thali',
+        'idea-shehnai-welcome',
+        'idea-drone-photog',
+        'idea-mithai-favors',
+      ],
     })
   }
 
@@ -721,12 +740,11 @@ export async function generateLayoutWithFallbackLadder(
   const startTime = Date.now()
 
   const hasApiKey = Boolean(
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() ||
-    process.env.GEMINI_API_KEY?.trim()
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim()
   )
 
   if (!hasApiKey && !options?.modelResolver) {
-    console.log(
+    logger.info(
       '[Orchestrator] No Google AI API key detected. Seamlessly executing Tier 3 deterministic layout generator.'
     )
     const layout = generateDeterministicLayout(plan, contextCategory)
@@ -738,7 +756,7 @@ export async function generateLayoutWithFallbackLadder(
       fallbackReason: 'api_key_missing',
       timestamp: new Date().toISOString(),
     }
-    console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+    logger.info('agent_run_record', { runRecord })
     return { layout, runRecord }
   }
 
@@ -752,7 +770,7 @@ export async function generateLayoutWithFallbackLadder(
       fallbackReason: 'forced_tier_3',
       timestamp: new Date().toISOString(),
     }
-    console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+    logger.info('agent_run_record', { runRecord })
     return { layout, runRecord }
   }
 
@@ -781,11 +799,11 @@ export async function generateLayoutWithFallbackLadder(
         modelId: 'gemma-4-31b-it',
         timestamp: new Date().toISOString(),
       }
-      console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+      logger.info('agent_run_record', { runRecord })
       return { layout, runRecord }
     } catch (err: any) {
       tier1Error = err instanceof Error ? err : new Error(String(err))
-      console.warn(
+      logger.warn(
         `[Orchestrator] Tier 1 (gemma-4-31b-it) failed: ${tier1Error.message}. Escalating to Tier 2 (gemini-3.5-flash-lite).`
       )
     }
@@ -805,11 +823,11 @@ export async function generateLayoutWithFallbackLadder(
         ...(fallbackReason ? { fallbackReason } : {}),
         timestamp: new Date().toISOString(),
       }
-      console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+      logger.info('agent_run_record', { runRecord })
       return { layout, runRecord }
     } catch (err: any) {
       tier2Error = err instanceof Error ? err : new Error(String(err))
-      console.warn(
+      logger.warn(
         `[Orchestrator] Tier 2 (gemini-3.5-flash-lite) failed: ${tier2Error.message}. Escalating to Tier 3 (deterministic layout).`
       )
     }
@@ -831,7 +849,6 @@ export async function generateLayoutWithFallbackLadder(
     fallbackReason,
     timestamp: new Date().toISOString(),
   }
-  console.log(JSON.stringify({ event: 'agent_run_record', runRecord }))
+  logger.info('agent_run_record', { runRecord })
   return { layout, runRecord }
 }
-

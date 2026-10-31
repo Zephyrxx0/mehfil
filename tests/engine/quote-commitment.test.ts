@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  commitQuote,
-  previewQuoteDisplacement,
-  unlockQuote,
-} from '@/lib/engine/budget'
+import { commitQuote, previewQuoteDisplacement, unlockQuote } from '@/lib/engine/budget'
 import {
   calculateBackwardsTimeline,
   completePrimaryBookingTask,
@@ -232,7 +228,7 @@ describe('commitQuote', () => {
     const quote = createSampleVenueQuote()
 
     const updatedPlan = commitQuote(plan, quote, 'tier_under')
-    const venueLine = updatedPlan.lines.find(l => l.category === 'venue')!
+    const venueLine = updatedPlan.lines.find((l) => l.category === 'venue')!
 
     expect(venueLine.isCommitted).toBe(true)
     expect(venueLine.committedQuoteId).toBe(quote.id)
@@ -248,9 +244,9 @@ describe('commitQuote', () => {
     const plan = createSamplePlan()
     const quote = createSampleVenueQuote()
 
-    const initialContingency = plan.lines.find(l => l.category === 'contingency')!.currentPaise
+    const initialContingency = plan.lines.find((l) => l.category === 'contingency')!.currentPaise
     const updatedPlan = commitQuote(plan, quote, 'tier_under')
-    const newContingency = updatedPlan.lines.find(l => l.category === 'contingency')!.currentPaise
+    const newContingency = updatedPlan.lines.find((l) => l.category === 'contingency')!.currentPaise
 
     // Surplus of ₹25,000 added to contingency buffer
     expect(newContingency).toBe(initialContingency + 2500000)
@@ -266,9 +262,9 @@ describe('commitQuote', () => {
 
     // Moderate tier: +₹25,000
     const updatedPlan = commitQuote(plan, quote, 'tier_moderate')
-    const miscLine = updatedPlan.lines.find(l => l.category === 'misc')!
-    const entLine = updatedPlan.lines.find(l => l.category === 'entertainment')!
-    const decorLine = updatedPlan.lines.find(l => l.category === 'decor')!
+    const miscLine = updatedPlan.lines.find((l) => l.category === 'misc')!
+    const entLine = updatedPlan.lines.find((l) => l.category === 'entertainment')!
+    const decorLine = updatedPlan.lines.find((l) => l.category === 'decor')!
 
     // Misc (Rank 1) trimmed by ₹25,000 (from ₹50,000 down to ₹25,000)
     expect(miscLine.currentPaise).toBe(2500000)
@@ -287,7 +283,7 @@ describe('commitQuote', () => {
 
     // Catering is protected: baseline ₹2,50,000
     const updatedPlan = commitQuote(plan, quote, 'tier_moderate')
-    const cateringLine = updatedPlan.lines.find(l => l.category === 'catering')!
+    const cateringLine = updatedPlan.lines.find((l) => l.category === 'catering')!
 
     expect(cateringLine.isProtected).toBe(true)
     expect(cateringLine.currentPaise).toBe(25000000) // Exactly unchanged
@@ -303,20 +299,20 @@ describe('commitQuote', () => {
     expect(updatedPlan.isInfeasible).toBe(true)
     expect(updatedPlan.shortfallPaise).toBeGreaterThan(0)
     expect(updatedPlan.remedies).toHaveLength(3)
-    expect(updatedPlan.remedies?.map(r => r.type)).toEqual([
+    expect(updatedPlan.remedies?.map((r) => r.type)).toEqual([
       'increase_budget',
       'reduce_guests',
       'trim_elastic',
     ])
 
     // Flexible lines are clamped at their 40% floor
-    const misc = updatedPlan.lines.find(l => l.category === 'misc')!
-    const ent = updatedPlan.lines.find(l => l.category === 'entertainment')!
-    const decor = updatedPlan.lines.find(l => l.category === 'decor')!
+    const misc = updatedPlan.lines.find((l) => l.category === 'misc')!
+    const ent = updatedPlan.lines.find((l) => l.category === 'entertainment')!
+    const decor = updatedPlan.lines.find((l) => l.category === 'decor')!
 
-    expect(misc.currentPaise).toBe(Math.round(misc.baselinePaise * 0.40 / 100) * 100)
-    expect(ent.currentPaise).toBe(Math.round(ent.baselinePaise * 0.40 / 100) * 100)
-    expect(decor.currentPaise).toBe(Math.round(decor.baselinePaise * 0.40 / 100) * 100)
+    expect(misc.currentPaise).toBe(Math.round((misc.baselinePaise * 0.4) / 100) * 100)
+    expect(ent.currentPaise).toBe(Math.round((ent.baselinePaise * 0.4) / 100) * 100)
+    expect(decor.currentPaise).toBe(Math.round((decor.baselinePaise * 0.4) / 100) * 100)
   })
 
   it('active omission adders are factored into committedPaise', () => {
@@ -325,7 +321,7 @@ describe('commitQuote', () => {
 
     // Add active adder_overtime (+₹10,000)
     const updatedPlan = commitQuote(plan, quote, 'tier_under', ['adder_overtime'])
-    const venueLine = updatedPlan.lines.find(l => l.category === 'venue')!
+    const venueLine = updatedPlan.lines.find((l) => l.category === 'venue')!
 
     // Base was ₹2,25,000 + ₹10,000 overtime adder = ₹2,35,000
     expect(venueLine.committedPaise).toBe(23500000)
@@ -343,8 +339,8 @@ describe('timeline synchronization', () => {
 
     const updatedSchedule = completePrimaryBookingTask(schedule, 'venue', quote.id)
 
-    const allTasks = updatedSchedule.milestoneBands.flatMap(b => b.tasks)
-    const venueTask = allTasks.find(t => t.id === CATEGORY_PRIMARY_TASK_MAP.venue)!
+    const allTasks = updatedSchedule.milestoneBands.flatMap((b) => b.tasks)
+    const venueTask = allTasks.find((t) => t.id === CATEGORY_PRIMARY_TASK_MAP.venue)!
 
     expect(venueTask).toBeDefined()
     expect(venueTask.isCompleted).toBe(true)
@@ -359,8 +355,8 @@ describe('timeline synchronization', () => {
     const bookedSchedule = completePrimaryBookingTask(schedule, 'venue', quote.id)
     const reopenedSchedule = reopenPrimaryBookingTask(bookedSchedule, 'venue')
 
-    const allTasks = reopenedSchedule.milestoneBands.flatMap(b => b.tasks)
-    const venueTask = allTasks.find(t => t.id === CATEGORY_PRIMARY_TASK_MAP.venue)!
+    const allTasks = reopenedSchedule.milestoneBands.flatMap((b) => b.tasks)
+    const venueTask = allTasks.find((t) => t.id === CATEGORY_PRIMARY_TASK_MAP.venue)!
 
     expect(venueTask.isCompleted).toBe(false)
     expect(venueTask.originQuoteId).toBeUndefined()
@@ -374,10 +370,10 @@ describe('unlockQuote', () => {
     const quote = createSampleVenueQuote()
 
     const committedPlan = commitQuote(plan, quote, 'tier_under')
-    expect(committedPlan.lines.find(l => l.category === 'venue')!.isCommitted).toBe(true)
+    expect(committedPlan.lines.find((l) => l.category === 'venue')!.isCommitted).toBe(true)
 
     const unlockedPlan = unlockQuote(committedPlan, 'venue')
-    const venueLine = unlockedPlan.lines.find(l => l.category === 'venue')!
+    const venueLine = unlockedPlan.lines.find((l) => l.category === 'venue')!
 
     expect(venueLine.isCommitted).toBe(false)
     expect(venueLine.committedQuoteId).toBeUndefined()

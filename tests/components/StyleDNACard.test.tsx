@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
 import { StyleDNACard } from '@/components/workspace/StyleDNACard'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
@@ -50,7 +50,9 @@ describe('StyleDNACard & Retune Flow (VIBE-04, D-08, D-11, D-14)', () => {
     render(<StyleDNACard plan={planWithDNA} />)
 
     // Vibe Statement in Fraunces serif styling
-    expect(screen.getByText(/A grand royal spectacle with soulful sufi melodies/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/A grand royal spectacle with soulful sufi melodies/)
+    ).toBeInTheDocument()
 
     // Named palette swatches
     expect(screen.getByText('Named Festive Palette')).toBeInTheDocument()
@@ -117,12 +119,7 @@ describe('StyleDNACard & Retune Flow (VIBE-04, D-08, D-11, D-14)', () => {
   it('opens retune sheet when clicking Edit Style DNA and saves modified dimensions', async () => {
     const handleRetune = vi.fn()
 
-    render(
-      <StyleDNACard
-        plan={planWithDNA}
-        onRetuneStyle={handleRetune}
-      />
-    )
+    render(<StyleDNACard plan={planWithDNA} onRetuneStyle={handleRetune} />)
 
     const editBtn = screen.getByRole('button', { name: /Edit Style DNA/i })
     fireEvent.click(editBtn)
@@ -143,12 +140,7 @@ describe('StyleDNACard & Retune Flow (VIBE-04, D-08, D-11, D-14)', () => {
   it('triggers AlertDialog on Reset to Baseline and confirms restoration (D-11, T-04-08)', async () => {
     const handleReset = vi.fn()
 
-    render(
-      <StyleDNACard
-        plan={planWithDNA}
-        onResetToBaseline={handleReset}
-      />
-    )
+    render(<StyleDNACard plan={planWithDNA} onResetToBaseline={handleReset} />)
 
     const resetBtn = screen.getByRole('button', { name: /Reset to Baseline \(v1\)/i })
     fireEvent.click(resetBtn)

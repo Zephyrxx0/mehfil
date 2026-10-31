@@ -1,0 +1,4 @@
+{
+  "dynamicallyLoaded": ["public/hairline/**"],
+  "ignoreExports": [{ "file": "src/components/ui/**", "exports": ["*"] }]
+}

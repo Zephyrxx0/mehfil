@@ -1,10 +1,4 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export interface Database {
   public: {
@@ -98,7 +92,7 @@ export interface Database {
             columns: ['parent_version_id']
             referencedRelation: 'plan_versions'
             referencedColumns: ['id']
-          }
+          },
         ]
       }
       change_records: {
@@ -125,7 +119,7 @@ export interface Database {
             columns: ['plan_version_id']
             referencedRelation: 'plan_versions'
             referencedColumns: ['id']
-          }
+          },
         ]
       }
     }

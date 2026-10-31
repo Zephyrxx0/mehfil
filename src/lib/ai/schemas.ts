@@ -112,11 +112,7 @@ export const GenerativeUIComponentEnum = z.enum([
   'ScenarioComparison',
 ])
 
-export const LayoutVariantEnum = z.enum([
-  'compact',
-  'detailed',
-  'side_by_side',
-])
+export const LayoutVariantEnum = z.enum(['compact', 'detailed', 'side_by_side'])
 
 export const GenerativeUISectionSchema = z
   .object({
@@ -150,4 +146,3 @@ export type GenerativeUIComponent = z.infer<typeof GenerativeUIComponentEnum>
 export type LayoutVariant = z.infer<typeof LayoutVariantEnum>
 export type GenerativeUISection = GenerativeUISectionInput
 export type GenerativeUILayout = GenerativeUILayoutInput
-

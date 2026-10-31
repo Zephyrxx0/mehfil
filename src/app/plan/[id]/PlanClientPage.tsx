@@ -10,6 +10,8 @@ import { PlanWorkspace } from '@/components/workspace/PlanWorkspace'
 import { UnlockEditDialog } from '@/components/workspace/UnlockEditDialog'
 import { isPlanTab } from '@/components/workspace/tabs'
 import { Button } from '@/components/ui/button'
+import { createLogger } from '@/lib/logger'
+const logger = createLogger('plan-page')
 
 export interface PlanClientPageProps {
   planId: string
@@ -58,7 +60,7 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
             effectiveKey = keyFromUrl
           }
         } catch (e) {
-          console.warn('[PlanPage] Auto-claim network error:', e)
+          logger.warn('[PlanPage] Auto-claim network error:', e)
         } finally {
           // Immediately strip the secret capability token from the address bar
           router.replace(pathname)
@@ -101,10 +103,12 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
     return (
       <CenteredMessage>
         <div className="max-w-md">
-          <h1 className="font-serif text-2xl font-bold text-royal-plum">Celebration Plan Not Found</h1>
+          <h1 className="font-serif text-2xl font-bold text-royal-plum">
+            Celebration Plan Not Found
+          </h1>
           <p className="mt-3 text-base leading-relaxed text-royal-plum/70">
-            We couldn’t find a plan with this identifier. It may have expired, or it was created in a
-            different browser.
+            We couldn’t find a plan with this identifier. It may have expired, or it was created in
+            a different browser.
           </p>
           <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
             <Button asChild>
