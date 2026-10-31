@@ -1,18 +1,33 @@
 import { defineConfig, devices } from '@playwright/test'
 
+import { existsSync } from 'node:fs'
+
 /**
  * The same browser flows as playwright.config.ts, run against the REAL Supabase project named in
- * the environment (source .env.local first). It creates real rows, so run it only against a
+ * .env.local (or already in the environment). It creates real rows, so run it only against a
  * project you can afford to write test plans into. Model calls stay off (key blanked).
  *
- *   set -a; . ./.env.local; set +a; pnpm exec playwright test -c playwright.live.config.ts
+ *   pnpm test:e2e:live
  */
 const APP_PORT = 3962
+
+// `pnpm test:e2e:live` does not source .env.local, so read it here. Variables already in the
+// environment win. process.loadEnvFile needs Node 20.12+; older Node can source the file by hand:
+//   set -a; . ./.env.local; set +a; pnpm exec playwright test -c playwright.live.config.ts
+if (existsSync('.env.local') && typeof process.loadEnvFile === 'function') {
+  const before = { ...process.env }
+  process.loadEnvFile('.env.local')
+  for (const [key, value] of Object.entries(before)) process.env[key] = value
+}
+
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const service = process.env.SUPABASE_SERVICE_ROLE_KEY
 if (!url || !anon || !service)
-  throw new Error('Source .env.local: Supabase URL, anon and service keys are required')
+  throw new Error(
+    'NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY are ' +
+      'required: put them in .env.local or export them before running.'
+  )
 
 export default defineConfig({
   testDir: '.',
