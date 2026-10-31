@@ -59,6 +59,7 @@ Migrations run in order and each file runs once. Your project records which file
 3. `20261031000000_token_checked_access.sql`: closes the tables to the browser and adds the token-checked functions the app uses.
 4. `20261031120000_shared_limits.sql`: the shared rate-limit and model-cap counters (service role only) and a circuit breaker on plan creation.
 5. `20261031130000_advisor_fixes.sql`: removes leftover owner policies, the signed-in role's grants on the browser functions, and two redundant indexes.
+6. `20261031140000_edit_key_failure_limit.sql`: counts wrong edit keys per plan and refuses every attempt for 10 minutes after 20 failures. All five edit-key functions share the check.
 
 `supabase/seed.sql` adds a sample event with published tokens. **Never run it against a production database.**
 
@@ -68,7 +69,7 @@ The production address is <https://bookmymehfil.vercel.app>. The app is a standa
 
 Before the first deployment:
 
-1. **Database.** Make sure the five migrations in `supabase/migrations/` are recorded as applied (`supabase migration list` shows no gaps and `supabase db push --dry-run` reports the database is up to date). Then check that the public key cannot call `consume_rate_limit` or `consume_model_call`.
+1. **Database.** Make sure the six migrations in `supabase/migrations/` are recorded as applied (`supabase migration list` shows no gaps and `supabase db push --dry-run` reports the database is up to date). Then check that the public key cannot call `consume_rate_limit` or `consume_model_call`.
 2. **Environment variables.** In Vercel, set these for Production, and for Preview if previews should use the cloud:
    - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are inlined into the browser bundle at build time. Redeploy after changing them.
    - `SUPABASE_SERVICE_ROLE_KEY` is runtime only. Mark it **Sensitive** in Vercel, and never give it a `NEXT_PUBLIC_` prefix.
@@ -131,6 +132,13 @@ The palette is three hues with plum ink: Warm Ivory `#FFF8EE`, Royal Plum `#3A24
 
 Ink on ivory and on the pastel fills reaches AAA. Secondary text and warnings meet AA. Animations honour `prefers-reduced-motion`, and Hindi text is marked `lang="hi"`.
 
+## How to review this repo
+
+- **The engine** is `src/lib/engine/`. It is pure TypeScript with no network or database access. Money lives in `currency.ts` and `budget/` (`allocate`, `rebalance`, `quotes`, `ideas`, `shared`), dates in `timeline.ts`, and change explanations in `diff.ts`.
+- **The tests** are in `tests/`, one folder per concern. `tests/engine` and `tests/properties` cover the engine, `tests/db` runs the real migrations on PGlite, and `e2e/` holds the Playwright flows.
+- **Run everything locally** with three commands: `pnpm install`, `pnpm dev` (the app on <http://localhost:3000>), and `pnpm test`. `pnpm test:e2e` runs the browser flows.
+- **How the layers fit together**, including the request flow for a vendor quote and how plans are saved and shared, is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 ## Project structure
 
 ```text
@@ -140,15 +148,24 @@ src/
     new/  plan/[id]/  share/[token]/
     fonts/              Self-hosted fonts and their licence notice
   components/           brand, hero, intake wizard, workspace (+ hooks/), quotes, ui (shadcn)
+  data/                 Swatches, curated ideas, sample quotes
   lib/
-    engine/             Pure TypeScript: budget, timeline, diff, quote guard, sanitisation
-    ai/                 The ladder, prompts, quarantine, heuristics, schemas
+    engine/             Pure TypeScript: money (paise), timeline, diff, quote guard, sanitisation
+      budget/           allocate, rebalance, quotes, ideas, shared
+    ai/                 The ladder, structured.ts (one model call), prompts, quarantine, heuristics, schemas
     security/           CSP, rate limit, model budget, request and image checks
     storage/            Cloud (database functions), local, and the hybrid adapter
     supabase/           Config and a small fetch client for the database functions
+  middleware.ts         Per-request CSP nonce
 supabase/migrations/    Schema and the token-checked functions
-tests/  e2e/            Unit and integration tests; Playwright
-docs/adr/               Eleven architecture decision records
+tests/                  Vitest: engine, ai, security, storage, components, a11y, design, data, config
+  db/                   The real migrations run on PGlite
+  properties/           fast-check property tests for the money engine
+e2e/  e2e-live/         Playwright against a local database; against the live project
+docs/
+  ARCHITECTURE.md       Layers, request flow, where to find things
+  adr/                  Eleven architecture decision records
+    README.md           Index of the records
 ```
 
 The spec-driven workflow's own files (`.planning/` and `.agents/`) are local-only and gitignored. They are not part of the repository and are not used at runtime.
