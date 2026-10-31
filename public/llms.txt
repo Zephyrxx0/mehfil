@@ -18,7 +18,7 @@
 - **Database & Auth**: Supabase PostgreSQL with capability tokens, anonymous sessions, and local storage fallback
 
 ## Key URLs
-- Homepage: https://mehfil.app/
-- Plan Intake Wizard: https://mehfil.app/new
-- Full Context: https://mehfil.app/llms-full.txt
+- Homepage: https://bookmymehfil.vercel.app/
+- Plan Intake Wizard: https://bookmymehfil.vercel.app/new
+- Full Context: https://bookmymehfil.vercel.app/llms-full.txt
 

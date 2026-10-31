@@ -1,5 +1,5 @@
 # robots.txt for Mehfil (महफ़िल)
-# https://mehfil.app
+# https://bookmymehfil.vercel.app
 
 User-agent: *
 Allow: /
@@ -12,5 +12,5 @@ Disallow: /api/
 Disallow: /plan/
 Disallow: /share/
 
-Sitemap: https://mehfil.app/sitemap.xml
+Sitemap: https://bookmymehfil.vercel.app/sitemap.xml
 
