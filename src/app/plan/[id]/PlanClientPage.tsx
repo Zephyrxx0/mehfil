@@ -91,7 +91,7 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
       isMounted = false
     }
     // Only reload when the plan itself changes, not when switching tabs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per planId; adding keyFromUrl/pathname/router would re-run the load (and flash the spinner) right after router.replace(pathname) strips the edit key from the URL
   }, [planId])
 
   if (isLoading) {

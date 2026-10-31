@@ -1,3 +1,4 @@
+import path from 'node:path'
 import type { NextConfig } from 'next'
 import bundleAnalyzer from '@next/bundle-analyzer'
 
@@ -40,6 +41,8 @@ const SECURITY_HEADERS = [
 ]
 
 const nextConfig: NextConfig = {
+  // A stray lockfile in a parent directory makes Next infer the wrong workspace root.
+  outputFileTracingRoot: path.resolve(process.cwd()),
   async headers() {
     return [
       {

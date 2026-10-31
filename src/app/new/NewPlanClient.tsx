@@ -45,7 +45,7 @@ export function NewPlanClient() {
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per starterKey; this effect saves a new plan, so re-running when the `router` identity changes would create a duplicate plan
   }, [starterKey])
 
   // /new?from=<plan id> pre-fills the wizard from an existing plan's brief.
