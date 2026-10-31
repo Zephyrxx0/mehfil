@@ -8,7 +8,7 @@ import {
   setProtectedMoment,
 } from '@/lib/engine/budget'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
-import { CURATED_IDEAS } from '@/data/curatedIdeas'
+import { CURATED_IDEAS } from '@/data/curated-ideas'
 import type { BudgetCategory, EventBrief, EventType, Plan } from '@/lib/engine/types'
 
 /**

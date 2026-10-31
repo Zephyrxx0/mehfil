@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { CURATED_IDEAS, getPersonalizedIdeas } from '@/data/curatedIdeas'
+import { CURATED_IDEAS, getPersonalizedIdeas } from '@/data/curated-ideas'
 import type { BudgetCategory, CuratedIdea, EventBrief, StyleDNA } from '@/lib/engine/types'
 
 /**

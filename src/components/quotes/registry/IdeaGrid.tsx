@@ -3,7 +3,7 @@
 import React from 'react'
 import type { CuratedIdea, Plan } from '@/lib/engine/types'
 import { formatINR } from '@/lib/engine/currency'
-import { CURATED_IDEAS } from '@/data/curatedIdeas'
+import { CURATED_IDEAS } from '@/data/curated-ideas'
 import { usePlanContext } from './PlanContext'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'

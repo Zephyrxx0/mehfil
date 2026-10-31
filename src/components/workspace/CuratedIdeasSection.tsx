@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react'
 import type { BudgetCategory, CuratedIdea, Plan } from '@/lib/engine/types'
 import { formatINR } from '@/lib/engine/currency'
-import { getPersonalizedIdeas } from '@/data/curatedIdeas'
+import { getPersonalizedIdeas } from '@/data/curated-ideas'
 import { CuratedIdeaCard } from './CuratedIdeaCard'
 import { cn } from '@/lib/utils'
 

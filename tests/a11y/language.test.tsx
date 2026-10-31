@@ -9,7 +9,7 @@ import { IdeaGrid } from '@/components/quotes/registry/IdeaGrid'
 import { PlanProvider } from '@/components/quotes/registry/PlanContext'
 import { QuoteIntakeSheet } from '@/components/quotes/QuoteIntakeSheet'
 import { SmartInspectorSheet } from '@/components/quotes/SmartInspectorSheet'
-import { CURATED_IDEAS } from '@/data/curatedIdeas'
+import { CURATED_IDEAS } from '@/data/curated-ideas'
 import { generateDeterministicLayout } from '@/lib/ai/layout-heuristic'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
 

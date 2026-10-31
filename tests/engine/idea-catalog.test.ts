@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { CURATED_IDEAS, getPersonalizedIdeas } from '@/data/curatedIdeas'
+import { CURATED_IDEAS, getPersonalizedIdeas } from '@/data/curated-ideas'
 import type { EventBrief, StyleDNA } from '@/lib/engine/types'
 
 describe('Curated Celebration Catalog & Style DNA Personalization Engine (IDEA-01)', () => {

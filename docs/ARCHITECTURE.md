@@ -150,7 +150,7 @@ A plan has two secrets, and the database generates both.
 | Plan editing and version hooks                       | `src/components/workspace/hooks/`                                                                                                   |
 | Quote screens                                        | `src/components/quotes/`                                                                                                            |
 | Intake wizard                                        | `src/components/intake/`                                                                                                            |
-| Curated content                                      | `src/data/swatches.ts`, `src/data/curatedIdeas.ts`, `src/data/sample-quotes.ts`                                                     |
+| Curated content                                      | `src/data/swatches.ts`, `src/data/curated-ideas.ts`, `src/data/sample-quotes.ts`                                                    |
 | Decisions and their reasons                          | `docs/adr/` (index in [adr/README.md](adr/README.md))                                                                               |
 
 ## Tests
