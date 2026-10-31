@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import * as axeMatchers from 'vitest-axe/matchers'
 import { axe } from './helpers'
 import HomePage from '@/app/page'
+import NotFound from '@/app/not-found'
 import { BriefWizard } from '@/components/intake/BriefWizard'
 import { PlanWorkspace } from '@/components/workspace/PlanWorkspace'
 import { ShareSaveModal } from '@/components/workspace/ShareSaveModal'
@@ -129,6 +130,14 @@ describe('automated accessibility checks (A4)', () => {
 
   it('expired share link', async () => {
     const { container } = render(<ShareClientView sanitizedPlan={null} />)
+    await expectNoViolations(container)
+  })
+
+  it('not found page', async () => {
+    const { container } = render(<NotFound />)
+    expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Return to Mehfil Home' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: 'Plan a celebration' })).toHaveAttribute('href', '/new')
     await expectNoViolations(container)
   })
 })

@@ -1,4 +1,5 @@
 import React from 'react'
+import type { Metadata } from 'next'
 import { createLogger } from '@/lib/logger'
 import { getServerRpc } from '@/lib/supabase/server'
 import { sanitizePlanForSharing } from '@/lib/engine/sanitization'
@@ -7,6 +8,13 @@ import { CloudPlans } from '@/lib/storage/cloud-plans'
 import { ShareClientView } from './ShareClientView'
 
 const logger = createLogger('share-page')
+
+// Static on purpose: the title must not name the family's celebration. The link is a
+// capability URL, so it stays out of search indexes.
+export const metadata: Metadata = {
+  title: { absolute: 'Family view — Mehfil' },
+  robots: { index: false, follow: false },
+}
 
 interface SharePageProps {
   params: Promise<{ token: string }>
