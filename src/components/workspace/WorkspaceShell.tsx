@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useState } from 'react'
 import type {
   BudgetCategory,
   CuratedIdea,
@@ -11,21 +11,16 @@ import type {
   VendorQuote,
 } from '@/lib/engine/types'
 import type { StyleDimensions } from '@/lib/ai/schemas'
-import { applyCommittedBookings, calculateBackwardsTimeline } from '@/lib/engine/timeline'
-import { QuoteIntakeSheet } from '@/components/quotes/QuoteIntakeSheet'
-import { SmartInspectorSheet } from '@/components/quotes/SmartInspectorSheet'
-import { BudgetSection } from './BudgetSection'
-import { ChangeExplainer } from './ChangeExplainer'
-import { CuratedIdeasSection } from './CuratedIdeasSection'
 import { ShareSaveModal } from './ShareSaveModal'
 import { ShortfallBanner } from './ShortfallBanner'
-import { StyleDNACard } from './StyleDNACard'
 import type { SyncState } from './SyncStatusBadge'
-import { TimelineSection } from './TimelineSection'
 import { WorkspaceHeader } from './WorkspaceHeader'
+import { WorkspacePanes } from './WorkspacePanes'
+import { WorkspaceQuoteSheets } from './WorkspaceQuoteSheets'
 import { WorkspaceTabs } from './WorkspaceTabs'
 import type { PlanTabId } from './tabs'
 import { useQuotePanels } from './hooks/useQuotePanels'
+import { useWorkspaceTab } from './hooks/useWorkspaceTab'
 
 export interface WorkspaceShellProps {
   plan: Plan
@@ -68,83 +63,26 @@ export interface WorkspaceShellProps {
  * controlled component. It shows the `plan` it is given and reports every edit upward, so the
  * plan on screen is always the plan that gets saved.
  */
-export function WorkspaceShell({
-  plan,
-  changes,
-  history,
-  versions,
-  currentVersionNumber,
-  currentVersion,
-  previousGuestCount,
-  syncStatus,
-  isReadOnly = false,
-  editKey,
-  initialShareToken,
-  isExtracting = false,
-  v2Banner,
-  notices,
-  activeTab: activeTabProp,
-  basePath,
-  onGuestCountChange,
-  onSetProtected,
-  onApplyRemedy,
-  onUndo,
-  onRestoreVersion,
-  onUnlockEdit,
-  onRetuneStyle,
-  onResetToBaseline,
-  onRetryExtraction,
-  onAdoptIdea,
-  onRetractIdea,
-  onCommitQuote,
-  onUnlockQuote,
-  onCheckQuote,
-  onOpenSmartInspector,
-}: WorkspaceShellProps) {
-  const [localTab, setLocalTab] = useState<PlanTabId>('budget')
-  const activeTab = activeTabProp ?? localTab
+export function WorkspaceShell(props: WorkspaceShellProps) {
+  const { plan, isReadOnly = false } = props
+  const { activeTab, selectTab, tabsRef } = useWorkspaceTab(props.activeTab)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
-  const tabsRef = useRef<HTMLElement>(null)
 
   const quotes = useQuotePanels({
     plan,
-    onCheckQuote,
-    onOpenSmartInspector,
-    onCommitQuote,
-    onUnlockQuote,
+    onCheckQuote: props.onCheckQuote,
+    onOpenSmartInspector: props.onOpenSmartInspector,
+    onCommitQuote: props.onCommitQuote,
+    onUnlockQuote: props.onUnlockQuote,
   })
-
-  // Booked tasks come from the plan's committed lines, so they match what is saved.
-  const schedule = useMemo(
-    () =>
-      applyCommittedBookings(
-        calculateBackwardsTimeline(plan.brief.eventDate, plan.brief.guestCount),
-        plan
-      ),
-    [plan]
-  )
-
-  // When the tab changes while the tab bar is stuck, bring the new content to the top.
-  useEffect(() => {
-    const el = tabsRef.current
-    if (!el) return
-    const top = el.getBoundingClientRect().top + window.scrollY
-    if (window.scrollY > top) window.scrollTo({ top })
-  }, [activeTab])
-
-  const changeList = changes ?? history ?? []
-  const effectiveCurrentVersion =
-    currentVersion ||
-    versions?.find((v) => v.versionNumber === currentVersionNumber) ||
-    versions?.[0]
 
   const shortfall = (
     <ShortfallBanner
       plan={plan}
       isReadOnly={isReadOnly}
-      previousGuestCount={previousGuestCount}
-      onApplyRemedy={onApplyRemedy}
-      onUndo={() => onUndo?.()}
+      previousGuestCount={props.previousGuestCount}
+      onApplyRemedy={props.onApplyRemedy}
+      onUndo={() => props.onUndo?.()}
     />
   )
 
@@ -152,88 +90,51 @@ export function WorkspaceShell({
     <div className="min-h-dvh">
       <WorkspaceHeader
         plan={plan}
-        syncStatus={syncStatus}
+        syncStatus={props.syncStatus}
         isReadOnly={isReadOnly}
-        onUnlockEdit={onUnlockEdit}
+        onUnlockEdit={props.onUnlockEdit}
         onShare={() => setIsShareModalOpen(true)}
       />
 
       <WorkspaceTabs
         ref={tabsRef}
         activeTab={activeTab}
-        basePath={basePath}
+        basePath={props.basePath}
         adoptedCount={plan.adoptedIdeas?.length ?? 0}
-        onSelect={setLocalTab}
+        onSelect={selectTab}
       />
 
       <main className="mx-auto w-full max-w-4xl px-4 pb-24 pt-6 sm:px-6 sm:pt-8">
         <div className="flex flex-col gap-6">
-          {notices}
+          {props.notices}
 
-          <div key={activeTab} className="flex flex-col gap-6 motion-safe:animate-rise">
-            {activeTab === 'budget' && (
-              <div data-testid="pane-budget" className="flex flex-col gap-6">
-                {v2Banner}
-                {shortfall}
-                <BudgetSection
-                  plan={plan}
-                  onGuestCountChange={onGuestCountChange}
-                  onSetProtected={onSetProtected}
-                  onCheckQuote={quotes.checkQuote}
-                  onUnlockQuote={onUnlockQuote}
-                  onOpenInspector={() => quotes.openInspector()}
-                  isReadOnly={isReadOnly}
-                />
-              </div>
-            )}
-
-            {activeTab === 'timeline' && (
-              <div data-testid="pane-timeline">
-                <TimelineSection plan={plan} schedule={schedule} />
-              </div>
-            )}
-
-            {activeTab === 'ideas' && (
-              <div data-testid="pane-ideas" className="flex flex-col gap-6">
-                {shortfall}
-                <CuratedIdeasSection
-                  plan={plan}
-                  isReadOnly={isReadOnly}
-                  onAdoptIdea={onAdoptIdea ?? (() => {})}
-                  onRetractIdea={onRetractIdea ?? (() => {})}
-                />
-              </div>
-            )}
-
-            {activeTab === 'style' && (
-              <div data-testid="pane-style" className="flex flex-col gap-6">
-                {v2Banner}
-                <StyleDNACard
-                  plan={plan}
-                  currentVersion={effectiveCurrentVersion}
-                  isReadOnly={isReadOnly}
-                  isExtracting={isExtracting}
-                  onRetuneStyle={onRetuneStyle}
-                  onResetToBaseline={onResetToBaseline}
-                  onRetryExtraction={onRetryExtraction}
-                />
-              </div>
-            )}
-
-            {activeTab === 'history' && (
-              <div data-testid="pane-history">
-                <ChangeExplainer
-                  plan={plan}
-                  changes={changeList}
-                  versions={versions}
-                  currentVersionNumber={currentVersionNumber}
-                  onRestoreVersion={onRestoreVersion}
-                  isReadOnly={isReadOnly}
-                  onUndo={onUndo}
-                />
-              </div>
-            )}
-          </div>
+          <WorkspacePanes
+            plan={plan}
+            activeTab={activeTab}
+            isReadOnly={isReadOnly}
+            isExtracting={props.isExtracting ?? false}
+            v2Banner={props.v2Banner}
+            shortfall={shortfall}
+            changes={props.changes}
+            history={props.history}
+            versions={props.versions}
+            currentVersionNumber={props.currentVersionNumber}
+            currentVersion={props.currentVersion}
+            actions={{
+              onGuestCountChange: props.onGuestCountChange,
+              onSetProtected: props.onSetProtected,
+              onCheckQuote: quotes.checkQuote,
+              onOpenInspector: () => quotes.openInspector(),
+              onUnlockQuote: props.onUnlockQuote,
+              onAdoptIdea: props.onAdoptIdea,
+              onRetractIdea: props.onRetractIdea,
+              onRetuneStyle: props.onRetuneStyle,
+              onResetToBaseline: props.onResetToBaseline,
+              onRetryExtraction: props.onRetryExtraction,
+              onRestoreVersion: props.onRestoreVersion,
+              onUndo: props.onUndo,
+            }}
+          />
         </div>
       </main>
 
@@ -242,32 +143,15 @@ export function WorkspaceShell({
         onOpenChange={setIsShareModalOpen}
         planId={plan.id}
         planTitle={plan.brief.title}
-        editKey={editKey}
-        initialShareToken={initialShareToken}
+        editKey={props.editKey}
+        initialShareToken={props.initialShareToken}
       />
 
-      {/* Quarantined quote intake sandbox (QUOTE-01, QUOTE-02, D-01) */}
-      <QuoteIntakeSheet
-        open={quotes.intake.open}
-        onOpenChange={quotes.intake.setOpen}
-        category={quotes.intake.category}
-        guestCount={plan.brief.guestCount}
+      <WorkspaceQuoteSheets
         plan={plan}
-        onCommitQuote={quotes.commitFromIntake}
-      />
-
-      {/* Contextual smart inspector slide-over (GENUI-01, GENUI-02, GENUI-03, D-14) */}
-      <SmartInspectorSheet
-        open={quotes.inspector.open}
-        onOpenChange={quotes.inspector.setOpen}
-        layout={quotes.inspector.layout}
-        activeTier={quotes.inspector.tier}
-        plan={plan}
-        onCheckQuote={quotes.checkQuote}
-        onCommitQuote={quotes.commitFromInspector}
-        onUnlockQuote={quotes.unlockFromInspector}
-        onAdoptIdea={onAdoptIdea}
-        onRetractIdea={onRetractIdea}
+        quotes={quotes}
+        onAdoptIdea={props.onAdoptIdea}
+        onRetractIdea={props.onRetractIdea}
       />
     </div>
   )

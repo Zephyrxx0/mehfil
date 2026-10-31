@@ -4,6 +4,12 @@ import React from 'react'
 import type { Plan, ShortfallRemedy } from '@/lib/engine/types'
 import { formatINR } from '@/lib/engine/currency'
 import { Button } from '@/components/ui/button'
+import {
+  activeShortfallPaise,
+  FLOOR_PERCENT_LABEL,
+  pulseHaptic,
+  remedyButtonLabel,
+} from './plan-status'
 
 export interface ShortfallBannerProps {
   plan: Plan
@@ -20,31 +26,13 @@ export function ShortfallBanner({
   onApplyRemedy,
   onUndo,
 }: ShortfallBannerProps) {
-  if (!plan.isInfeasible || !plan.shortfallPaise) return null
+  const shortfallPaise = activeShortfallPaise(plan)
+  if (shortfallPaise === undefined) return null
 
   const handleRemedyClick = (remedy: ShortfallRemedy) => {
     if (isReadOnly) return
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      try {
-        navigator.vibrate(50)
-      } catch {
-        // Safe fallback in unsupported contexts
-      }
-    }
+    pulseHaptic()
     onApplyRemedy(remedy)
-  }
-
-  const getRemedyButtonLabel = (remedy: ShortfallRemedy): string => {
-    switch (remedy.type) {
-      case 'increase_budget':
-        return `Add ${formatINR(remedy.deltaValue)} to Budget`
-      case 'reduce_guests':
-        return `Set Guests to ${remedy.deltaValue}`
-      case 'trim_elastic':
-        return 'Trim Flexible Lines'
-      default:
-        return 'Apply Remedy'
-    }
   }
 
   return (
@@ -58,12 +46,10 @@ export function ShortfallBanner({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 id="shortfall-heading" className="font-serif text-lg font-bold text-royal-plum">
-            Budget Balancing Shortfall: {formatINR(plan.shortfallPaise)}
+            Budget Balancing Shortfall: {formatINR(shortfallPaise)}
           </h2>
           <p className="mt-1 max-w-xl text-sm leading-relaxed text-royal-plum/80">
-            Guest count or idea adoptions have exceeded the flexible headroom. Your plan stays fully
-            editable and savable (ADR-0002); allocations are held at their 40% floors. Pick a remedy
-            to close the gap.
+            {`Guest count or idea adoptions have exceeded the flexible headroom. Your plan stays fully editable and savable (ADR-0002); allocations are held at their ${FLOOR_PERCENT_LABEL} floors. Pick a remedy to close the gap.`}
           </p>
         </div>
 
@@ -94,7 +80,7 @@ export function ShortfallBanner({
                 onClick={() => handleRemedyClick(remedy)}
                 className="shrink-0 self-start sm:self-center"
               >
-                {getRemedyButtonLabel(remedy)}
+                {remedyButtonLabel(remedy)}
               </Button>
             </li>
           ))}
