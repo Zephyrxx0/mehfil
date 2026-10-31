@@ -16,6 +16,15 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 const LINK_CLASSES =
   'text-royal-plum/70 underline decoration-royal-plum/25 underline-offset-4 hover:text-royal-plum hover:decoration-royal-plum'
 
+// On a phone the top bar must never be wider than the screen. The wordmark and the buttons
+// keep their size; the save status gives way instead (its label is cut with an ellipsis),
+// the gaps and side padding are tighter below the `sm` breakpoint, and the read-only
+// "Unlock editing" button drops its second word there.
+export const HEADER_ROW_CLASSES =
+  'mx-auto flex h-14 w-full max-w-4xl items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6'
+export const HEADER_ACTIONS_CLASSES = 'flex min-w-0 items-center gap-2 sm:gap-3'
+export const SYNC_BADGE_CLASSES = 'min-w-0 [&>span:last-child]:truncate'
+
 function formatEventDate(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
   if (!y || !m || !d) return iso
@@ -47,13 +56,17 @@ export function WorkspaceHeader({
 
   return (
     <>
-      <div className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between gap-3 px-4 sm:px-6">
-        <Link href="/" className="transition-opacity hover:opacity-80" aria-label="Mehfil home">
+      <div className={HEADER_ROW_CLASSES}>
+        <Link
+          href="/"
+          className="shrink-0 transition-opacity hover:opacity-80"
+          aria-label="Mehfil home"
+        >
           <Wordmark size="sm" hideTag />
         </Link>
 
-        <div className="flex items-center gap-3">
-          {syncStatus && <SyncStatusBadge status={syncStatus} />}
+        <div className={HEADER_ACTIONS_CLASSES}>
+          {syncStatus && <SyncStatusBadge status={syncStatus} className={SYNC_BADGE_CLASSES} />}
           {isReadOnly && (
             <span className="hidden text-sm text-royal-plum/70 sm:inline">Read-Only View</span>
           )}
@@ -62,13 +75,14 @@ export function WorkspaceHeader({
               type="button"
               variant="outline"
               size="sm"
+              className="shrink-0"
               onClick={onUnlockEdit}
               aria-label="Unlock Organizer Editing"
             >
-              Unlock editing
+              Unlock<span className="max-sm:hidden"> editing</span>
             </Button>
           )}
-          <Button type="button" size="sm" onClick={onShare}>
+          <Button type="button" size="sm" className="shrink-0" onClick={onShare}>
             Share &amp; Save
           </Button>
         </div>
