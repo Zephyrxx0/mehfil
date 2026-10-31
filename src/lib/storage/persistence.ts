@@ -108,6 +108,14 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
             conflictPlan: outcome.conflictPlan,
           }
         }
+        // The database refused the key. That is also what a plan under the failed-key limit
+        // answers to a correct key, so keep the work on this device instead of dropping it.
+        // No version is recorded: the cloud history must not diverge from the local one.
+        try {
+          localPlans.writePlan(plan)
+        } catch (err) {
+          logger.warn('could not keep the rejected edit on this device', { err })
+        }
         return { status: 'error', error: 'edit_key_rejected' }
       } catch (err) {
         logger.warn('cloud save failed, saving on this device instead', { err })
@@ -154,8 +162,11 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
           capabilityStore.setEditKey(planId, key)
           return { plan: found.plan, isReadOnly: false }
         }
-        // The server rejected the key: forget it so the UI offers the unlock dialog.
-        capabilityStore.clearEditKey(planId)
+        // The server rejected the key: forget it so the UI offers the unlock dialog. Not on the
+        // browser that created the plan: it holds the real key, and a refusal there means the plan
+        // is under the failed-key limit (anyone who knows the plan id can trigger it). Keeping the
+        // key lets editing resume as soon as the limit lapses.
+        if (!localPlans.isOwner(planId)) capabilityStore.clearEditKey(planId)
       } catch (err) {
         logger.warn('cloud read failed, using the copy on this device', { err })
       }

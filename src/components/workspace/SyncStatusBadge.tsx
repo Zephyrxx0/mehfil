@@ -4,7 +4,7 @@ import * as React from 'react'
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
-export type SyncState = 'cloud_saved' | 'syncing' | 'local_saved'
+export type SyncState = 'cloud_saved' | 'syncing' | 'local_saved' | 'sync_paused'
 
 export interface SyncStatusBadgeProps {
   status: SyncState
@@ -16,12 +16,14 @@ const DOT: Record<SyncState, string> = {
   cloud_saved: 'bg-[#4A7C59]',
   syncing: 'bg-marigold animate-pulse',
   local_saved: 'bg-royal-plum/40',
+  sync_paused: 'bg-marigold',
 }
 
 const LABEL: Record<SyncState, string> = {
   cloud_saved: 'Saved to Cloud',
   syncing: 'Syncing...',
   local_saved: 'Saved Locally',
+  sync_paused: 'Sync paused',
 }
 
 export function SyncStatusBadge({ status, lastSavedAt, className }: SyncStatusBadgeProps) {
@@ -62,6 +64,12 @@ export function SyncStatusBadge({ status, lastSavedAt, className }: SyncStatusBa
           )}
           {status === 'syncing' && (
             <p>Recording mathematical changes and committing version snapshot...</p>
+          )}
+          {status === 'sync_paused' && (
+            <p>
+              The cloud could not confirm this device just now. Your latest changes are kept on this
+              device, and saving to the cloud is tried again with your next change.
+            </p>
           )}
           {status === 'local_saved' && (
             <p>
