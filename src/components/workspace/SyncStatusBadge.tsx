@@ -40,16 +40,19 @@ export function SyncStatusBadge({ status, lastSavedAt, className }: SyncStatusBa
     <TooltipProvider delayDuration={200}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div
+          <button
+            type="button"
             data-testid="sync-status-badge"
             className={cn(
-              'inline-flex cursor-default select-none items-center gap-2 text-sm text-royal-plum/70',
+              'inline-flex cursor-default select-none items-center gap-2 rounded-md border-0 bg-transparent p-0 text-sm text-royal-plum/70 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-royal-plum focus-visible:ring-offset-2',
               className
             )}
           >
             <span aria-hidden="true" className={cn('h-2 w-2 rounded-full', DOT[status])} />
-            <span className="whitespace-nowrap">{LABEL[status]}</span>
-          </div>
+            <span aria-live="polite" className="whitespace-nowrap">
+              {LABEL[status]}
+            </span>
+          </button>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-xs text-center font-sans">
           {status === 'cloud_saved' && (

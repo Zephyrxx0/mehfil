@@ -15,6 +15,8 @@ export interface UsePlanVersionsOptions {
   initialVersions?: PlanVersionRecord[]
   editKey?: string
   isReadOnly: boolean
+  /** The cloud did not confirm this plan on load, so the device copy may be ahead of it. */
+  cloudUnconfirmed?: boolean
 }
 
 /**
@@ -29,10 +31,13 @@ export function usePlanVersions({
   initialVersions,
   editKey,
   isReadOnly,
+  cloudUnconfirmed = false,
 }: UsePlanVersionsOptions) {
   const history = useVersionHistory(initialPlan, initialVersions)
   const { versions, setVersions, head, headRef, moveHead, refreshVersions, snapshotOf } = history
-  const [syncStatus, setSyncStatus] = useState<SyncState>(editKey ? 'cloud_saved' : 'local_saved')
+  const [syncStatus, setSyncStatus] = useState<SyncState>(
+    cloudUnconfirmed ? 'sync_paused' : editKey ? 'cloud_saved' : 'local_saved'
+  )
   const [conflict, setConflict] = useState<PlanConflict | null>(null)
 
   const commit = useVersionCommit({

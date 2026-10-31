@@ -16,6 +16,17 @@ export interface SavePlanResult {
   error?: string
 }
 
+/** What `getPlan` answers with. */
+export interface LoadedPlan {
+  plan: Plan
+  isReadOnly: boolean
+  /**
+   * Present (true) only when a cloud key was held but the cloud did not return the plan, so the
+   * copy shown comes from this device and may be ahead of the cloud. Absent otherwise.
+   */
+  cloudUnconfirmed?: true
+}
+
 export interface PersistenceAdapter {
   savePlan(
     plan: Plan,
@@ -23,7 +34,7 @@ export interface PersistenceAdapter {
     diffSummary?: string,
     editKey?: string
   ): Promise<SavePlanResult>
-  getPlan(planId: string, editKey?: string): Promise<{ plan: Plan; isReadOnly: boolean } | null>
+  getPlan(planId: string, editKey?: string): Promise<LoadedPlan | null>
   getVersionHistory(planId: string): Promise<PlanVersionRecord[]>
   restoreVersion(planId: string, targetVersion: number, editKey?: string): Promise<SavePlanResult>
   regenerateShareKey(planId: string, editKey?: string): Promise<{ shareToken: string } | null>
@@ -147,12 +158,10 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
     }
   }
 
-  async getPlan(
-    planId: string,
-    editKey?: string
-  ): Promise<{ plan: Plan; isReadOnly: boolean } | null> {
+  async getPlan(planId: string, editKey?: string): Promise<LoadedPlan | null> {
     const cloud = this.cloudProvider()
     const key = editKey ?? capabilityStore.getEditKey(planId)
+    let cloudUnconfirmed = false
 
     if (cloud && key && isCloudPlanId(planId)) {
       try {
@@ -167,8 +176,10 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
         // is under the failed-key limit (anyone who knows the plan id can trigger it). Keeping the
         // key lets editing resume as soon as the limit lapses.
         if (!localPlans.isOwner(planId)) capabilityStore.clearEditKey(planId)
+        cloudUnconfirmed = true
       } catch (err) {
         logger.warn('cloud read failed, using the copy on this device', { err })
+        cloudUnconfirmed = true
       }
     }
 
@@ -177,7 +188,9 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
     // A cloud plan is editable only if the server accepted the key (above) or this browser
     // created it. A local-only plan has no server to ask, so a supplied key is accepted.
     const canEdit = localPlans.isOwner(planId) || (Boolean(editKey) && !isCloudPlanId(planId))
-    return { plan: local, isReadOnly: !canEdit }
+    return cloudUnconfirmed
+      ? { plan: local, isReadOnly: !canEdit, cloudUnconfirmed: true }
+      : { plan: local, isReadOnly: !canEdit }
   }
 
   async getVersionHistory(planId: string): Promise<PlanVersionRecord[]> {

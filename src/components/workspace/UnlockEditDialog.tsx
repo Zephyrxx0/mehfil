@@ -87,7 +87,7 @@ export function UnlockEditDialog({
             Enter Organizer Edit Key
           </DialogTitle>
           <DialogDescription className="text-sm text-royal-plum/70">
-            Paste the 32-character edit key or capability URL shared by the celebration creator.
+            Paste the edit key or the full edit link shared by the celebration creator.
           </DialogDescription>
         </DialogHeader>
 

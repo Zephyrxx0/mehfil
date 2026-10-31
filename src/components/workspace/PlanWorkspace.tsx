@@ -18,6 +18,8 @@ export interface PlanWorkspaceProps {
   basePath?: string
   isReadOnly?: boolean
   editKey?: string
+  /** The cloud did not confirm this plan on load, so the badge starts at "Sync paused". */
+  cloudUnconfirmed?: boolean
   initialVersions?: PlanVersionRecord[]
   initialShareToken?: string
   onUnlockEdit?: () => void
@@ -35,11 +37,18 @@ export function PlanWorkspace({
   basePath,
   isReadOnly = false,
   editKey,
+  cloudUnconfirmed,
   initialVersions,
   initialShareToken,
   onUnlockEdit,
 }: PlanWorkspaceProps) {
-  const versions = usePlanVersions({ initialPlan, initialVersions, editKey, isReadOnly })
+  const versions = usePlanVersions({
+    initialPlan,
+    initialVersions,
+    editKey,
+    isReadOnly,
+    cloudUnconfirmed,
+  })
   const editor = usePlanEditor({
     initialPlan,
     isReadOnly,

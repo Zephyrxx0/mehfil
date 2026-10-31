@@ -37,6 +37,7 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
 
   const [plan, setPlan] = useState<Plan | null>(null)
   const [isReadOnly, setIsReadOnly] = useState<boolean>(true)
+  const [cloudUnconfirmed, setCloudUnconfirmed] = useState<boolean>(false)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isUnlockOpen, setIsUnlockOpen] = useState<boolean>(false)
   const [editKey, setEditKey] = useState<string | undefined>(undefined)
@@ -78,6 +79,7 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
         if (data) {
           setPlan(data.plan)
           setIsReadOnly(data.isReadOnly)
+          setCloudUnconfirmed(Boolean(data.cloudUnconfirmed))
         } else {
           setPlan(null)
         }
@@ -135,6 +137,7 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
               if (res) {
                 setPlan(res.plan)
                 setIsReadOnly(res.isReadOnly)
+                setCloudUnconfirmed(Boolean(res.cloudUnconfirmed))
                 setEditKey(capabilityStore.getEditKey(planId))
                 setShareToken(capabilityStore.getShareToken(planId))
               }
@@ -151,6 +154,7 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
         initialPlan={plan}
         isReadOnly={isReadOnly}
         editKey={editKey}
+        cloudUnconfirmed={cloudUnconfirmed}
         initialShareToken={shareToken}
         activeTab={activeTab}
         basePath={`/plan/${planId}`}
@@ -166,6 +170,7 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
             if (!res) return
             setPlan(res.plan)
             setIsReadOnly(res.isReadOnly)
+            setCloudUnconfirmed(Boolean(res.cloudUnconfirmed))
             setEditKey(capabilityStore.getEditKey(planId))
             setShareToken(capabilityStore.getShareToken(planId))
           })
