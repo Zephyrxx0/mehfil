@@ -1,10 +1,20 @@
-/** Whole days from today (local midnight) until the celebration; negative once it has passed. */
-export function computeDaysRemaining(eventDate: string): number {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const event = new Date(eventDate)
-  const diffTime = event.getTime() - today.getTime()
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+const MS_PER_DAY = 24 * 60 * 60 * 1000
+
+/** A `YYYY-MM-DD` string as local midnight of that calendar day (never UTC midnight). */
+function parseLocalDate(isoDate: string): Date {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  return new Date(year, month - 1, day)
+}
+
+/**
+ * Whole calendar days from today until the celebration; negative once it has passed.
+ * Both dates are local-midnight calendar days, so the result does not shift for viewers east or
+ * west of UTC. Rounding absorbs the 23h/25h days around daylight-saving changes.
+ */
+export function computeDaysRemaining(eventDate: string, now: Date = new Date()): number {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const event = parseLocalDate(eventDate)
+  return Math.round((event.getTime() - today.getTime()) / MS_PER_DAY)
 }
 
 /** "December 25, 2026" from a `YYYY-MM-DD` string; the input is returned unchanged if unparseable. */
@@ -20,6 +30,17 @@ export function formatEventDate(eventDate: string): string {
   } catch {
     return eventDate
   }
+}
+
+/** "Oct 31, 2026" from a `YYYY-MM-DD` string; the input is returned unchanged if unparseable. */
+export function formatMilestoneDate(isoDate: string): string {
+  const date = parseLocalDate(isoDate)
+  if (Number.isNaN(date.getTime())) return isoDate
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
 }
 
 export function countdownLabel(daysRemaining: number): string {

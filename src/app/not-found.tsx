@@ -1,7 +1,11 @@
 import * as React from 'react'
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Compass } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+
+/** The root layout's title template appends the site name. */
+export const metadata: Metadata = { title: 'Page not found' }
 
 /** Shown for any address that does not exist, with a way back to the app. */
 export default function NotFound() {

@@ -75,11 +75,11 @@ export function ShareSaveModal({
           <Tabs defaultValue="organizer" className="w-full mt-2">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="organizer" className="gap-2">
-                <KeyRound className="h-4 w-4" />
+                <KeyRound className="h-4 w-4 shrink-0" />
                 <span>Organizer Edit Key</span>
               </TabsTrigger>
               <TabsTrigger value="family" className="gap-2">
-                <Share2 className="h-4 w-4" />
+                <Share2 className="h-4 w-4 shrink-0" />
                 <span>Family Share Link</span>
               </TabsTrigger>
             </TabsList>

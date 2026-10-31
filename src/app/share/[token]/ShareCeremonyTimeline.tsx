@@ -3,6 +3,7 @@ import type { SanitizedSharedPlan } from '@/lib/engine/types'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, CalendarPlus } from 'lucide-react'
+import { formatMilestoneDate } from './share-view-format'
 
 type PublicMilestone = SanitizedSharedPlan['publicMilestones'][number]
 
@@ -28,7 +29,7 @@ function MilestoneRow({ milestone, position }: { milestone: PublicMilestone; pos
         </div>
         <p className="text-xs text-royal-plum/70 mt-1 flex items-center gap-1.5">
           <Calendar className="h-3.5 w-3.5" />
-          <span>{milestone.targetDate}</span>
+          <span>{formatMilestoneDate(milestone.targetDate)}</span>
           {milestone.leadDays > 0 && <span>• T-{milestone.leadDays} days</span>}
         </p>
       </div>
