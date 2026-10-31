@@ -1,5 +1,56 @@
 import type { Plan, TimelineSchedule, BudgetCategory, Paise, SanitizedSharedPlan } from './types'
 
+/** Tie-break order for equal remainders, so the same totals always give the same percentages. */
+const CATEGORY_ORDER: readonly string[] = [
+  'venue',
+  'catering',
+  'decor',
+  'photo_film',
+  'entertainment',
+  'favors',
+  'misc',
+]
+
+/**
+ * Largest-remainder (Hare-Niemeyer) split of 100 percent across categories, in exact integer
+ * arithmetic: each share is floor(paise * 100 / total), and the points left over go to the
+ * largest remainders, ties broken by CATEGORY_ORDER. The result sums to exactly 100 when
+ * `total` is positive, and is all zeros otherwise.
+ */
+function apportionPercentages(totals: Record<string, Paise>, total: Paise): Record<string, number> {
+  const categories = Object.keys(totals)
+  const percentages: Record<string, number> = {}
+  if (total <= 0) {
+    for (const cat of categories) percentages[cat] = 0
+    return percentages
+  }
+
+  const shares = categories.map((cat) => {
+    const scaled = totals[cat] * 100
+    const floor = Math.floor(scaled / total)
+    return { cat, floor, remainder: scaled - floor * total }
+  })
+
+  const orderOf = (cat: string) => {
+    const index = CATEGORY_ORDER.indexOf(cat)
+    return index === -1 ? CATEGORY_ORDER.length : index
+  }
+  const byRemainder = [...shares].sort(
+    (a, b) => b.remainder - a.remainder || orderOf(a.cat) - orderOf(b.cat)
+  )
+
+  let leftover = 100 - shares.reduce((sum, s) => sum + s.floor, 0)
+  const bonus = new Set<string>()
+  for (const share of byRemainder) {
+    if (leftover <= 0) break
+    bonus.add(share.cat)
+    leftover -= 1
+  }
+
+  for (const { cat, floor } of shares) percentages[cat] = floor + (bonus.has(cat) ? 1 : 0)
+  return percentages
+}
+
 /**
  * Server-side privacy firewall projection for the Family Share view (D-06, PRD §9.5).
  * Strictly removes private vendor quotes, draft notes, elasticity ranks, internal margins,
@@ -17,13 +68,9 @@ export function sanitizePlanForSharing(
     categoryTotals[line.category] = (categoryTotals[line.category] || 0) + line.currentPaise
   }
 
-  // 2. Calculate integer percentages
+  // 2. Calculate integer percentages that sum to exactly 100 (largest remainder)
   const totalWithoutContingency = Object.values(categoryTotals).reduce((a, b) => a + b, 0)
-  const categoryPercentages: Record<string, number> = {}
-  for (const [cat, paise] of Object.entries(categoryTotals)) {
-    categoryPercentages[cat] =
-      totalWithoutContingency > 0 ? Math.round((paise / totalWithoutContingency) * 100) : 0
-  }
+  const categoryPercentages = apportionPercentages(categoryTotals, totalWithoutContingency)
 
   // 3. Find Protected Moment display info
   const protectedLine = plan.lines.find(
