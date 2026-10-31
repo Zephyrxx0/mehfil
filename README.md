@@ -56,6 +56,7 @@ Apply every file in `supabase/migrations/` to your project, in order (`supabase 
 2. `20261030000000_allow_shared_plan_read.sql`: the first family-link function (replaced by 3).
 3. `20261031000000_token_checked_access.sql`: closes the tables to the browser and adds the token-checked functions the app uses.
 4. `20261031120000_shared_limits.sql`: the shared rate-limit and model-cap counters (service role only) and a circuit breaker on plan creation.
+5. `20261031130000_advisor_fixes.sql`: removes leftover owner policies, the signed-in role's grants on the browser functions, and two redundant indexes.
 
 `supabase/seed.sql` adds a sample event with published tokens. **Never run it against a production database.**
 
@@ -65,7 +66,7 @@ The production address is <https://bookmymehfil.vercel.app>. The app is a standa
 
 Before the first deployment:
 
-1. **Database.** Apply the four migrations in `supabase/migrations/` in order, then check that the public key cannot call `consume_rate_limit` or `consume_model_call`.
+1. **Database.** Apply the five migrations in `supabase/migrations/` in order, then check that the public key cannot call `consume_rate_limit` or `consume_model_call`.
 2. **Environment variables.** In Vercel, set these for Production, and for Preview if previews should use the cloud:
    - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are inlined into the browser bundle at build time. Redeploy after changing them.
    - `SUPABASE_SERVICE_ROLE_KEY` is runtime only. Mark it **Sensitive** in Vercel, and never give it a `NEXT_PUBLIC_` prefix.
