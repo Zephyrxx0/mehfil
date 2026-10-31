@@ -17,6 +17,9 @@ export default defineConfig({
       },
     },
     globals: true,
+    // The default 5s is too tight under coverage with 100+ files running in parallel: tests that
+    // take 2s alone were timing out in full runs. A hung test still fails, just later.
+    testTimeout: 15_000,
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.test.{ts,tsx}'],
     coverage: {
