@@ -34,6 +34,8 @@ export interface PlanDiffResult {
   recipientCategories: string[]
 }
 
+const categoryLabel = (category: BudgetCategory): string => category.replace('_', ' ')
+
 /** Lines whose allocation changed between two plans, with the change in integer paise. */
 function movedLines(
   prevPlan: Plan,
@@ -254,6 +256,64 @@ export function guestScaleRule(ctx: DiffContext): DiffOutcome | null {
   }
 }
 
+/** Budget lines whose vendor booking was made, replaced, or released between two plans. */
+function quoteChanges(
+  prevPlan: Plan,
+  nextPlan: Plan
+): { booked?: BudgetLine; released?: BudgetLine } {
+  let booked: BudgetLine | undefined
+  let released: BudgetLine | undefined
+  for (const line of nextPlan.lines) {
+    const prev = prevPlan.lines.find((l) => l.id === line.id)
+    const wasBooked = Boolean(prev?.isCommitted)
+    const isBooked = Boolean(line.isCommitted)
+    const isNewBooking =
+      isBooked &&
+      (!wasBooked ||
+        prev?.committedQuoteId !== line.committedQuoteId ||
+        prev?.committedPaise !== line.committedPaise)
+    if (isNewBooking) booked ??= line
+    else if (wasBooked && !isBooked) released ??= line
+  }
+  return { booked, released }
+}
+
+/**
+ * Committing or releasing a vendor quote. The total budget does not move, so this must come
+ * before the generic budget rule, which would otherwise describe a change of "₹0".
+ */
+export function quoteCommitmentRule(ctx: DiffContext): DiffOutcome | null {
+  const { prevPlan, nextPlan, actionType, isFloorProtected } = ctx
+  if (actionType !== undefined && actionType !== 'budget_change') return null
+  // An untagged diff that also changed guests or the Protected Moment is described by those rules.
+  if (
+    actionType === undefined &&
+    (prevPlan.brief.guestCount !== nextPlan.brief.guestCount ||
+      prevPlan.brief.protectedCategory !== nextPlan.brief.protectedCategory)
+  ) {
+    return null
+  }
+
+  const { booked, released } = quoteChanges(prevPlan, nextPlan)
+  if (booked) {
+    const vendor = booked.committedVendor ?? 'a vendor'
+    const amount = formatINR(booked.committedPaise ?? booked.currentPaise)
+    const othersMoved = ctx.deltas.some((d) => d.category !== booked.name)
+    const fit = othersMoved ? '; other flexible lines adjusted to fit' : ''
+    return {
+      summary: `Booked ${vendor} for ${categoryLabel(booked.category)} at ${amount}${fit}`,
+      isFloorProtected,
+    }
+  }
+  if (released) {
+    return {
+      summary: `Released the ${categoryLabel(released.category)} booking; allocation returned to the plan`,
+      isFloorProtected,
+    }
+  }
+  return null
+}
+
 /** Total budget change. */
 export function budgetChangeRule(ctx: DiffContext): DiffOutcome | null {
   const { prevPlan, nextPlan, actionType, isFloorProtected, protectedSuffix } = ctx
@@ -284,6 +344,8 @@ export function defaultRule(ctx: DiffContext): DiffOutcome {
 const SUMMARY_RULES: readonly SummaryRule[] = [
   ideaAdoptedRule,
   ideaRetractedRule,
+  // Before the remedy rules: releasing a quote can clear a shortfall, which is not a remedy.
+  quoteCommitmentRule,
   remedyBudgetRule,
   remedyGuestsRule,
   remedyTrimRule,
