@@ -57,6 +57,13 @@ function formatIndianNumber(n: number): string {
   return (n < 0 ? '-' : '') + result
 }
 
+/** Parse a numeric string, scale it by `rupeesPerUnit`, and convert to integer paise. */
+function parseScaledINR(numeric: string, rupeesPerUnit: number, original: string): Paise {
+  const num = parseFloat(numeric)
+  if (isNaN(num)) throw new Error(`Invalid INR input: ${original}`)
+  return Math.round(num * rupeesPerUnit * 100)
+}
+
 /**
  * Parse Indian rupee string into integer paise.
  * Accepts: "25L", "2.5Cr", "2500000", "₹25,00,000", "25000000"
@@ -66,24 +73,10 @@ export function parseINRInput(str: string): Paise {
   // Strip ₹ prefix and commas
   const s = str.trim().replace(/₹/g, '').replace(/,/g, '').trim()
 
-  // Check for Cr suffix (crore)
-  if (/cr$/i.test(s)) {
-    const num = parseFloat(s.replace(/cr$/i, ''))
-    if (isNaN(num)) throw new Error(`Invalid INR input: ${str}`)
-    // num crores → rupees → paise
-    return Math.round(num * 10_000_000 * 100)
-  }
-
-  // Check for L suffix (lakh)
-  if (/l$/i.test(s)) {
-    const num = parseFloat(s.replace(/l$/i, ''))
-    if (isNaN(num)) throw new Error(`Invalid INR input: ${str}`)
-    // num lakhs → rupees → paise
-    return Math.round(num * 100_000 * 100)
-  }
+  // Check for Cr suffix (crore) then L suffix (lakh); num units → rupees → paise
+  if (/cr$/i.test(s)) return parseScaledINR(s.replace(/cr$/i, ''), 10_000_000, str)
+  if (/l$/i.test(s)) return parseScaledINR(s.replace(/l$/i, ''), 100_000, str)
 
   // Plain number (in rupees)
-  const num = parseFloat(s)
-  if (isNaN(num)) throw new Error(`Invalid INR input: ${str}`)
-  return Math.round(num * 100)
+  return parseScaledINR(s, 1, str)
 }
