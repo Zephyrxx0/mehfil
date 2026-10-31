@@ -1,5 +1,6 @@
 import type { Plan, TimelineSchedule, SanitizedSharedPlan } from './types'
 import { formatINR } from './currency'
+import { SITE_HOST } from '@/lib/site'
 
 /**
  * Format a YYYY-MM-DD date string into RFC 5545 VALUE=DATE format (YYYYMMDD).
@@ -43,7 +44,7 @@ export function generatePublicCeremoniesICS(sanitized: SanitizedSharedPlan): str
   for (const milestone of sanitized.publicMilestones) {
     const dtStart = toICSDate(milestone.targetDate)
     const dtEnd = nextDayICSDate(milestone.targetDate)
-    const uid = `mehfil-guest-${sanitized.id}-${milestone.id}@mehfil.app`
+    const uid = `mehfil-guest-${sanitized.id}-${milestone.id}@${SITE_HOST}`
     const summary = `${sanitized.title}: ${milestone.title}`
 
     const descParts: string[] = [
@@ -102,7 +103,7 @@ export function generateICS(schedule: TimelineSchedule, plan: Plan): string {
   for (const band of schedule.milestoneBands) {
     const dtStart = toICSDate(band.targetDate)
     const dtEnd = nextDayICSDate(band.targetDate)
-    const uid = `mehfil-${plan.id}-${band.id}@mehfil.app`
+    const uid = `mehfil-${plan.id}-${band.id}@${SITE_HOST}`
     const summary = `${plan.brief.title || 'Mehfil'}: ${band.name}`
 
     // Build rich description with category budgets and task checklist

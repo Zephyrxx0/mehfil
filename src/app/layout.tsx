@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import { connection } from 'next/server'
 import { MotionProvider } from '@/components/providers/MotionProvider'
+import { SITE_URL } from '@/lib/site'
 import './globals.css'
 
 // Ewert — the all-caps slab display face used for the hero wordmark ("Meh").
@@ -39,10 +40,7 @@ const notoSerifDevanagari = localFont({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ||
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://mehfil.app')
-  ),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'Mehfil (महफ़िल) — Celebration Planning with Mathematical Integrity',
     template: '%s | Mehfil (महफ़िल)',
@@ -63,7 +61,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    url: 'https://mehfil.app',
+    url: SITE_URL,
     siteName: 'Mehfil (महफ़िल)',
     title: 'Mehfil (महफ़िल) — Celebration Planning with Mathematical Integrity',
     description:

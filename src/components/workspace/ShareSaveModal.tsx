@@ -36,6 +36,7 @@ import {
 import { createLogger } from '@/lib/logger'
 import { persistence } from '@/lib/storage/persistence'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
+import { SITE_URL } from '@/lib/site'
 
 const logger = createLogger('share-modal')
 
@@ -73,7 +74,7 @@ export function ShareSaveModal({
   }, [initialShareToken])
 
   // Construct absolute capability URLs safely on browser mount
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://mehfil.app'
+  const origin = typeof window !== 'undefined' ? window.location.origin : SITE_URL
   const editUrl = editKey ? `${origin}/plan/${planId}?key=${editKey}` : undefined
   const shareUrl = shareToken ? `${origin}/share/${shareToken}` : undefined
   const canManageShareLink = isCloudConfigured && Boolean(editKey)

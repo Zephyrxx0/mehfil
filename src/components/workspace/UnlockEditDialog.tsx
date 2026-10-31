@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Lock, KeyRound, Loader2 } from 'lucide-react'
 import { capabilityStore } from '@/lib/storage/capability-store'
+import { SITE_HOST, SITE_URL } from '@/lib/site'
 
 export interface UnlockEditDialogProps {
   open: boolean
@@ -40,7 +41,7 @@ export function UnlockEditDialog({
     let normalizedKey = keyInput.trim()
     if (normalizedKey.includes('key=')) {
       try {
-        const urlObj = new URL(normalizedKey, 'https://mehfil.app')
+        const urlObj = new URL(normalizedKey, SITE_URL)
         const extracted = urlObj.searchParams.get('key')
         if (extracted) normalizedKey = extracted
       } catch {
@@ -107,7 +108,7 @@ export function UnlockEditDialog({
                 setKeyInput(e.target.value)
                 if (errorMessage) setErrorMessage(null)
               }}
-              placeholder="e.g. 7f9a2b... or full mehfil.app/plan/... URL"
+              placeholder={`e.g. 7f9a2b... or full ${SITE_HOST}/plan/... URL`}
               className="w-full rounded-xl border border-royal-plum/20 bg-white/70 px-3.5 py-2.5 text-sm text-royal-plum placeholder:text-royal-plum/70 focus:border-royal-plum focus:outline-hidden focus:ring-2 focus:ring-royal-plum/20"
               // eslint-disable-next-line jsx-a11y/no-autofocus -- opened by a user action; focus must land here
               autoFocus

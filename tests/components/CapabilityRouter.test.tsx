@@ -115,12 +115,13 @@ describe('Capability Router & Read-Only Downgrade (D-02, D-03, D-04, COLLAB-02)'
     expect(screen.getByText('Enter Organizer Edit Key')).toBeInTheDocument()
 
     const input = screen.getByPlaceholderText(
-      /e\.g\. 7f9a2b\.\.\. or full mehfil\.app\/plan\/\.\.\. URL/i
+      /e\.g\. 7f9a2b\.\.\. or full bookmymehfil\.vercel\.app\/plan\/\.\.\. URL/i
     )
     // User pastes full URL
     fireEvent.change(input, {
       target: {
-        value: 'https://mehfil.app/plan/test-collab-event-456?key=9876543210abcdef9876543210abcdef',
+        value:
+          'https://bookmymehfil.vercel.app/plan/test-collab-event-456?key=9876543210abcdef9876543210abcdef',
       },
     })
 
@@ -151,7 +152,7 @@ describe('Capability Router & Read-Only Downgrade (D-02, D-03, D-04, COLLAB-02)'
     )
 
     const input = screen.getByPlaceholderText(
-      /e\.g\. 7f9a2b\.\.\. or full mehfil\.app\/plan\/\.\.\. URL/i
+      /e\.g\. 7f9a2b\.\.\. or full bookmymehfil\.vercel\.app\/plan\/\.\.\. URL/i
     )
     fireEvent.change(input, { target: { value: 'wrongtoken123' } })
 
