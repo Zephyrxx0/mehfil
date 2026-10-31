@@ -60,6 +60,7 @@ Migrations run in order and each file runs once. Your project records which file
 4. `20261031120000_shared_limits.sql`: the shared rate-limit and model-cap counters (service role only) and a circuit breaker on plan creation.
 5. `20261031130000_advisor_fixes.sql`: removes leftover owner policies, the signed-in role's grants on the browser functions, and two redundant indexes.
 6. `20261031140000_edit_key_failure_limit.sql`: counts wrong edit keys per plan and refuses every attempt for 10 minutes after 20 failures. All five edit-key functions share the check.
+7. `20261031150000_share_link_open_limit.sql`: limits how often a family link can be opened (120 times a minute per plan). Unknown links cost no write.
 
 `supabase/seed.sql` adds a sample event with published tokens. **Never run it against a production database.**
 
@@ -69,7 +70,7 @@ The production address is <https://bookmymehfil.vercel.app>. The app is a standa
 
 Before the first deployment:
 
-1. **Database.** Make sure the six migrations in `supabase/migrations/` are recorded as applied (`supabase migration list` shows no gaps and `supabase db push --dry-run` reports the database is up to date). Then check that the public key cannot call `consume_rate_limit` or `consume_model_call`.
+1. **Database.** Make sure the seven migrations in `supabase/migrations/` are recorded as applied (`supabase migration list` shows no gaps and `supabase db push --dry-run` reports the database is up to date). Then check that the public key cannot call `consume_rate_limit` or `consume_model_call`.
 2. **Environment variables.** In Vercel, set these for Production, and for Preview if previews should use the cloud:
    - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are inlined into the browser bundle at build time. Redeploy after changing them.
    - `SUPABASE_SERVICE_ROLE_KEY` is runtime only. Mark it **Sensitive** in Vercel, and never give it a `NEXT_PUBLIC_` prefix.
@@ -173,7 +174,3 @@ The spec-driven workflow's own files (`.planning/` and `.agents/`) are local-onl
 ## Performance
 
 Fonts are self-hosted, so a build needs no network and the app contacts only its own origin and the configured database. The browser talks to the database through a 70-line fetch client instead of the Supabase SDK, which took about 70 KB off the workspace page's first load (348 KB to 279 KB). Run `pnpm analyze` for the treemaps.
-
-## Known gaps
-
-- The Ewert display font (`src/app/Ewert.ttf`) has no licence file in this repository.
