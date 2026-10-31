@@ -16,6 +16,7 @@
     "deadcode": "fallow",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:live": "playwright test -c playwright.live.config.ts",
     "analyze": "ANALYZE=true next build"
   },
   "dependencies": {
