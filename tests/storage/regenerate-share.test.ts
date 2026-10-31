@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { POST } from '@/app/api/plan/[id]/regenerate-share/route'
 import { NextRequest } from 'next/server'
 import * as cryptoEngine from '@/lib/engine/crypto'
+import { createEditSession } from '@/lib/security/edit-session'
+import { resetRateLimitStore } from '@/lib/security/rate-limit'
 
 // Mock next/headers
 const mockCookiesGet = vi.fn()
@@ -30,6 +32,7 @@ describe('POST /api/plan/[id]/regenerate-share (Security Audit Remediation)', ()
 
   beforeEach(async () => {
     vi.clearAllMocks()
+    resetRateLimitStore()
     validHash = await cryptoEngine.hashCapabilityToken(validEditKey)
 
     mockUpdate.mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
@@ -63,7 +66,7 @@ describe('POST /api/plan/[id]/regenerate-share (Security Audit Remediation)', ()
     expect(json.error).toMatch(/Unauthorized/i)
   })
 
-  it('rejects request with 401 when authCookie does not match database edit_key_hash', async () => {
+  it('rejects request with 401 when the cookie is not a valid signed session', async () => {
     mockCookiesGet.mockReturnValue({ value: 'forged-cookie-hash' })
 
     const req = new NextRequest(`http://localhost:3000/api/plan/${planId}/regenerate-share`, {
@@ -73,11 +76,34 @@ describe('POST /api/plan/[id]/regenerate-share (Security Audit Remediation)', ()
     const res = await POST(req, { params: Promise.resolve({ id: planId }) })
     expect(res.status).toBe(401)
     const json = await res.json()
-    expect(json.error).toMatch(/Invalid capability authorization/i)
+    // Rejected before any database lookup: a forged cookie carries no key to check.
+    expect(json.error).toMatch(/Unauthorized/i)
   })
 
-  it('accepts request with 200 when authCookie matches database edit_key_hash', async () => {
+  it('rejects the stored edit_key_hash used as a cookie (no longer a credential)', async () => {
     mockCookiesGet.mockReturnValue({ value: validHash })
+
+    const req = new NextRequest(`http://localhost:3000/api/plan/${planId}/regenerate-share`, {
+      method: 'POST',
+    })
+
+    const res = await POST(req, { params: Promise.resolve({ id: planId }) })
+    expect(res.status).toBe(401)
+  })
+
+  it('rejects a signed session that was issued for a different plan', async () => {
+    mockCookiesGet.mockReturnValue({ value: await createEditSession('some-other-plan') })
+
+    const req = new NextRequest(`http://localhost:3000/api/plan/${planId}/regenerate-share`, {
+      method: 'POST',
+    })
+
+    const res = await POST(req, { params: Promise.resolve({ id: planId }) })
+    expect(res.status).toBe(401)
+  })
+
+  it('accepts request with 200 when the cookie is a valid signed session for this plan', async () => {
+    mockCookiesGet.mockReturnValue({ value: await createEditSession(planId) })
 
     const req = new NextRequest(`http://localhost:3000/api/plan/${planId}/regenerate-share`, {
       method: 'POST',
@@ -106,7 +132,7 @@ describe('POST /api/plan/[id]/regenerate-share (Security Audit Remediation)', ()
 
   it('handles offline fallback mode safely when Supabase is not configured', async () => {
     mockSupabaseClient = null
-    mockCookiesGet.mockReturnValue({ value: 'local_authorized' })
+    mockCookiesGet.mockReturnValue({ value: await createEditSession(planId) })
 
     const req = new NextRequest(`http://localhost:3000/api/plan/${planId}/regenerate-share`, {
       method: 'POST',

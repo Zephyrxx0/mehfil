@@ -4,6 +4,7 @@ import {
   enforceRateLimit,
   getClientIp,
   resetRateLimitStore,
+  UNKNOWN_CLIENT,
 } from '@/lib/security/rate-limit'
 
 describe('Security Rate Limiter (Task 6)', () => {
@@ -32,35 +33,54 @@ describe('Security Rate Limiter (Task 6)', () => {
     expect(blocked.resetTime).toBeGreaterThan(Date.now())
   })
 
-  it('correctly extracts IP address from x-forwarded-for headers', () => {
-    const req1 = new Request('http://localhost', {
-      headers: { 'x-forwarded-for': '203.0.113.195, 70.41.3.18' },
-    })
-    expect(getClientIp(req1)).toBe('203.0.113.195')
+  describe('client address resolution (S3)', () => {
+    const ipOf = (headers: Record<string, string>) =>
+      getClientIp(new Request('http://localhost', { headers }))
 
-    const req2 = new Request('http://localhost', {
-      headers: { 'x-real-ip': '198.51.100.1' },
+    it('prefers the platform-set x-vercel-forwarded-for, then x-real-ip', () => {
+      expect(ipOf({ 'x-vercel-forwarded-for': '203.0.113.195', 'x-real-ip': '198.51.100.1' })).toBe(
+        '203.0.113.195'
+      )
+      expect(ipOf({ 'x-real-ip': '198.51.100.1' })).toBe('198.51.100.1')
     })
-    expect(getClientIp(req2)).toBe('198.51.100.1')
 
-    const reqVercel = new Request('http://localhost', {
-      headers: {
-        'x-vercel-ip': '203.0.113.195',
-        'x-forwarded-for': '198.51.100.2',
-      },
+    it('ignores forgeable x-vercel-ip and cf-connecting-ip so a new value does not mean a new bucket', () => {
+      const real = { 'x-real-ip': '198.51.100.7' }
+      const forgedVercel = ipOf({ ...real, 'x-vercel-ip': '1.1.1.1' })
+      const forgedCloudflare = ipOf({ ...real, 'cf-connecting-ip': '2.2.2.2' })
+      expect(forgedVercel).toBe('198.51.100.7')
+      expect(forgedCloudflare).toBe('198.51.100.7')
     })
-    expect(getClientIp(reqVercel)).toBe('203.0.113.195')
 
-    const reqCloudflare = new Request('http://localhost', {
-      headers: {
-        'cf-connecting-ip': '192.0.2.77',
-        'x-forwarded-for': '198.51.100.2',
-      },
+    it('uses the LAST x-forwarded-for entry, which the nearest trusted proxy appended', () => {
+      // The first entry is whatever the client claimed.
+      expect(ipOf({ 'x-forwarded-for': '9.9.9.9, 203.0.113.195' })).toBe('203.0.113.195')
     })
-    expect(getClientIp(reqCloudflare)).toBe('192.0.2.77')
 
-    const req3 = new Request('http://localhost')
-    expect(getClientIp(req3)).toBe('127.0.0.1')
+    it('falls back to one shared bucket when no address is available', () => {
+      expect(ipOf({})).toBe(UNKNOWN_CLIENT)
+    })
+
+    it('cannot be evaded by rotating forged headers on every request', () => {
+      process.env.TEST_RATE_LIMIT = 'true'
+      try {
+        const statuses = Array.from(
+          { length: 4 },
+          (_, i) =>
+            enforceRateLimit(
+              new Request('http://localhost', {
+                headers: { 'x-real-ip': '198.51.100.9', 'x-vercel-ip': `10.0.0.${i}` },
+              }),
+              'forged-header-route',
+              2,
+              60_000
+            )?.status
+        )
+        expect(statuses).toEqual([undefined, undefined, 429, 429])
+      } finally {
+        delete process.env.TEST_RATE_LIMIT
+      }
+    })
   })
 
   it('enforces rate limit through enforceRateLimit helper', () => {

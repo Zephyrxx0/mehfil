@@ -20,7 +20,7 @@ import {
   reopenPrimaryBookingTask,
 } from '@/lib/engine/timeline'
 import { commitQuote, unlockQuote } from '@/lib/engine/budget'
-import { generateDeterministicLayout } from '@/lib/ai/orchestrator'
+import { generateDeterministicLayout } from '@/lib/ai/layout-heuristic'
 import { BudgetSection } from './BudgetSection'
 import { TimelineSection } from './TimelineSection'
 import { ChangeExplainer, type PlanChangeRecord } from './ChangeExplainer'

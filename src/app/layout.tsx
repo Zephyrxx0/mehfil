@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Fraunces, Plus_Jakarta_Sans, Noto_Serif_Devanagari } from 'next/font/google'
 import localFont from 'next/font/local'
+import { connection } from 'next/server'
 import { Agentation } from 'agentation'
 import { MotionProvider } from '@/components/providers/MotionProvider'
 import './globals.css'
@@ -84,7 +85,11 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // A nonce-based CSP (src/middleware.ts) needs a fresh nonce on every request, which static
+  // prerendering cannot provide. Waiting for the connection opts every page into dynamic rendering.
+  await connection()
+
   return (
     <html
       lang="en"

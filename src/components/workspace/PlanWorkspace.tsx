@@ -33,6 +33,7 @@ import type { PlanChangeRecord, PlanChangeDelta } from './ChangeExplainer'
 import type { PlanTabId } from './tabs'
 import { createLogger } from '@/lib/logger'
 import { createId } from '@/lib/id'
+import { deterministicRunRecord } from '@/lib/ai/run-record'
 const logger = createLogger('plan-workspace')
 
 export interface PlanWorkspaceProps {
@@ -258,13 +259,7 @@ export function PlanWorkspace({
             heritageVsModern: 'heritage',
           }
         )
-        applyExtractedStyleDNA(fallbackDNA, {
-          activeTier: 3,
-          durationMs: 0,
-          modelId: 'deterministic-heuristic-v1',
-          fallbackReason: `Client fallback: ${err instanceof Error ? err.message : String(err)}`,
-          timestamp: new Date().toISOString(),
-        })
+        applyExtractedStyleDNA(fallbackDNA, deterministicRunRecord('client_fallback'))
       } finally {
         setIsExtractingStyle(false)
       }

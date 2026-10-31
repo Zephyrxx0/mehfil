@@ -62,28 +62,31 @@ export function checkRateLimit(key: string, limit = 15, windowMs = 60_000): Rate
   }
 }
 
+/** Bucket shared by every request whose address cannot be determined. */
+export const UNKNOWN_CLIENT = 'unknown'
+
 /**
- * Extracts client IP from standard proxy headers, prioritizing trusted platform headers
- * (Vercel, Cloudflare) before fallbacks to prevent header spoofing.
+ * Resolves the client address from headers the hosting platform sets itself.
+ *
+ * Only `x-vercel-forwarded-for` and `x-real-ip` are trusted first: Vercel overwrites both,
+ * so a caller cannot choose them. `x-vercel-ip` is not a documented client-address header and
+ * `cf-connecting-ip` is only meaningful behind Cloudflare, so a forged value in either would
+ * hand an attacker a fresh bucket per request; they are ignored. As a last resort we use the
+ * LAST `x-forwarded-for` entry, which is the one appended by the nearest trusted proxy, never
+ * the first, which the client controls.
  */
 export function getClientIp(request: Request): string {
-  const vercelIp = request.headers.get('x-vercel-ip')
-  if (vercelIp) {
-    return vercelIp.trim()
-  }
-  const cfConnectingIp = request.headers.get('cf-connecting-ip')
-  if (cfConnectingIp) {
-    return cfConnectingIp.trim()
-  }
-  const realIp = request.headers.get('x-real-ip')
-  if (realIp) {
-    return realIp.trim()
-  }
+  const platformHeader =
+    request.headers.get('x-vercel-forwarded-for') ?? request.headers.get('x-real-ip')
+  const platformIp = platformHeader?.split(',')[0]?.trim()
+  if (platformIp) return platformIp
+
   const forwardedFor = request.headers.get('x-forwarded-for')
   if (forwardedFor) {
-    return forwardedFor.split(',')[0].trim()
+    const nearestProxyEntry = forwardedFor.split(',').at(-1)?.trim()
+    if (nearestProxyEntry) return nearestProxyEntry
   }
-  return '127.0.0.1'
+  return UNKNOWN_CLIENT
 }
 
 /**

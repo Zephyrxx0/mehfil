@@ -25,6 +25,7 @@ import {
 import { QuoteCheckCard } from './QuoteCheckCard'
 import { cn } from '@/lib/utils'
 import { createLogger } from '@/lib/logger'
+import { ImageUploadError, prepareQuoteImage } from '@/lib/client/image-resize'
 const logger = createLogger('quote-intake')
 
 export interface QuoteIntakeSheetProps {
@@ -84,16 +85,20 @@ export function QuoteIntakeSheet({
     setErrorMessage(null)
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setImageFileName(file.name)
-    const reader = new FileReader()
-    reader.onload = () => {
-      setImageBase64(reader.result as string)
+    setErrorMessage(null)
+    try {
+      setImageBase64(await prepareQuoteImage(file))
+      setImageFileName(file.name)
+    } catch (err) {
+      setImageBase64(undefined)
+      setImageFileName(undefined)
+      setErrorMessage(err instanceof ImageUploadError ? err.message : 'Could not read that image.')
     }
-    reader.readAsDataURL(file)
+    e.target.value = ''
   }
 
   const handleClearImage = () => {

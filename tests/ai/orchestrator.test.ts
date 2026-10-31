@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { extractStyleDNAWithFallbackLadder } from '@/lib/ai/orchestrator'
+import { extractStyleDNAWithFallbackLadder } from '@/lib/ai/style-dna'
 import { StyleDNASchema, type StyleDNA } from '@/lib/ai/schemas'
 import { POST } from '@/app/api/style-dna/route'
 import { generateObject } from 'ai'
@@ -15,10 +15,10 @@ describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)',
   const sampleSwatchIds = [
     'royal-amber-courtyard',
     'marigold-cascade',
-    'gulabi-meena-mandap',
-    'sheesh-mahal-glimmer',
-    'terracotta-diyas',
-    'haveli-arches',
+    'gulabi-rose-palace',
+    'chandni-chowk-night',
+    'mogra-minimalist-canopy',
+    'jaipur-terracotta-arch',
   ]
   const sampleMoment = 'Soulful live sufi qawwali night under starry lanterns.'
   const sampleTradeoffs = {
@@ -102,8 +102,9 @@ describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)',
     // Inspect repair retry call arguments
     const secondCall = mockGenerateObject.mock.calls[1][0]
     expect(secondCall.temperature).toBe(0)
-    expect(secondCall.prompt).toContain('The previous output failed validation')
-    expect(secondCall.prompt).toContain('namedPalette must have at least 3 colors')
+    expect(secondCall.prompt).toContain('The previous output failed schema validation')
+    // Validation text can echo model output, so it must never be fed back into the prompt (S7).
+    expect(secondCall.prompt).not.toContain('namedPalette must have at least 3 colors')
   })
 
   it('Test 3 (Tier 1 Timeout Escalates to Tier 2, T-04-05): TimeoutError escalates to Gemini 2.0 Flash without repair retry', async () => {
@@ -124,8 +125,7 @@ describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)',
 
     expect(result.runRecord.activeTier).toBe(2)
     expect(result.runRecord.modelId).toBe('gemini-3.5-flash-lite')
-    expect(result.runRecord.fallbackReason).toContain('Tier 1 failed')
-    expect(result.runRecord.fallbackReason).toContain('timeout')
+    expect(result.runRecord.fallbackReason).toBe('tier_1_failed:model_timeout')
     expect(mockGenerateObject).toHaveBeenCalledTimes(2)
   })
 
@@ -141,7 +141,7 @@ describe('Three-Tier Fallback Ladder Orchestrator (D-13, D-15, D-16, GENUI-03)',
 
     expect(result.runRecord.activeTier).toBe(3)
     expect(result.runRecord.modelId).toBe('deterministic-heuristic-v1')
-    expect(result.runRecord.fallbackReason).toContain('Tier 1 & 2 failed')
+    expect(result.runRecord.fallbackReason).toBe('tier_1_2_failed:model_rate_limited')
     expect(StyleDNASchema.safeParse(result.styleDNA).success).toBe(true)
     expect(result.styleDNA.protectedCategory).toBe('entertainment')
     expect(result.styleDNA.protectedMomentQuote).toBe(sampleMoment)
