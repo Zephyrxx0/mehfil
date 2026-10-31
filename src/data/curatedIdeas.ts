@@ -1,4 +1,5 @@
 import type { CuratedIdea, EventBrief, StyleDNA } from '../lib/engine/types'
+import { calculateAffinityScore } from './affinity-scoring'
 
 /**
  * Culturally authentic curated Indian celebration enhancements (IDEA-01).
@@ -292,78 +293,9 @@ export function getPersonalizedIdeas(brief: EventBrief, styleDNA?: StyleDNA): Cu
 
   const { dimensions } = styleDNA
 
-  // 3. Deterministic dimension scoring
-  function calculateAffinityScore(idea: CuratedIdea): number {
-    let score = 0
-    const tags = new Set(idea.styleTags.map((t) => t.toLowerCase()))
-
-    // Dimension: Heritage vs Modern (0 = Heritage, 100 = Modern)
-    if (dimensions.heritageVsModern < 50) {
-      // Heritage affinity
-      const heritageWeight = (50 - dimensions.heritageVsModern) / 50 // 0 to 1
-      if (tags.has('heritage')) score += 30 * heritageWeight
-      if (tags.has('traditional')) score += 25 * heritageWeight
-      if (tags.has('ceremonial') || tags.has('royal')) score += 15 * heritageWeight
-      if (tags.has('modern')) score -= 20 * heritageWeight
-    } else {
-      // Modern affinity
-      const modernWeight = (dimensions.heritageVsModern - 50) / 50 // 0 to 1
-      if (tags.has('modern')) score += 30 * modernWeight
-      if (tags.has('playful') && idea.category !== 'catering') score += 15 * modernWeight
-      if (tags.has('heritage') || tags.has('traditional')) score -= 20 * modernWeight
-    }
-
-    // Dimension: Scale (0 = Intimate, 100 = Grand)
-    if (dimensions.scale < 50) {
-      const intimateWeight = (50 - dimensions.scale) / 50
-      if (tags.has('intimate') || tags.has('comfort')) {
-        score += 20 * intimateWeight
-      }
-      if (tags.has('grand')) {
-        score -= 10 * intimateWeight
-      }
-    } else {
-      const grandWeight = (dimensions.scale - 50) / 50
-      if (tags.has('grand') || tags.has('royal')) {
-        score += 20 * grandWeight
-      }
-      if (tags.has('intimate')) {
-        score -= 10 * grandWeight
-      }
-    }
-
-    // Dimension: Feast vs Spectacle (0 = Feast, 100 = Spectacle)
-    if (dimensions.feastVsSpectacle < 50) {
-      const feastWeight = (50 - dimensions.feastVsSpectacle) / 50
-      if (tags.has('feast') || idea.category === 'catering') {
-        score += 25 * feastWeight
-      }
-    } else {
-      const spectacleWeight = (dimensions.feastVsSpectacle - 50) / 50
-      if (tags.has('spectacle') || idea.category === 'decor') {
-        score += 25 * spectacleWeight
-      }
-    }
-
-    // Dimension: Energy (0 = Chill/Acoustic, 100 = High-Energy)
-    if (dimensions.energy >= 50) {
-      const energyWeight = (dimensions.energy - 50) / 50
-      if (tags.has('high-energy')) {
-        score += 15 * energyWeight
-      }
-    } else {
-      const acousticWeight = (50 - dimensions.energy) / 50
-      if (tags.has('acoustic') || tags.has('intimate')) {
-        score += 15 * acousticWeight
-      }
-    }
-
-    return score
-  }
-
-  // 4. Sort deterministically: descending score, with secondary sort on idea id
+  // 3. Sort deterministically: descending score, with secondary sort on idea id
   return [...matchingIdeas].sort((a, b) => {
-    const scoreDiff = calculateAffinityScore(b) - calculateAffinityScore(a)
+    const scoreDiff = calculateAffinityScore(b, dimensions) - calculateAffinityScore(a, dimensions)
     if (Math.abs(scoreDiff) > 0.001) {
       return scoreDiff
     }

@@ -6,15 +6,89 @@ import {
   type NamedPaletteColor,
 } from './schemas'
 import type { BudgetCategory } from '@/lib/engine/types'
+import {
+  DEFAULT_COLOR_NAMES,
+  DEFAULT_DIMENSIONS,
+  DEFAULT_PALETTE,
+  DEFAULT_PROTECTED_CATEGORY,
+  PROTECTED_CATEGORY_SIGNALS,
+  TRADEOFF_RULES,
+  TRADEOFF_SHIFT,
+  type VibeTradeoffs,
+} from './heuristic-signals'
 
-export interface VibeTradeoffs {
-  feastVsSpectacle: 'feast' | 'spectacle'
-  intimateVsGrand: 'intimate' | 'grand'
-  heritageVsModern: 'heritage' | 'modern'
+export type { VibeTradeoffs }
+
+const MAX_TEXT_LENGTH = 200
+const FALLBACK_MOMENT_QUOTE = 'Soulful celebratory moment with cherished guests.'
+
+function ellipsize(text: string): string {
+  return text.length > MAX_TEXT_LENGTH ? text.slice(0, MAX_TEXT_LENGTH - 3) + '...' : text
 }
 
-const DEFAULT_PALETTE = ['#F7C873', '#F2A7B8', '#3A2442', '#FFF8EE']
-const DEFAULT_COLOR_NAMES = ['Marigold Amber', 'Gulabi Rose', 'Royal Plum', 'Warm Ivory']
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value))
+}
+
+/** Average of each dimension across the selected swatches, or the defaults when none match. */
+function averageDimensions(swatches: StyleSwatch[]): StyleDimensions {
+  if (swatches.length === 0) return { ...DEFAULT_DIMENSIONS }
+
+  const average = (key: keyof StyleDimensions): number =>
+    Math.round(swatches.reduce((sum, s) => sum + s.dimensions[key], 0) / swatches.length)
+
+  return {
+    formality: average('formality'),
+    energy: average('energy'),
+    scale: average('scale'),
+    heritageVsModern: average('heritageVsModern'),
+    feastVsSpectacle: average('feastVsSpectacle'),
+    music: average('music'),
+    decorDensity: average('decorDensity'),
+    indoorVsOutdoor: average('indoorVsOutdoor'),
+  }
+}
+
+/** Shifts dimensions by the forced-choice trade-offs, clamping each to its allowed range. */
+function applyTradeoffs(dimensions: StyleDimensions, tradeoffs: VibeTradeoffs): void {
+  for (const rule of TRADEOFF_RULES) {
+    const direction = tradeoffs[rule.tradeoff] === rule.lowChoice ? -1 : 1
+    dimensions[rule.dimension] = clamp(
+      dimensions[rule.dimension] + direction * TRADEOFF_SHIFT,
+      rule.min,
+      rule.max
+    )
+  }
+}
+
+function detectProtectedCategory(protectedMomentText: string): BudgetCategory {
+  const lowerMoment = protectedMomentText.toLowerCase()
+  const match = PROTECTED_CATEGORY_SIGNALS.find(([pattern]) => pattern.test(lowerMoment))
+  return match ? match[1] : DEFAULT_PROTECTED_CATEGORY
+}
+
+function extractNamedPalette(swatches: StyleSwatch[]): NamedPaletteColor[] {
+  const rawPalette =
+    swatches.length > 0 && swatches[0].palette.length >= 3 ? swatches[0].palette : DEFAULT_PALETTE
+
+  return rawPalette.slice(0, 4).map((hex, i) => ({
+    name: DEFAULT_COLOR_NAMES[i] || `Shade ${i + 1}`,
+    hex,
+  }))
+}
+
+function buildVibeStatement(swatches: StyleSwatch[], protectedCategory: BudgetCategory): string {
+  const emphasis = protectedCategory.replace('_', ' ')
+  const titles = swatches
+    .slice(0, 2)
+    .map((s) => s.title)
+    .join(' & ')
+  return ellipsize(
+    titles
+      ? `A celebration infused with ${titles}, emphasizing ${emphasis}.`
+      : `A festive celebration emphasizing ${emphasis}.`
+  )
+}
 
 export function extractDeterministicStyleDNA(
   selectedSwatchIds: string[],
@@ -25,116 +99,17 @@ export function extractDeterministicStyleDNA(
     .map((id) => SWATCHES.find((s) => s.id === id))
     .filter((s): s is StyleSwatch => s !== undefined)
 
-  const count = swatches.length > 0 ? swatches.length : 1
+  const dimensions = averageDimensions(swatches)
+  applyTradeoffs(dimensions, tradeoffs)
 
-  // 1. Average the 8 dimensions across selected swatches
-  const baseDim: StyleDimensions = {
-    formality: Math.round(
-      swatches.length > 0
-        ? swatches.reduce((sum, s) => sum + s.dimensions.formality, 0) / count
-        : 60
-    ),
-    energy: Math.round(
-      swatches.length > 0 ? swatches.reduce((sum, s) => sum + s.dimensions.energy, 0) / count : 60
-    ),
-    scale: Math.round(
-      swatches.length > 0 ? swatches.reduce((sum, s) => sum + s.dimensions.scale, 0) / count : 60
-    ),
-    heritageVsModern: Math.round(
-      swatches.length > 0
-        ? swatches.reduce((sum, s) => sum + s.dimensions.heritageVsModern, 0) / count
-        : 50
-    ),
-    feastVsSpectacle: Math.round(
-      swatches.length > 0
-        ? swatches.reduce((sum, s) => sum + s.dimensions.feastVsSpectacle, 0) / count
-        : 50
-    ),
-    music: Math.round(
-      swatches.length > 0 ? swatches.reduce((sum, s) => sum + s.dimensions.music, 0) / count : 60
-    ),
-    decorDensity: Math.round(
-      swatches.length > 0
-        ? swatches.reduce((sum, s) => sum + s.dimensions.decorDensity, 0) / count
-        : 65
-    ),
-    indoorVsOutdoor: Math.round(
-      swatches.length > 0
-        ? swatches.reduce((sum, s) => sum + s.dimensions.indoorVsOutdoor, 0) / count
-        : 50
-    ),
-  }
-
-  // 2. Modulate dimensions with forced-choice trade-offs
-  if (tradeoffs.feastVsSpectacle === 'feast') {
-    baseDim.feastVsSpectacle = Math.max(10, Math.min(90, baseDim.feastVsSpectacle - 25))
-  } else {
-    baseDim.feastVsSpectacle = Math.max(10, Math.min(90, baseDim.feastVsSpectacle + 25))
-  }
-
-  if (tradeoffs.intimateVsGrand === 'intimate') {
-    baseDim.scale = Math.max(15, Math.min(90, baseDim.scale - 25))
-  } else {
-    baseDim.scale = Math.max(15, Math.min(90, baseDim.scale + 25))
-  }
-
-  if (tradeoffs.heritageVsModern === 'heritage') {
-    baseDim.heritageVsModern = Math.max(10, Math.min(90, baseDim.heritageVsModern - 25))
-  } else {
-    baseDim.heritageVsModern = Math.max(10, Math.min(90, baseDim.heritageVsModern + 25))
-  }
-
-  // 3. Keyword heuristic for Protected Moment category
-  const lowerMoment = protectedMomentText.toLowerCase()
-  let protectedCategory: BudgetCategory = 'catering'
-
-  if (/music|qawwali|dj|band|singer|dance|sangeet|dhol/i.test(lowerMoment)) {
-    protectedCategory = 'entertainment'
-  } else if (/photo|film|video|shoot|album|drone|cinemat/i.test(lowerMoment)) {
-    protectedCategory = 'photo_film'
-  } else if (/flower|mandap|decor|light|chandelier|stage|entry|floral/i.test(lowerMoment)) {
-    protectedCategory = 'decor'
-  } else if (/venue|palace|haveli|hall|lawn|resort|farmhouse/i.test(lowerMoment)) {
-    protectedCategory = 'venue'
-  } else if (/food|feast|dinner|mithai|chaat|dessert|cocktail|catering|menu/i.test(lowerMoment)) {
-    protectedCategory = 'catering'
-  } else if (/gift|favor|potli|box|hamper|mithai box/i.test(lowerMoment)) {
-    protectedCategory = 'favors'
-  }
-
-  // 4. Palette extraction
-  const rawPalette =
-    swatches.length > 0 && swatches[0].palette.length >= 3 ? swatches[0].palette : DEFAULT_PALETTE
-
-  const namedPalette: NamedPaletteColor[] = rawPalette.slice(0, 4).map((hex, i) => ({
-    name: DEFAULT_COLOR_NAMES[i] || `Shade ${i + 1}`,
-    hex,
-  }))
-
-  // 5. Clean vibe statement and quote
-  const titles = swatches
-    .slice(0, 2)
-    .map((s) => s.title)
-    .join(' & ')
-  const baseStatement = titles
-    ? `A celebration infused with ${titles}, emphasizing ${protectedCategory.replace('_', ' ')}.`
-    : `A festive celebration emphasizing ${protectedCategory.replace('_', ' ')}.`
-
-  const vibeStatement =
-    baseStatement.length > 200 ? baseStatement.slice(0, 197) + '...' : baseStatement
-
-  const trimmedQuote = protectedMomentText.trim()
-  const protectedMomentQuote =
-    trimmedQuote.length > 200
-      ? trimmedQuote.slice(0, 197) + '...'
-      : trimmedQuote || 'Soulful celebratory moment with cherished guests.'
+  const protectedCategory = detectProtectedCategory(protectedMomentText)
 
   const result: StyleDNA = {
-    dimensions: baseDim,
-    namedPalette,
-    vibeStatement,
+    dimensions,
+    namedPalette: extractNamedPalette(swatches),
+    vibeStatement: buildVibeStatement(swatches, protectedCategory),
     protectedCategory,
-    protectedMomentQuote,
+    protectedMomentQuote: ellipsize(protectedMomentText.trim()) || FALLBACK_MOMENT_QUOTE,
   }
 
   // Ensure strict schema compliance
