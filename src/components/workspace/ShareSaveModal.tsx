@@ -59,7 +59,7 @@ export function ShareSaveModal({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-xl p-6 sm:p-8">
-          <DialogHeader>
+          <DialogHeader className="pr-10">
             <DialogTitle className="font-serif text-2xl font-bold text-royal-plum flex items-center gap-2">
               <Share2 className="h-6 w-6 text-marigold" aria-hidden="true" />
               <span>Share & Save Celebration</span>

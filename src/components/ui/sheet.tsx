@@ -1,8 +1,11 @@
+'use client'
+
 import * as React from 'react'
 import * as SheetPrimitive from '@radix-ui/react-dialog'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useReturnFocusToOpener } from '@/components/ui/dialog'
 
 export const Sheet = SheetPrimitive.Root
 export const SheetTrigger = SheetPrimitive.Trigger
@@ -51,22 +54,30 @@ export interface SheetContentProps
 export const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
->(({ side = 'bottom', className, children, ...props }, ref) => (
-  <SheetPortal>
-    <SheetOverlay />
-    <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
-      {/* Persistent drag handle for bottom drawer */}
-      {side === 'bottom' && (
-        <div className="mx-auto -mt-2 mb-4 h-1.5 w-12 rounded-full bg-royal-plum/20" />
-      )}
-      {children}
-      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-full p-1 text-royal-plum/70 hover:bg-royal-plum/5 hover:text-royal-plum focus:outline-hidden">
-        <X className="h-5 w-5" />
-        <span className="sr-only">Close</span>
-      </SheetPrimitive.Close>
-    </SheetPrimitive.Content>
-  </SheetPortal>
-))
+>(({ side = 'bottom', className, children, onCloseAutoFocus, ...props }, forwardedRef) => {
+  const returnFocus = useReturnFocusToOpener(forwardedRef, onCloseAutoFocus)
+  return (
+    <SheetPortal>
+      <SheetOverlay />
+      <SheetPrimitive.Content
+        ref={returnFocus.ref}
+        onCloseAutoFocus={returnFocus.onCloseAutoFocus}
+        className={cn(sheetVariants({ side }), className)}
+        {...props}
+      >
+        {/* Persistent drag handle for bottom drawer */}
+        {side === 'bottom' && (
+          <div className="mx-auto -mt-2 mb-4 h-1.5 w-12 rounded-full bg-royal-plum/20" />
+        )}
+        {children}
+        <SheetPrimitive.Close className="absolute right-4 top-4 rounded-full p-1 text-royal-plum/70 hover:bg-royal-plum/5 hover:text-royal-plum focus:outline-hidden">
+          <X className="h-5 w-5" />
+          <span className="sr-only">Close</span>
+        </SheetPrimitive.Close>
+      </SheetPrimitive.Content>
+    </SheetPortal>
+  )
+})
 SheetContent.displayName = SheetPrimitive.Content.displayName
 
 export const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
