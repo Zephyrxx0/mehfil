@@ -20,10 +20,12 @@ import { pulseHaptic } from './plan-status'
 
 /**
  * Invisible hit-area extension for the h-8 (32px) `sm` buttons: the ::before box grows 6px above
- * and below (32 + 12 = 44px). Widths are already well over 44px, so no horizontal inset is needed.
- * The pseudo-element is transparent and out of flow, so visible size and layout are unchanged.
+ * and below (32 + 12 = 44px) and spans the button's full width (`inset-x-0`; without it an absolute
+ * box with no left or right has zero width). Widths are already well over 44px. The pseudo-element
+ * is transparent and out of flow, so visible size and layout are unchanged.
  */
-const TOUCH_TARGET_CLASSES = "relative before:absolute before:-inset-y-1.5 before:content-['']"
+const TOUCH_TARGET_CLASSES =
+  "relative before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-['']"
 
 interface BudgetLineActionsProps {
   line: BudgetLine
