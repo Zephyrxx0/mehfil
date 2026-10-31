@@ -46,7 +46,7 @@ function MilestoneTaskRow({
           task.environmentalRiskId) && (
           <p className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
             {task.isCriticalPath && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-terracotta/10 px-2 py-0.5 font-semibold text-terracotta">
+              <span className="inline-flex items-center gap-1 rounded-full border border-terracotta/30 bg-warm-ivory px-2 py-0.5 font-semibold text-terracotta">
                 <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-terracotta" />
                 Critical Path
               </span>
