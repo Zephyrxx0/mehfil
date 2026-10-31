@@ -124,7 +124,7 @@ export function ShareSaveModal({
         <DialogContent className="max-w-xl p-6 sm:p-8">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl font-bold text-royal-plum flex items-center gap-2">
-              <Share2 className="h-6 w-6 text-marigold" />
+              <Share2 className="h-6 w-6 text-marigold" aria-hidden="true" />
               <span>Share & Save Celebration</span>
             </DialogTitle>
             <DialogDescription className="text-sm text-royal-plum/70">
@@ -217,9 +217,10 @@ export function ShareSaveModal({
                         level="M"
                         fgColor="#3A2442"
                         bgColor="#FFFFFF"
+                        title="QR code for the private organizer edit link"
                       />
                     </div>
-                    <p className="text-xs text-royal-plum/60 mt-3 font-medium">
+                    <p className="text-xs text-royal-plum/70 mt-3 font-medium">
                       Scan with phone camera to resume editing on mobile
                     </p>
                   </div>
@@ -318,7 +319,7 @@ export function ShareSaveModal({
                       <p className="text-xs font-semibold text-royal-plum">
                         Need to revoke access?
                       </p>
-                      <p className="text-2xs text-royal-plum/60">
+                      <p className="text-2xs text-royal-plum/70">
                         Regenerating invalidates previously shared links.
                       </p>
                     </div>

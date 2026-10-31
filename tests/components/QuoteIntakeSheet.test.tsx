@@ -78,7 +78,9 @@ describe('QuoteIntakeSheet Component (QUOTE-01, QUOTE-02, D-01, D-02)', () => {
     render(<QuoteIntakeSheet open={true} onOpenChange={onOpenChange} category="catering" />)
 
     // Security notice & Header
-    expect(screen.getByText(/महफ़िल Quote Sandbox/i)).toBeInTheDocument()
+    const label = screen.getByText(/Quote Sandbox/i)
+    expect(label).toHaveTextContent('महफ़िल Quote Sandbox')
+    expect(screen.getByText('महफ़िल')).toHaveAttribute('lang', 'hi')
     expect(screen.getByText(/Check Vendor Quote: Catering/i)).toBeInTheDocument()
     expect(screen.getByText(/Untrusted vendor quotes are safely quarantined/i)).toBeInTheDocument()
 

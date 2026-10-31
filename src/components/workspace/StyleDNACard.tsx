@@ -103,7 +103,7 @@ export function StyleDNACard({
       <section aria-labelledby="style-dna-heading" className="flex flex-col gap-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h3
+            <h2
               id="style-dna-heading"
               className="flex items-center gap-2.5 font-serif text-xl font-bold text-royal-plum"
             >
@@ -112,8 +112,8 @@ export function StyleDNACard({
                 className="h-4 w-1 shrink-0 origin-bottom rounded-full bg-gradient-to-b from-marigold to-gulabi-rose motion-safe:animate-[mehfil-flourish_0.5s_cubic-bezier(0.22,1,0.36,1)_both]"
               />
               <span>Style DNA</span>
-            </h3>
-            <p className="mt-0.5 text-sm text-royal-plum/60">Aesthetic Identity</p>
+            </h2>
+            <p className="mt-0.5 text-sm text-royal-plum/70">Aesthetic Identity</p>
           </div>
 
           {!isReadOnly && onRetuneStyle && (
@@ -128,7 +128,7 @@ export function StyleDNACard({
             <p className="text-base font-medium text-royal-plum">
               Analyzing visual vibes &amp; balancing allocations...
             </p>
-            <p className="mt-1 text-sm text-royal-plum/60">
+            <p className="mt-1 text-sm text-royal-plum/70">
               Calibrating 8 aesthetic dimensions and protected floor
             </p>
           </div>
@@ -142,7 +142,7 @@ export function StyleDNACard({
 
             <div className="grid gap-8 sm:grid-cols-2">
               <div>
-                <h4 className="text-sm font-semibold text-royal-plum">Named Festive Palette</h4>
+                <h3 className="text-sm font-semibold text-royal-plum">Named Festive Palette</h3>
                 <TooltipProvider>
                   <ul className="mt-3 flex flex-col gap-2">
                     {palette.map((color, idx) => (
@@ -152,16 +152,16 @@ export function StyleDNACard({
                             <span
                               className="h-6 w-6 shrink-0 rounded-full border border-royal-plum/20"
                               style={{ backgroundColor: color.hex }}
-                              aria-label={`${color.name} (${color.hex})`}
+                              aria-hidden="true"
                             />
                           </TooltipTrigger>
                           <TooltipContent side="top" className="text-xs">
                             <span className="font-semibold">{color.name}</span>
-                            <span className="ml-1 font-mono text-royal-plum/60">{color.hex}</span>
+                            <span className="ml-1 font-mono text-royal-plum/70">{color.hex}</span>
                           </TooltipContent>
                         </Tooltip>
                         <span className="text-royal-plum">{color.name}</span>
-                        <span className="font-mono text-xs text-royal-plum/50">{color.hex}</span>
+                        <span className="font-mono text-xs text-royal-plum/70">{color.hex}</span>
                       </li>
                     ))}
                   </ul>
@@ -169,7 +169,7 @@ export function StyleDNACard({
               </div>
 
               <div>
-                <h4 className="text-sm font-semibold text-royal-plum">Dominant Dimensions</h4>
+                <h3 className="text-sm font-semibold text-royal-plum">Dominant Dimensions</h3>
                 <ul className="mt-3 flex flex-col gap-3">
                   {topDimensions.map(([key, value]) => (
                     <li key={key}>
@@ -191,7 +191,7 @@ export function StyleDNACard({
 
             {protectedQuote && (
               <div className="border-l-2 border-gulabi-rose bg-gulabi-rose/10 px-4 py-3">
-                <h4 className="text-sm font-semibold text-royal-plum">Protected Moment Quote</h4>
+                <h3 className="text-sm font-semibold text-royal-plum">Protected Moment Quote</h3>
                 <p className="mt-1 font-serif text-base italic text-royal-plum">
                   &ldquo;{protectedQuote}&rdquo;
                 </p>

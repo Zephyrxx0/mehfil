@@ -75,7 +75,7 @@ export function WorkspaceHeader({
       </div>
 
       <div className="mx-auto w-full max-w-4xl px-4 pb-5 pt-4 sm:px-6 sm:pt-8">
-        <p className="text-sm text-royal-plum/60">
+        <p className="text-sm text-royal-plum/70">
           {EVENT_TYPE_LABELS[brief.eventType] ?? brief.eventType}
           <span aria-hidden="true"> · </span>
           {brief.city}

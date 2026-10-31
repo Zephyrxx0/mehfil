@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import bundleAnalyzer from '@next/bundle-analyzer'
 
 // Files in /public keep their names when edited, so they cannot be cached as immutable.
 // A day of fresh caching plus a week of stale-while-revalidate keeps repeat visits fast and
@@ -60,4 +61,7 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+// `pnpm analyze` builds with ANALYZE=true and opens treemaps of each bundle.
+const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === 'true' })
+
+export default withBundleAnalyzer(nextConfig)

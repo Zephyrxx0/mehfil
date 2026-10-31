@@ -60,13 +60,13 @@ export function StepVibeTradeoffs({
             htmlFor="protected-moment-input"
             className="flex items-center gap-1.5 text-xs font-semibold text-royal-plum"
           >
-            <ShieldCheck className="w-4 h-4 text-gulabi-rose" />
+            <ShieldCheck className="w-4 h-4 text-gulabi-rose" aria-hidden="true" />
             <span>Single-Sentence Protected Moment (Immune from Trimming)</span>
           </label>
           <span
             className={cn(
               'text-xs font-mono tabular-nums',
-              charCount >= 190 ? 'text-amber-800 font-bold' : 'text-royal-plum/50'
+              charCount >= 190 ? 'text-amber-800 font-bold' : 'text-royal-plum/70'
             )}
           >
             ({charCount}/200)
@@ -80,10 +80,10 @@ export function StepVibeTradeoffs({
           maxLength={200}
           rows={5}
           placeholder="e.g. Live soulful qawwali night under fairy lights"
-          className="w-full resize-none rounded-xl border border-royal-plum/15 bg-warm-ivory/60 p-3 text-sm text-royal-plum placeholder:text-royal-plum/40 focus:border-royal-plum/50 focus:outline-hidden focus:ring-1 focus:ring-royal-plum/20"
+          className="w-full resize-none rounded-xl border border-royal-plum/15 bg-warm-ivory/60 p-3 text-sm text-royal-plum placeholder:text-royal-plum/70 focus:border-royal-plum/50 focus:outline-hidden focus:ring-1 focus:ring-royal-plum/20"
         />
 
-        <p className="text-xs text-royal-plum/55">
+        <p className="text-xs text-royal-plum/70">
           This vision statement locks a 1.25x floor multiplier on its matching budget line so it
           will never be trimmed.
         </p>
@@ -126,7 +126,7 @@ export function StepVibeTradeoffs({
                   <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Sumptuous Multi-Course Dining
                   </span>
-                  <span className="text-xs text-royal-plum/60 leading-snug">
+                  <span className="text-xs text-royal-plum/70 leading-snug">
                     Focus on culinary craft, live stations & feasts
                   </span>
                 </div>
@@ -158,13 +158,13 @@ export function StepVibeTradeoffs({
             >
               <div className="flex items-center gap-2.5">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-royal-plum/5 text-royal-plum">
-                  <Sparkles className="w-3.5 h-3.5 text-marigold" />
+                  <Sparkles className="w-3.5 h-3.5 text-marigold" aria-hidden="true" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Dazzling Stage & Visual Production
                   </span>
-                  <span className="text-xs text-royal-plum/60 leading-snug">
+                  <span className="text-xs text-royal-plum/70 leading-snug">
                     High impact lighting, grand sets & stagecraft
                   </span>
                 </div>
@@ -207,7 +207,7 @@ export function StepVibeTradeoffs({
                   <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Warm & Cozy Close Circle
                   </span>
-                  <span className="text-xs text-royal-plum/60 leading-snug">
+                  <span className="text-xs text-royal-plum/70 leading-snug">
                     Personal conversations, subtle music & intimacy
                   </span>
                 </div>
@@ -244,7 +244,7 @@ export function StepVibeTradeoffs({
                   <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Grand High-Energy Extravaganza
                   </span>
-                  <span className="text-xs text-royal-plum/60 leading-snug">
+                  <span className="text-xs text-royal-plum/70 leading-snug">
                     Expansive scale, electric beats & large crowd
                   </span>
                 </div>
@@ -287,7 +287,7 @@ export function StepVibeTradeoffs({
                   <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Timeless Rituals & Cultural Craft
                   </span>
-                  <span className="text-xs text-royal-plum/60 leading-snug">
+                  <span className="text-xs text-royal-plum/70 leading-snug">
                     Traditional fabrics, classic motifs & heirloom touches
                   </span>
                 </div>
@@ -324,7 +324,7 @@ export function StepVibeTradeoffs({
                   <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Contemporary Chic & Minimalist Elegance
                   </span>
-                  <span className="text-xs text-royal-plum/60 leading-snug">
+                  <span className="text-xs text-royal-plum/70 leading-snug">
                     Clean lines, architectural floral styling & modern palettes
                   </span>
                 </div>

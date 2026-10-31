@@ -1,26 +1,14 @@
-import { createBrowserClient } from '@supabase/ssr'
-import type { Database } from '@/types/database'
+import type { RpcClient } from '@/lib/storage/cloud-plans'
 import { readSupabaseConfig } from './config'
+import { createRpcClient } from './rpc-client'
 
-const REQUEST_TIMEOUT_MS = 10_000
+let instance: RpcClient | null = null
 
-let clientInstance: ReturnType<typeof createBrowserClient<Database>> | null = null
-
-/**
- * Returns a browser-side Supabase client singleton, or null if credentials are unconfigured.
- * Requests time out so a bad connection falls back to local storage instead of hanging.
- */
-export function getClientSupabase() {
-  if (clientInstance) return clientInstance
-
+/** The browser's connection to the database functions, or null when Supabase is not configured. */
+export function getRpcClient(): RpcClient | null {
+  if (instance) return instance
   const config = readSupabaseConfig()
   if (!config) return null
-
-  clientInstance = createBrowserClient<Database>(config.url, config.anonKey, {
-    global: {
-      fetch: (input, init) =>
-        fetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS) }),
-    },
-  })
-  return clientInstance
+  instance = createRpcClient(config)
+  return instance
 }

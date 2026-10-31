@@ -84,7 +84,7 @@ export function NewPlanClient() {
         {isStarting ? (
           <div role="status" className="flex flex-col items-center gap-4 py-24 text-center">
             <Loader2 className="h-7 w-7 animate-spin text-marigold" aria-hidden="true" />
-            <p className="text-sm text-royal-plum/60">Preparing your plan...</p>
+            <p className="text-sm text-royal-plum/70">Preparing your plan...</p>
           </div>
         ) : isReady ? (
           <BriefWizard

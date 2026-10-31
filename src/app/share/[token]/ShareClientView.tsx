@@ -88,7 +88,7 @@ function SharedPlanContent({ sanitizedPlan }: SharedPlanContentProps) {
         <header className="flex flex-col items-center text-center space-y-4">
           <div className="flex items-center gap-2">
             <Wordmark size="lg" hideTag />
-            <span className="text-xs uppercase tracking-widest text-royal-plum/50 font-medium">
+            <span className="text-xs uppercase tracking-widest text-royal-plum/70 font-medium">
               • Celebration
             </span>
           </div>
@@ -99,17 +99,17 @@ function SharedPlanContent({ sanitizedPlan }: SharedPlanContentProps) {
 
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm font-medium text-royal-plum/80 pt-1">
             <span className="flex items-center gap-1.5">
-              <Calendar className="h-4 w-4 text-royal-plum/60" />
+              <Calendar className="h-4 w-4 text-royal-plum/70" />
               <span>{formattedEventDate}</span>
             </span>
             <span className="text-royal-plum/30">•</span>
             <span className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4 text-royal-plum/60" />
+              <MapPin className="h-4 w-4 text-royal-plum/70" />
               <span>{sanitizedPlan.city}</span>
             </span>
             <span className="text-royal-plum/30">•</span>
             <span className="flex items-center gap-1.5">
-              <Users className="h-4 w-4 text-royal-plum/60" />
+              <Users className="h-4 w-4 text-royal-plum/70" />
               <span>{sanitizedPlan.guestCount} Celebrated Guests</span>
             </span>
           </div>
@@ -169,12 +169,12 @@ function SharedPlanContent({ sanitizedPlan }: SharedPlanContentProps) {
               >
                 Celebration Overview
               </h2>
-              <p className="text-xs text-royal-plum/60 mt-0.5">
+              <p className="text-xs text-royal-plum/70 mt-0.5">
                 Harmonized resource distribution across celebration experiences
               </p>
             </div>
             <div className="text-right">
-              <span className="text-2xs uppercase tracking-wider text-royal-plum/50 font-bold block">
+              <span className="text-2xs uppercase tracking-wider text-royal-plum/70 font-bold block">
                 Total Budget
               </span>
               <span className="text-lg font-bold tabular-nums text-royal-plum">
@@ -230,7 +230,7 @@ function SharedPlanContent({ sanitizedPlan }: SharedPlanContentProps) {
               >
                 Ceremony Milestones
               </h2>
-              <p className="text-xs text-royal-plum/60 mt-0.5">
+              <p className="text-xs text-royal-plum/70 mt-0.5">
                 Public celebration schedule for honored guests and family
               </p>
             </div>
@@ -240,7 +240,7 @@ function SharedPlanContent({ sanitizedPlan }: SharedPlanContentProps) {
               onClick={handleExportICS}
               className="bg-royal-plum text-warm-ivory hover:bg-royal-plum/90 gap-2 text-xs font-semibold self-start sm:self-center"
             >
-              <CalendarPlus className="h-4 w-4 text-marigold" />
+              <CalendarPlus className="h-4 w-4 text-marigold" aria-hidden="true" />
               <span>Add Ceremonies to Calendar (.ics)</span>
             </Button>
           </div>
@@ -264,7 +264,7 @@ function SharedPlanContent({ sanitizedPlan }: SharedPlanContentProps) {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-royal-plum/60 mt-1 flex items-center gap-1.5">
+                    <p className="text-xs text-royal-plum/70 mt-1 flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5" />
                       <span>{milestone.targetDate}</span>
                       {milestone.leadDays > 0 && <span>• T-{milestone.leadDays} days</span>}
@@ -274,7 +274,7 @@ function SharedPlanContent({ sanitizedPlan }: SharedPlanContentProps) {
               ))}
             </div>
           ) : (
-            <p className="text-xs text-royal-plum/60 py-4 text-center">
+            <p className="text-xs text-royal-plum/70 py-4 text-center">
               Ceremonies will be published as celebration details are finalized.
             </p>
           )}

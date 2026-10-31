@@ -105,7 +105,7 @@ export function DescribeVibeDialog({ open, onOpenChange, onSuggested }: Describe
             // eslint-disable-next-line jsx-a11y/no-autofocus -- opened by a user action; focus must land here
             autoFocus
             placeholder="e.g. Warm candlelit courtyard, marigold and brass, family close by"
-            className="w-full resize-none rounded-xl border border-royal-plum/15 bg-white/80 p-3.5 text-sm text-royal-plum placeholder:text-royal-plum/40 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
+            className="w-full resize-none rounded-xl border border-royal-plum/15 bg-white/80 p-3.5 text-sm text-royal-plum placeholder:text-royal-plum/70 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
           />
           <div className="flex flex-wrap gap-1.5" aria-label="Examples">
             {EXAMPLES.map((example) => (
@@ -127,7 +127,7 @@ export function DescribeVibeDialog({ open, onOpenChange, onSuggested }: Describe
           )}
 
           <div className="flex items-center justify-between gap-3 pt-1">
-            <span className="text-xs tabular-nums text-royal-plum/50">
+            <span className="text-xs tabular-nums text-royal-plum/70">
               {text.length}/{MAX_DESCRIPTION_LENGTH}
             </span>
             <Button type="submit" disabled={!canSubmit}>

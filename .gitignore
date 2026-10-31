@@ -33,3 +33,7 @@ CONTEXT.md
 PRD.md
 DESIGN.md
 
+
+# Playwright
+/test-results/
+/playwright-report/

@@ -60,7 +60,7 @@ export const SheetContent = React.forwardRef<
         <div className="mx-auto -mt-2 mb-4 h-1.5 w-12 rounded-full bg-royal-plum/20" />
       )}
       {children}
-      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-full p-1 text-royal-plum/50 hover:bg-royal-plum/5 hover:text-royal-plum focus:outline-hidden">
+      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-full p-1 text-royal-plum/70 hover:bg-royal-plum/5 hover:text-royal-plum focus:outline-hidden">
         <X className="h-5 w-5" />
         <span className="sr-only">Close</span>
       </SheetPrimitive.Close>

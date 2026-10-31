@@ -1,36 +1,13 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import type { Database } from '@/types/database'
+import type { RpcClient } from '@/lib/storage/cloud-plans'
 import { readSupabaseConfig } from './config'
+import { createRpcClient } from './rpc-client'
 
 /**
- * Creates a server-side Supabase client for Next.js 15 Server Components and Route Handlers.
- * Asynchronously awaits Next.js 15 cookies() store.
+ * The server's connection to the database functions, or null when Supabase is not configured.
+ * It uses the same public key as the browser, so a leaked server log or route cannot do more
+ * than the browser can: every function checks the capability token itself.
  */
-export async function getServerSupabase() {
+export function getServerRpc(): RpcClient | null {
   const config = readSupabaseConfig()
-  if (!config) return null
-
-  let cookieStore: Awaited<ReturnType<typeof cookies>>
-  try {
-    cookieStore = await cookies()
-  } catch {
-    // If invoked outside a Next.js request scope (e.g. build or unit test), return null safely
-    return null
-  }
-
-  return createServerClient<Database>(config.url, config.anonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-        } catch {
-          // Can be safely ignored if invoked from a Server Component where cookies cannot be mutated
-        }
-      },
-    },
-  })
+  return config ? createRpcClient(config) : null
 }

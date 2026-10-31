@@ -86,7 +86,7 @@ export function MultiSelect({
           >
             <span className="flex-1">{option}</span>
             {counts && (
-              <span className="ml-3 text-xs tabular-nums text-royal-plum/45">
+              <span className="ml-3 text-xs tabular-nums text-royal-plum/70">
                 {counts[option] ?? 0}
               </span>
             )}

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { buildContentSecurityPolicy, generateNonce } from '@/lib/security/csp'
+import { readSupabaseConfig } from '@/lib/supabase/config'
 
 /**
  * Applies a per-request nonce CSP to page responses. Next.js reads the nonce from the
@@ -10,6 +11,7 @@ export function middleware(request: NextRequest) {
   const policy = buildContentSecurityPolicy({
     nonce,
     isDevelopment: process.env.NODE_ENV !== 'production',
+    supabaseUrl: readSupabaseConfig()?.url,
   })
 
   const requestHeaders = new Headers(request.headers)

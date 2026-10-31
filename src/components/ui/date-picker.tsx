@@ -50,7 +50,7 @@ export function DatePicker({
             className
           )}
         >
-          <span className={cn('tabular-nums', !selected && 'text-royal-plum/40')}>
+          <span className={cn('tabular-nums', !selected && 'text-royal-plum/70')}>
             {selected ? formatDisplayDate(value) : 'Pick a date'}
           </span>
           <CalendarDays className="h-4 w-4 shrink-0 text-royal-plum/60" aria-hidden="true" />

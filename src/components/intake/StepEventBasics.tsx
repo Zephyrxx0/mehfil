@@ -66,7 +66,7 @@ export function StepEventBasics({
                 }`}
               >
                 <span className="text-sm font-semibold text-royal-plum">{t.label}</span>
-                <span className="mt-1 text-xs leading-snug text-royal-plum/60">{t.desc}</span>
+                <span className="mt-1 text-xs leading-snug text-royal-plum/70">{t.desc}</span>
               </button>
             )
           })}
@@ -87,7 +87,7 @@ export function StepEventBasics({
             placeholder="e.g. Aditi & Kabir's Wedding"
             value={title}
             onChange={(e) => onChange({ title: e.target.value })}
-            className="h-11 w-full rounded-xl border border-royal-plum/15 bg-white/80 px-3.5 text-sm text-royal-plum placeholder:text-royal-plum/40 transition hover:border-royal-plum/30 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
+            className="h-11 w-full rounded-xl border border-royal-plum/15 bg-white/80 px-3.5 text-sm text-royal-plum placeholder:text-royal-plum/70 transition hover:border-royal-plum/30 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
           />
         </div>
 
@@ -104,7 +104,7 @@ export function StepEventBasics({
             placeholder="e.g. Delhi, Jaipur, Mumbai"
             value={city}
             onChange={(e) => onChange({ city: e.target.value })}
-            className="h-11 w-full rounded-xl border border-royal-plum/15 bg-white/80 px-3.5 text-sm text-royal-plum placeholder:text-royal-plum/40 transition hover:border-royal-plum/30 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
+            className="h-11 w-full rounded-xl border border-royal-plum/15 bg-white/80 px-3.5 text-sm text-royal-plum placeholder:text-royal-plum/70 transition hover:border-royal-plum/30 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
           />
         </div>
       </div>
@@ -126,7 +126,7 @@ export function StepEventBasics({
             That date has already passed. Pick today or a later day.
           </p>
         ) : (
-          <p className="mt-1.5 text-xs text-royal-plum/60">
+          <p className="mt-1.5 text-xs text-royal-plum/70">
             Mehfil will build your backwards milestone calendar from this date.
           </p>
         )}

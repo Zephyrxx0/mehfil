@@ -40,7 +40,7 @@ function Calendar({
         month_grid: cn('w-full border-collapse', defaults.month_grid),
         weekdays: cn('flex', defaults.weekdays),
         weekday: cn(
-          'flex-1 select-none text-center text-2xs font-semibold uppercase tracking-wider text-royal-plum/50',
+          'flex-1 select-none text-center text-2xs font-semibold uppercase tracking-wider text-royal-plum/70',
           defaults.weekday
         ),
         week: cn('mt-1 flex w-full', defaults.week),

@@ -148,7 +148,7 @@ export function QuoteCheckCard({
         </div>
 
         <div className="text-right shrink-0">
-          <span className="text-xs text-royal-plum/60 uppercase tracking-wider font-mono">
+          <span className="text-xs text-royal-plum/70 uppercase tracking-wider font-mono">
             Total Package
           </span>
           <div className="font-serif font-bold text-2xl text-royal-plum tabular-nums">
@@ -215,7 +215,7 @@ export function QuoteCheckCard({
                 <span className="text-sm font-medium text-royal-plum">{item.description}</span>
                 <Badge
                   variant="outline"
-                  className="text-3xs font-mono text-royal-plum/60 border-royal-plum/10"
+                  className="text-3xs font-mono text-royal-plum/70 border-royal-plum/10"
                 >
                   {item.pricingType === 'per_guest' ? 'Per Guest' : 'Flat'}
                 </Badge>
@@ -258,7 +258,7 @@ export function QuoteCheckCard({
       {quote.omissionAdders && quote.omissionAdders.length > 0 && (
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-royal-plum/80">
-            <Info className="w-3.5 h-3.5 text-royal-plum/60 shrink-0" />
+            <Info className="w-3.5 h-3.5 text-royal-plum/70 shrink-0" />
             <span>Unstated Costs &amp; Category Omissions Detected</span>
           </div>
 

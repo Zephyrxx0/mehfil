@@ -109,10 +109,10 @@ export function ScenarioComparison({
         <div className="p-3.5 rounded-2xl bg-soft-ivory border border-royal-plum/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-royal-plum">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-royal-plum">{matchingLine.name}</span>
-            <span className="text-royal-plum/60">• Baseline Allocation:</span>
+            <span className="text-royal-plum/70">• Baseline Allocation:</span>
             <span className="font-bold tabular-nums">{formatINR(baselinePaise)}</span>
           </div>
-          <div className="text-royal-plum/60">
+          <div className="text-royal-plum/70">
             Computed for <span className="font-semibold text-royal-plum">{guestCount} guests</span>
           </div>
         </div>
@@ -153,7 +153,7 @@ export function ScenarioComparison({
                   </Badge>
 
                   {quote.paymentTerms && (
-                    <span className="text-[11px] text-royal-plum/60 truncate max-w-[150px]">
+                    <span className="text-[11px] text-royal-plum/70 truncate max-w-[150px]">
                       {quote.paymentTerms}
                     </span>
                   )}
@@ -188,7 +188,7 @@ export function ScenarioComparison({
 
               {/* Stated Rates Breakdown */}
               <div className="space-y-2.5 pt-3 border-t border-royal-plum/10">
-                <div className="text-xs font-semibold text-royal-plum/60 uppercase tracking-wider">
+                <div className="text-xs font-semibold text-royal-plum/70 uppercase tracking-wider">
                   Deliverables & Items
                 </div>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
@@ -208,7 +208,7 @@ export function ScenarioComparison({
 
               {/* Statutory Adders Comparison */}
               <div className="space-y-2 pt-3 border-t border-royal-plum/10">
-                <div className="text-xs font-semibold text-royal-plum/60 uppercase tracking-wider">
+                <div className="text-xs font-semibold text-royal-plum/70 uppercase tracking-wider">
                   Statutory Overheads
                 </div>
                 <div className="space-y-1">
@@ -225,7 +225,7 @@ export function ScenarioComparison({
                       </div>
                     ))
                   ) : (
-                    <div className="text-xs text-royal-plum/60 italic">
+                    <div className="text-xs text-royal-plum/70 italic">
                       All statutory costs included in quote.
                     </div>
                   )}

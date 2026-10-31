@@ -320,7 +320,7 @@ export function StepVibeSwatches({
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-royal-plum/60">
+                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-royal-plum/70">
                     Palette
                   </span>
                   <ul className="flex flex-wrap gap-2">
@@ -340,7 +340,7 @@ export function StepVibeSwatches({
                   </ul>
                 </div>
                 <div>
-                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-royal-plum/60">
+                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-royal-plum/70">
                     Feel
                   </span>
                   <dl className="flex flex-col gap-1.5">

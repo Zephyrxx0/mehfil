@@ -27,7 +27,7 @@ export function V2ChangeBanner({
       className="flex items-start justify-between gap-4 border-l-2 border-marigold bg-marigold/10 px-4 py-3"
     >
       <div className="min-w-0">
-        <h3 className="text-base font-semibold text-royal-plum">Style DNA Infused (v2)</h3>
+        <h2 className="text-base font-semibold text-royal-plum">Style DNA Infused (v2)</h2>
         <p className="mt-1 text-sm leading-relaxed text-royal-plum/80">
           {vibeStatement && (
             <span className="font-serif italic text-royal-plum">

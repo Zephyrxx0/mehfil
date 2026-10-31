@@ -162,8 +162,11 @@ export function QuoteIntakeSheet({
       >
         <SheetHeader className="gap-2 text-left">
           <div className="flex items-center justify-between">
-            <span className="font-devanagari text-xs text-royal-plum/60 tracking-wider">
-              महफ़िल Quote Sandbox
+            <span className="text-xs text-royal-plum/70 tracking-wider">
+              <span lang="hi" className="font-devanagari">
+                महफ़िल
+              </span>{' '}
+              Quote Sandbox
             </span>
             {extractedQuote && (
               <Button
@@ -185,7 +188,7 @@ export function QuoteIntakeSheet({
           </SheetTitle>
 
           <SheetDescription className="text-xs text-royal-plum/70 leading-relaxed bg-soft-ivory p-3 rounded-xl border border-royal-plum/8 flex items-start gap-2">
-            <ShieldAlert className="w-4 h-4 text-marigold shrink-0 mt-0.5" />
+            <ShieldAlert className="w-4 h-4 text-marigold shrink-0 mt-0.5" aria-hidden="true" />
             <span>
               Untrusted vendor quotes are safely quarantined with zero database access. Numbers are
               verified verbatim before touching your plan.
@@ -254,7 +257,7 @@ export function QuoteIntakeSheet({
                     className="p-2 text-left rounded-xl bg-white border border-royal-plum/10 hover:border-marigold hover:bg-marigold/10 transition-colors flex flex-col gap-0.5 text-xs text-royal-plum"
                   >
                     <span className="font-semibold truncate">{sample.name}</span>
-                    <span className="text-3xs text-royal-plum/60 font-mono">
+                    <span className="text-3xs text-royal-plum/70 font-mono">
                       {sample.headlineRate}
                     </span>
                   </button>
@@ -289,19 +292,19 @@ export function QuoteIntakeSheet({
                     value={rawText}
                     onChange={(e) => setRawText(e.target.value)}
                     placeholder="Paste a WhatsApp message, vendor email, or invoice breakdown here..."
-                    className="w-full p-4 rounded-2xl bg-white border border-royal-plum/15 focus:border-royal-plum focus:ring-1 focus:ring-royal-plum text-sm text-royal-plum placeholder:text-royal-plum/40 font-normal resize-y min-h-[160px]"
+                    className="w-full p-4 rounded-2xl bg-white border border-royal-plum/15 focus:border-royal-plum focus:ring-1 focus:ring-royal-plum text-sm text-royal-plum placeholder:text-royal-plum/70 font-normal resize-y min-h-[160px]"
                   />
                   {rawText && (
                     <button
                       type="button"
                       onClick={() => setRawText('')}
-                      className="absolute top-3 right-3 text-2xs text-royal-plum/50 hover:text-royal-plum bg-soft-ivory px-2 py-0.5 rounded-full border border-royal-plum/10"
+                      className="absolute top-3 right-3 text-2xs text-royal-plum/70 hover:text-royal-plum bg-soft-ivory px-2 py-0.5 rounded-full border border-royal-plum/10"
                     >
                       Clear
                     </button>
                   )}
                 </div>
-                <div className="flex items-center justify-between text-2xs text-royal-plum/60 px-1 font-mono">
+                <div className="flex items-center justify-between text-2xs text-royal-plum/70 px-1 font-mono">
                   <span>Minimum 10 characters</span>
                   <span>{rawText.length} characters</span>
                 </div>
@@ -316,11 +319,11 @@ export function QuoteIntakeSheet({
                     onChange={handleFileChange}
                     className="hidden"
                   />
-                  <UploadCloud className="w-8 h-8 text-royal-plum/50" />
+                  <UploadCloud className="w-8 h-8 text-royal-plum/70" />
                   <span className="text-xs font-semibold text-royal-plum">
                     Drop JPEG, PNG, or invoice screenshot here, or tap to browse
                   </span>
-                  <span className="text-3xs text-royal-plum/50">
+                  <span className="text-3xs text-royal-plum/70">
                     Supports estimates, WhatsApp screenshots &amp; PDF snapshots up to 10MB
                   </span>
                 </label>
@@ -328,13 +331,13 @@ export function QuoteIntakeSheet({
                 {imageFileName && (
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-royal-plum/10 text-xs">
                     <div className="flex items-center gap-2 truncate">
-                      <ImageIcon className="w-4 h-4 text-marigold shrink-0" />
+                      <ImageIcon className="w-4 h-4 text-marigold shrink-0" aria-hidden="true" />
                       <span className="font-medium truncate">{imageFileName}</span>
                     </div>
                     <button
                       type="button"
                       onClick={handleClearImage}
-                      className="p-1 rounded-full hover:bg-royal-plum/5 text-royal-plum/60 hover:text-royal-plum"
+                      className="p-1 rounded-full hover:bg-royal-plum/5 text-royal-plum/70 hover:text-royal-plum"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>

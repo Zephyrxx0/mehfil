@@ -365,3 +365,16 @@ describe('family share link', () => {
     expect(verified.data).toBe(false)
   })
 })
+
+describe('token generation (replaces the old browser-side crypto helpers)', () => {
+  it('produces 256-bit hex tokens that are unique across many events', async () => {
+    const tokens = new Set<string>()
+    for (let i = 0; i < 25; i++) {
+      const created = await newEvent()
+      tokens.add(created.edit_key)
+      tokens.add(created.share_key)
+      expect(created.edit_key).toMatch(/^[0-9a-f]{64}$/)
+    }
+    expect(tokens.size).toBe(50)
+  })
+})

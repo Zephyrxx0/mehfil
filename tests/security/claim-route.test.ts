@@ -9,7 +9,7 @@ import { resetRateLimitStore } from '@/lib/security/rate-limit'
 import { createMigratedDatabase, createPgliteRpcClient } from '../helpers/pglite'
 
 let supabase: unknown = null
-vi.mock('@/lib/supabase/server', () => ({ getServerSupabase: vi.fn(async () => supabase) }))
+vi.mock('@/lib/supabase/server', () => ({ getServerRpc: vi.fn(() => supabase) }))
 
 let db: PGlite
 let created: Awaited<ReturnType<CloudPlans['createEvent']>>

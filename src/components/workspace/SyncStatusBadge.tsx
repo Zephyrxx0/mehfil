@@ -54,7 +54,7 @@ export function SyncStatusBadge({ status, lastSavedAt, className }: SyncStatusBa
             <p>
               Your plan is securely synced to the cloud.
               {formattedTime && (
-                <span className="mt-0.5 block text-royal-plum/60">
+                <span className="mt-0.5 block text-royal-plum/70">
                   Last saved at {formattedTime}
                 </span>
               )}
@@ -68,7 +68,7 @@ export function SyncStatusBadge({ status, lastSavedAt, className }: SyncStatusBa
               Saved in your browser storage. Connect Supabase credentials to enable multi-device
               sync.
               {formattedTime && (
-                <span className="mt-0.5 block text-royal-plum/60">
+                <span className="mt-0.5 block text-royal-plum/70">
                   Last saved at {formattedTime}
                 </span>
               )}

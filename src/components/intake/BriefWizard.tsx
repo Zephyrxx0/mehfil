@@ -189,7 +189,7 @@ export function BriefWizard({
         <h2 className="font-serif text-2xl font-bold text-royal-plum">
           Balancing budget &amp; timeline...
         </h2>
-        <p className="mt-2 text-sm text-royal-plum/60">
+        <p className="mt-2 text-sm text-royal-plum/70">
           Applying integer paise precision and milestone scheduling
         </p>
       </div>
@@ -203,7 +203,7 @@ export function BriefWizard({
           <h2 className="font-serif text-2xl font-bold text-royal-plum sm:text-3xl">
             {STEP_TITLES[step]}
           </h2>
-          <p className="shrink-0 text-sm tabular-nums text-royal-plum/60">Step {step} of 5</p>
+          <p className="shrink-0 text-sm tabular-nums text-royal-plum/70">Step {step} of 5</p>
         </div>
         <ol className="mt-4 grid grid-cols-5 gap-1.5" aria-hidden="true">
           {([1, 2, 3, 4, 5] as WizardStep[]).map((s) => (
@@ -217,7 +217,7 @@ export function BriefWizard({
               <span
                 className={cn(
                   'hidden text-xs font-medium transition-colors lg:block',
-                  s === step ? 'text-royal-plum' : 'text-royal-plum/45'
+                  s === step ? 'text-royal-plum' : 'text-royal-plum/70'
                 )}
               >
                 {STEP_SHORT[s]}

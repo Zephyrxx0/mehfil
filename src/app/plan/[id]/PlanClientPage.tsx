@@ -99,7 +99,7 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
       <CenteredMessage>
         <div role="status" className="flex flex-col items-center gap-4">
           <Loader2 className="h-7 w-7 animate-spin text-marigold" aria-hidden="true" />
-          <p className="text-sm text-royal-plum/60">Opening your plan...</p>
+          <p className="text-sm text-royal-plum/70">Opening your plan...</p>
         </div>
       </CenteredMessage>
     )

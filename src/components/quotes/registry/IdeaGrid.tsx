@@ -79,7 +79,7 @@ export function IdeaGrid({
                 </Badge>
 
                 {idea.devanagariTitle && (
-                  <span className="text-xs text-royal-plum/70 font-serif">
+                  <span lang="hi" className="text-xs text-royal-plum/70 font-serif">
                     {idea.devanagariTitle}
                   </span>
                 )}
@@ -97,13 +97,13 @@ export function IdeaGrid({
             {/* Middle: Cost & Donor Tag */}
             <div className="pt-3 border-t border-royal-plum/10 flex flex-col gap-1.5">
               <div className="flex items-baseline justify-between">
-                <span className="text-xs text-royal-plum/60 font-medium">Estimated Investment</span>
+                <span className="text-xs text-royal-plum/70 font-medium">Estimated Investment</span>
                 <span className="text-base font-bold text-royal-plum tabular-nums">
                   {formatINR(idea.costPaise)}
                 </span>
               </div>
 
-              <div className="text-[11px] text-royal-plum/60 bg-soft-ivory/80 px-2.5 py-1 rounded-lg flex items-center justify-between">
+              <div className="text-[11px] text-royal-plum/70 bg-soft-ivory/80 px-2.5 py-1 rounded-lg flex items-center justify-between">
                 <span>Displacement</span>
                 <span className="font-medium text-royal-plum/80">Funds from: Misc & Decor</span>
               </div>

@@ -155,7 +155,7 @@ export function BudgetLineRow({
       )}
     >
       <div className="flex items-baseline justify-between gap-4">
-        <h4 className="flex min-w-0 items-center gap-2.5 text-base font-semibold text-royal-plum">
+        <h3 className="flex min-w-0 items-center gap-2.5 text-base font-semibold text-royal-plum">
           <span
             aria-hidden="true"
             className={cn(
@@ -168,7 +168,7 @@ export function BudgetLineRow({
             <Icon className="h-4 w-4" />
           </span>
           <span className="min-w-0 truncate">{line.name}</span>
-        </h4>
+        </h3>
         <div className="shrink-0 text-right">
           <span className="font-serif text-lg font-bold tabular-nums text-royal-plum">
             {formatINR(line.currentPaise)}
@@ -176,7 +176,7 @@ export function BudgetLineRow({
         </div>
       </div>
 
-      <div className="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 pl-[2.625rem] text-sm text-royal-plum/60">
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 pl-[2.625rem] text-sm text-royal-plum/70">
         <p className="flex flex-wrap items-baseline gap-x-2">
           {facts.map((f, i) => (
             <React.Fragment key={i}>
@@ -290,7 +290,7 @@ export function BudgetLineRow({
                   >
                     <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-gulabi-rose" />
                     Protected Moment
-                    <span className="font-normal text-royal-plum/60">· immune to displacement</span>
+                    <span className="font-normal text-royal-plum/70">· immune to displacement</span>
                   </p>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs text-xs">

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { Fraunces, Plus_Jakarta_Sans, Noto_Serif_Devanagari } from 'next/font/google'
 import localFont from 'next/font/local'
 import { connection } from 'next/server'
 import { MotionProvider } from '@/components/providers/MotionProvider'
@@ -13,23 +12,28 @@ const ewert = localFont({
   weight: '400',
 })
 
-const fraunces = Fraunces({
-  subsets: ['latin'],
+// All faces are served from this site (see ./fonts/README.md), so building and running the
+// app never depends on reaching Google Fonts.
+const fraunces = localFont({
+  src: './fonts/fraunces-latin-wght-normal.woff2',
   variable: '--font-fraunces',
   display: 'swap',
+  weight: '100 900',
 })
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
+const plusJakartaSans = localFont({
+  src: './fonts/plus-jakarta-sans-latin-wght-normal.woff2',
   variable: '--font-jakarta',
   display: 'swap',
+  weight: '200 800',
 })
 
-// Noto Serif Devanagari (bold) — the brand's Devanagari face, with the nukta and a
-// strong, confident weight for "महफ़िल" across the app.
-const notoSerifDevanagari = Noto_Serif_Devanagari({
-  weight: ['400', '700'],
-  subsets: ['devanagari', 'latin'],
+// Noto Serif Devanagari: the brand's Hindi face, with the nukta, for "महफ़िल" across the app.
+const notoSerifDevanagari = localFont({
+  src: [
+    { path: './fonts/noto-serif-devanagari-devanagari-400-normal.woff2', weight: '400' },
+    { path: './fonts/noto-serif-devanagari-devanagari-700-normal.woff2', weight: '700' },
+  ],
   variable: '--font-tiro',
   display: 'swap',
 })

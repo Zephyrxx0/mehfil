@@ -16,12 +16,14 @@ ADR-0006 assumed Supabase anonymous sessions and `owner_id = auth.uid()` policie
 6. Each version stores a full plan `snapshot` (`jsonb`), because budget lines alone cannot restore style DNA, quotes or adopted ideas.
 7. The creator's browser keeps the edit key and the family share token in `localStorage`, because the database cannot show either again. A second device receives the edit key through the edit link, the claim route checks it, and the device keeps it only after the database accepts it.
 8. There is no session cookie. The database re-checks the key on every call, so a cookie would add a credential without removing any check. The claim route is a rate-limited verifier that fails closed with 503 in production when no database is configured.
-9. Local-only mode (no Supabase) keeps working from `localStorage`. It cannot produce a share link, and the UI says so instead of showing a placeholder.
+9. The browser and the server reach these functions through a small fetch client (`src/lib/supabase/rpc-client.ts`) instead of the Supabase SDK. The app has no accounts and never uses Supabase Auth, Storage or Realtime, so the SDK added about 230 KB of client JavaScript and a session store nobody read. Access control lives in the functions, not in the client.
+10. Local-only mode (no Supabase) keeps working from `localStorage`. It cannot produce a share link, and the UI says so instead of showing a placeholder.
 
 ## Consequences
 
 - Cross-device editing and family share links work with no login.
 - The real SQL is tested on an in-process Postgres (PGlite): table lockdown, token handling, conflicts, immutability, link revocation and the grants on every function. TypeScript tests talk to that same database, so the argument names and JSON shapes are checked as well.
+- The first-load JavaScript of the workspace page fell from 348 KB to 279 KB when the SDK was removed.
 - Edit-key brute force is bounded by a 256-bit token plus the route rate limit. Lookup is by the hash of the token, so timing reveals nothing usable.
 
 ## Residual risks

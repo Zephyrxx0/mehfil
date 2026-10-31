@@ -25,7 +25,7 @@
     --accent: 346 76% 80%; /* Gulabi Rose */
     --accent-foreground: 287 29% 20%;
 
-    --destructive: 13 68% 54%; /* Terracotta #D95D39 */
+    --destructive: 13 68% 42%; /* Terracotta #B3361C, 5.4:1 on Warm Ivory */
     --destructive-foreground: 36 100% 97%;
 
     --border: 287 29% 20% / 0.08; /* Hairline Plum border */

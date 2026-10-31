@@ -58,8 +58,11 @@ export function SmartInspectorSheet({
         >
           {/* Header Section */}
           <SheetHeader className="space-y-2 pr-8 text-left">
-            <p className="text-sm text-royal-plum/60">
-              <span className="font-devanagari">महफ़िल</span> Smart Inspector
+            <p className="text-sm text-royal-plum/70">
+              <span lang="hi" className="font-devanagari">
+                महफ़िल
+              </span>{' '}
+              Smart Inspector
               {activeTier === 3 && <span> · Viewing standard comparison layout</span>}
             </p>
 
@@ -88,7 +91,7 @@ export function SmartInspectorSheet({
                     <h3 className="font-serif text-lg font-semibold text-royal-plum">
                       {section.title}
                     </h3>
-                    <span className="text-sm capitalize text-royal-plum/60">{section.variant}</span>
+                    <span className="text-sm capitalize text-royal-plum/70">{section.variant}</span>
                   </div>
 
                   {section.rationale && (

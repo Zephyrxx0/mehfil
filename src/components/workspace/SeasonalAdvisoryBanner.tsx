@@ -26,7 +26,7 @@ export function SeasonalAdvisoryBanner({ analysis }: SeasonalAdvisoryBannerProps
           <li key={risk.id}>
             {risk.title}
             {risk.leadTimeBufferDays ? (
-              <span className="text-royal-plum/60"> · +{risk.leadTimeBufferDays}d peak buffer</span>
+              <span className="text-royal-plum/70"> · +{risk.leadTimeBufferDays}d peak buffer</span>
             ) : null}
           </li>
         ))}

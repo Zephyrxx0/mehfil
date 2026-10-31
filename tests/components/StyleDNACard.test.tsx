@@ -56,8 +56,12 @@ describe('StyleDNACard & Retune Flow (VIBE-04, D-08, D-11, D-14)', () => {
 
     // Named palette swatches
     expect(screen.getByText('Named Festive Palette')).toBeInTheDocument()
-    expect(screen.getByLabelText('Marigold Amber (#F7C873)')).toBeInTheDocument()
-    expect(screen.getByLabelText('Gulabi Rose (#F2A7B8)')).toBeInTheDocument()
+    // Each colour is announced once, by its name and hex in text; the dot itself is decorative.
+    expect(screen.getByText('Marigold Amber')).toBeInTheDocument()
+    expect(screen.getByText('#F7C873')).toBeInTheDocument()
+    expect(screen.getByText('Gulabi Rose')).toBeInTheDocument()
+    expect(screen.getByText('#F2A7B8')).toBeInTheDocument()
+    expect(document.querySelector('[aria-label="Marigold Amber (#F7C873)"]')).toBeNull()
 
     // Dominant Dimension traits
     expect(screen.getByText('Dominant Dimensions')).toBeInTheDocument()

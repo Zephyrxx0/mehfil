@@ -42,7 +42,7 @@ export function MilestoneBand({ band }: MilestoneBandProps) {
             band.isImmediateAction ? 'border-marigold/30' : 'border-royal-plum/10'
           )}
         >
-          <h4
+          <h3
             id={`band-${band.id}`}
             className="flex items-center gap-2 font-serif text-lg font-bold text-royal-plum"
           >
@@ -54,12 +54,12 @@ export function MilestoneBand({ band }: MilestoneBandProps) {
             )}
             {band.name}
             {band.isImmediateAction && (
-              <span className="font-sans text-sm font-medium text-royal-plum/55">
+              <span className="font-sans text-sm font-medium text-royal-plum/70">
                 Sprint Triage
               </span>
             )}
-          </h4>
-          <p className="text-sm text-royal-plum/60">
+          </h3>
+          <p className="text-sm text-royal-plum/70">
             Target Date:{' '}
             <span className="font-medium tabular-nums text-royal-plum">{band.targetDate}</span>
           </p>
@@ -73,7 +73,7 @@ export function MilestoneBand({ band }: MilestoneBandProps) {
             >
               <div className="min-w-0">
                 <p className="text-base font-medium text-royal-plum">{task.title}</p>
-                {task.notes && <p className="mt-0.5 text-sm text-royal-plum/60">{task.notes}</p>}
+                {task.notes && <p className="mt-0.5 text-sm text-royal-plum/70">{task.notes}</p>}
                 {(task.isCriticalPath ||
                   (task.appliedBufferDays !== undefined && task.appliedBufferDays > 0) ||
                   task.environmentalRiskId) && (

@@ -89,7 +89,7 @@ export function StepScaleBudget({
               ))}
             </div>
           </div>
-          <p className="mt-2 text-xs text-royal-plum/60">
+          <p className="mt-2 text-xs text-royal-plum/70">
             Per-guest categories (catering & favors) will scale dynamically with this number.
           </p>
         </div>
@@ -124,7 +124,7 @@ export function StepScaleBudget({
           {budgetError ? (
             <p className="mt-2 text-xs text-red-600">{budgetError}</p>
           ) : (
-            <p className="mt-2 text-xs text-royal-plum/60">
+            <p className="mt-2 text-xs text-royal-plum/70">
               Accepts authentic Indian shorthand: <strong>25L</strong> (₹25 Lakh),{' '}
               <strong>5L</strong>, or <strong>1.5Cr</strong>.
             </p>
@@ -139,7 +139,7 @@ export function StepScaleBudget({
             Designate Your Protected Moment
           </span>
         </div>
-        <p className="mb-3 text-xs text-royal-plum/60">
+        <p className="mb-3 text-xs text-royal-plum/70">
           Select the one non-negotiable celebration priority. The engine guarantees this line will{' '}
           <strong>never be trimmed</strong> during re-balancing.
         </p>

@@ -55,8 +55,41 @@ describe('Content-Security-Policy builder (S9)', () => {
     expect(production).not.toContain('fonts.gstatic.com')
   })
 
-  it('keeps Supabase reachable and blocks framing, plugins and base-tag injection', () => {
-    expect(directive(production, 'connect-src')).toContain('https://*.supabase.co')
+  it('contacts only the configured Supabase project, not every supabase.co host', () => {
+    const configured = buildContentSecurityPolicy({
+      nonce: 'abc123',
+      isDevelopment: false,
+      supabaseUrl: 'https://myproject.supabase.co',
+    })
+    expect(directive(configured, 'connect-src')).toBe(
+      "connect-src 'self' https://myproject.supabase.co wss://myproject.supabase.co"
+    )
+    expect(configured).not.toContain('*.supabase.co')
+    // Not configured: the browser has nothing to contact but this site.
+    expect(directive(production, 'connect-src')).toBe("connect-src 'self'")
+  })
+
+  it('supports a self-hosted Supabase on its own origin and port', () => {
+    const selfHosted = buildContentSecurityPolicy({
+      nonce: 'n',
+      isDevelopment: false,
+      supabaseUrl: 'http://localhost:54329',
+    })
+    expect(directive(selfHosted, 'connect-src')).toBe(
+      "connect-src 'self' http://localhost:54329 ws://localhost:54329"
+    )
+  })
+
+  it('ignores an unparseable Supabase URL instead of throwing', () => {
+    const broken = buildContentSecurityPolicy({
+      nonce: 'n',
+      isDevelopment: false,
+      supabaseUrl: 'not a url',
+    })
+    expect(directive(broken, 'connect-src')).toBe("connect-src 'self'")
+  })
+
+  it('blocks framing, plugins and base-tag injection', () => {
     expect(production).toContain("frame-ancestors 'none'")
     expect(production).toContain("object-src 'none'")
     expect(production).toContain("base-uri 'self'")

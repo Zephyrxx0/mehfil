@@ -1,8 +1,8 @@
 import type { Plan, PlanVersionRecord } from '@/lib/engine/types'
 import { createLogger } from '@/lib/logger'
-import { getClientSupabase } from '@/lib/supabase/client'
+import { getRpcClient } from '@/lib/supabase/client'
 import { capabilityStore } from './capability-store'
-import { CloudPlans, isCloudPlanId, isUuid, type RpcClient } from './cloud-plans'
+import { CloudPlans, isCloudPlanId, isUuid } from './cloud-plans'
 import { localPlans } from './local-plans'
 
 const logger = createLogger('persistence')
@@ -33,9 +33,8 @@ export interface PersistenceAdapter {
 export type CloudProvider = () => CloudPlans | null
 
 function defaultCloudProvider(): CloudPlans | null {
-  const supabase = getClientSupabase()
-  // The generated client's `rpc` is typed per function; it satisfies RpcClient structurally.
-  return supabase ? new CloudPlans(supabase as unknown as RpcClient) : null
+  const client = getRpcClient()
+  return client ? new CloudPlans(client) : null
 }
 
 /**

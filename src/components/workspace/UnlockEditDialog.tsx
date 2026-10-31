@@ -108,7 +108,7 @@ export function UnlockEditDialog({
                 if (errorMessage) setErrorMessage(null)
               }}
               placeholder="e.g. 7f9a2b... or full mehfil.app/plan/... URL"
-              className="w-full rounded-xl border border-royal-plum/20 bg-white/70 px-3.5 py-2.5 text-sm text-royal-plum placeholder:text-royal-plum/40 focus:border-royal-plum focus:outline-hidden focus:ring-2 focus:ring-royal-plum/20"
+              className="w-full rounded-xl border border-royal-plum/20 bg-white/70 px-3.5 py-2.5 text-sm text-royal-plum placeholder:text-royal-plum/70 focus:border-royal-plum focus:outline-hidden focus:ring-2 focus:ring-royal-plum/20"
               // eslint-disable-next-line jsx-a11y/no-autofocus -- opened by a user action; focus must land here
               autoFocus
             />

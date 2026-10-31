@@ -33,13 +33,13 @@ export const WorkspaceTabs = forwardRef<HTMLElement, WorkspaceTabsProps>(functio
           const isActive = activeTab === id
           const classes = cn(
             'relative flex h-12 items-center px-2.5 text-sm font-medium transition-colors sm:px-1',
-            isActive ? 'text-royal-plum' : 'text-royal-plum/60 hover:text-royal-plum'
+            isActive ? 'text-royal-plum' : 'text-royal-plum/70 hover:text-royal-plum'
           )
           const content = (
             <>
               {label}
               {id === 'ideas' && adoptedCount > 0 && (
-                <span className="ml-1.5 tabular-nums text-royal-plum/60">{adoptedCount}</span>
+                <span className="ml-1.5 tabular-nums text-royal-plum/70">{adoptedCount}</span>
               )}
               {/* The underline is one shared element that slides between tabs. */}
               {isActive && (

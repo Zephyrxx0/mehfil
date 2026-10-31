@@ -84,7 +84,7 @@ export function VendorChecklist({
                   </span>
                 )}
               </p>
-              <p className="mt-0.5 text-sm tabular-nums text-royal-plum/60">
+              <p className="mt-0.5 text-sm tabular-nums text-royal-plum/70">
                 Baseline: {formatINR(line.baselinePaise)}
                 <span aria-hidden="true"> · </span>
                 <span className="font-medium text-royal-plum/80">

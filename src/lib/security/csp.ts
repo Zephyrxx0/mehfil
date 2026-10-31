@@ -7,19 +7,36 @@
  *
  * Fonts are self-hosted by next/font, every image is served from this origin or inlined as a
  * data/blob URL, and the browser never calls the Gemini API (only the server does), so none
- * of those hosts are allowed.
+ * of those hosts are allowed. The only third-party origin is the configured Supabase project.
  */
 
 export interface CspOptions {
   nonce: string
   isDevelopment: boolean
+  /** The configured Supabase project URL. Only this exact origin may be contacted. */
+  supabaseUrl?: string
 }
 
-export function buildContentSecurityPolicy({ nonce, isDevelopment }: CspOptions): string {
+/** `https://abc.supabase.co` becomes the origin itself plus its websocket twin. */
+function supabaseOrigins(supabaseUrl: string | undefined): string[] {
+  if (!supabaseUrl) return []
+  try {
+    const { origin, protocol, host } = new URL(supabaseUrl)
+    return [origin, `${protocol === 'https:' ? 'wss:' : 'ws:'}//${host}`]
+  } catch {
+    return []
+  }
+}
+
+export function buildContentSecurityPolicy({
+  nonce,
+  isDevelopment,
+  supabaseUrl,
+}: CspOptions): string {
   const scriptSrc = ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'"]
   if (isDevelopment) scriptSrc.push("'unsafe-eval'")
 
-  const connectSrc = ["'self'", 'https://*.supabase.co', 'wss://*.supabase.co']
+  const connectSrc = ["'self'", ...supabaseOrigins(supabaseUrl)]
   if (isDevelopment) connectSrc.push('ws://localhost:*', 'http://localhost:*')
 
   const directives = [

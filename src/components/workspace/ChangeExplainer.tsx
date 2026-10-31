@@ -45,7 +45,7 @@ export function ChangeExplainer({
   className,
 }: ChangeExplainerProps) {
   const footer = plan && (
-    <p className="border-t border-royal-plum/10 pt-4 text-sm text-royal-plum/60">
+    <p className="border-t border-royal-plum/10 pt-4 text-sm text-royal-plum/70">
       Sum of allocations exactly equals{' '}
       <span className="font-semibold tabular-nums text-royal-plum">
         {formatINR(plan.totalBudgetPaise)}
@@ -61,13 +61,13 @@ export function ChangeExplainer({
     return (
       <section aria-labelledby="history-heading" className={cn('flex flex-col gap-4', className)}>
         <div>
-          <h3 id="history-heading" className="font-serif text-xl font-bold text-royal-plum">
+          <h2 id="history-heading" className="font-serif text-xl font-bold text-royal-plum">
             Revision History
-            <span className="ml-2 font-sans text-sm font-medium tabular-nums text-royal-plum/60">
+            <span className="ml-2 font-sans text-sm font-medium tabular-nums text-royal-plum/70">
               v{activeVersionNum}
             </span>
-          </h3>
-          <p className="mt-0.5 text-sm text-royal-plum/60">
+          </h2>
+          <p className="mt-0.5 text-sm text-royal-plum/70">
             Immutable version snapshots • 1-click forward restore undo
           </p>
         </div>
@@ -88,7 +88,7 @@ export function ChangeExplainer({
                 )}
               >
                 <div className="min-w-0">
-                  <p className="flex flex-wrap items-baseline gap-x-2 text-sm text-royal-plum/60">
+                  <p className="flex flex-wrap items-baseline gap-x-2 text-sm text-royal-plum/70">
                     <span className="font-semibold tabular-nums text-royal-plum">
                       v{ver.versionNumber}
                     </span>
@@ -146,21 +146,21 @@ export function ChangeExplainer({
   return (
     <section aria-labelledby="history-heading" className={cn('flex flex-col gap-4', className)}>
       <div>
-        <h3 id="history-heading" className="font-serif text-xl font-bold text-royal-plum">
+        <h2 id="history-heading" className="font-serif text-xl font-bold text-royal-plum">
           Live Change Explainer
-          <span className="ml-2 font-sans text-sm font-medium tabular-nums text-royal-plum/60">
+          <span className="ml-2 font-sans text-sm font-medium tabular-nums text-royal-plum/70">
             {changeList.length}
           </span>
-        </h3>
-        <p className="mt-0.5 text-sm text-royal-plum/60">
+        </h2>
+        <p className="mt-0.5 text-sm text-royal-plum/70">
           Deterministic Hare-Niemeyer math balances budget in integer paise.
         </p>
       </div>
 
       {!hasChanges ? (
         <div className="border-y border-royal-plum/10 py-10 text-center">
-          <h4 className="font-serif text-base font-bold text-royal-plum">No recent changes</h4>
-          <p className="mt-1 text-sm text-royal-plum/60">
+          <h3 className="font-serif text-base font-bold text-royal-plum">No recent changes</h3>
+          <p className="mt-1 text-sm text-royal-plum/70">
             All allocations balanced. Adjust sliders to see live rebalancing.
           </p>
         </div>

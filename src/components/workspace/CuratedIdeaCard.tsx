@@ -57,16 +57,16 @@ export function CuratedIdeaCard({
       )}
     >
       <div className="min-w-0">
-        <h4 className="font-serif text-lg font-bold text-royal-plum">
+        <h3 className="font-serif text-lg font-bold text-royal-plum">
           {idea.title}
           {idea.devanagariTitle && (
-            <span className="ml-2 font-devanagari text-sm font-normal text-royal-plum/60">
+            <span lang="hi" className="ml-2 font-devanagari text-sm font-normal text-royal-plum/70">
               {idea.devanagariTitle}
             </span>
           )}
-        </h4>
+        </h3>
         <p className="mt-0.5 text-sm text-royal-plum/80">{idea.tagline}</p>
-        <p className="mt-1 text-sm capitalize text-royal-plum/60">
+        <p className="mt-1 text-sm capitalize text-royal-plum/70">
           <span>{idea.category}</span>
           <span aria-hidden="true"> · </span>
           <span className="font-medium tabular-nums normal-case text-royal-plum">

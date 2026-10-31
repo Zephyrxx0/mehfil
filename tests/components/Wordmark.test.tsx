@@ -8,8 +8,8 @@ describe('Wordmark Component (Brand Consistency)', () => {
   it('renders the authentic landing page Ewert vector glyphs', () => {
     const { container } = render(<Wordmark size="md" />)
 
-    // Screen reader accessible name
-    expect(screen.getByText('Mehfil (महफ़िल)')).toBeInTheDocument()
+    // Screen reader accessible name, with the Hindi word declared as Hindi (A3)
+    expect(screen.getByText('महफ़िल')).toHaveAttribute('lang', 'hi')
 
     // SVG wordmark element
     const svg = container.querySelector('svg')
@@ -19,6 +19,7 @@ describe('Wordmark Component (Brand Consistency)', () => {
 
     // Clean textContent without Frankenstein string
     expect(container.textContent).toBe('Mehfil (महफ़िल)')
+    expect(container.textContent).not.toMatch(/\s{2,}/)
   })
 
   it('adjusts height class based on size prop', () => {

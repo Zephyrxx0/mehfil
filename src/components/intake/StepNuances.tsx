@@ -29,7 +29,7 @@ export function StepNuances({ nuances, customNotes, onChange }: StepNuancesProps
         <span className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
           Cultural & Operational Nuances (Optional)
         </span>
-        <p className="mb-3 text-xs text-royal-plum/60">
+        <p className="mb-3 text-xs text-royal-plum/70">
           Select any special logistical considerations for your celebration.
         </p>
         <div className="flex flex-wrap gap-2">
@@ -67,7 +67,7 @@ export function StepNuances({ nuances, customNotes, onChange }: StepNuancesProps
           placeholder="e.g. Grandma's special sweets counter, surprise fireworks, specific auspicious time (muhurat) for pheras..."
           value={customNotes}
           onChange={(e) => onChange({ customNotes: e.target.value })}
-          className="h-56 w-full resize-none rounded-xl border border-royal-plum/15 bg-white/80 p-3.5 text-sm text-royal-plum placeholder:text-royal-plum/40 transition hover:border-royal-plum/30 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
+          className="h-56 w-full resize-none rounded-xl border border-royal-plum/15 bg-white/80 p-3.5 text-sm text-royal-plum placeholder:text-royal-plum/70 transition hover:border-royal-plum/30 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
         />
       </div>
     </div>

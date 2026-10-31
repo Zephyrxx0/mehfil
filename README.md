@@ -1,183 +1,142 @@
 # Mehfil (महफ़िल)
 
-> **Celebration Planning with Mathematical Integrity**  
-> An interconnected planning workspace for milestone celebrations (weddings, milestone birthdays, cultural gatherings) where budget, timeline, vendors, and personalized ideas form a single mathematically linked plan.
+Planning for milestone celebrations (weddings, milestone birthdays, community gatherings) where the budget, the timeline, vendor quotes and ideas are one linked plan.
 
----
+> **Words from models, numbers from code.** Every rupee and every date comes from pure TypeScript. Language models only describe and classify. They never produce an amount or a schedule.
 
-## 🌟 The Core Philosophy
+## What it does
 
-> **"Words from models, numbers from code."**
+- **Linked plan.** Change the guest count, a date or a vendor quote and the whole plan rebalances. Each change comes with a plain-language explanation and a one-click undo. Every save is an immutable version.
+- **Exact money.** All amounts are integer paise. Shares are split with the largest-remainder method, so line items always add up to the budget to the paisa.
+- **Protected Moments.** Mark the thing that matters most (a grandmother's catering, a signature mandap). Its budget floor is never trimmed to pay for something else.
+- **Quote check.** Paste a vendor message or upload a screenshot (PNG, JPEG or WebP). The extraction runs in a quarantined sandbox, and every number must be backed by a verbatim quote from the source before it can touch the plan.
+- **Style DNA.** Pick visual references from a gallery of 24 swatches and the app turns them into a bounded budget adjustment (a new version), which you can retune or reset.
+- **Two links.** A private organizer edit link (works across devices, no login) and a read-only family link that shows category splits and ceremonies, never vendor prices or contacts.
 
-In traditional planning tools, families struggle between rigid, lifeless spreadsheets and hallucination-prone AI chatbots that invent dates or generate distorted financial sums.
+## How the AI is used
 
-**Mehfil** guarantees:
+Every model call goes through one three-tier ladder (`src/lib/ai/ladder.ts`):
 
-1. **Mathematical Consistency**: Pure TypeScript code owns 100% of arithmetic and dates. AI models are structurally restricted to semantic descriptions and visual categorization—never numbers or schedules.
-2. **Integer Paise Precision**: All currency calculations use integer paise (`INR`) to eliminate IEEE-754 floating-point rounding errors. Zero-sum rebalancing uses the largest remainder method.
-3. **Protected Floors**: Crucial emotional elements (e.g. Grandma's heritage catering or a signature mandap) can be designated as **Protected Moments**, locking their budget floor against automatic displacement.
-4. **Three-Tier AI Fallback**:
-   - **Tier 1 (Gemma)**: Open-weight structured Style DNA extraction & layout curation.
-   - **Tier 2 (Gemini Flash)**: High-speed multimodal quote parsing & vision analysis.
-   - **Tier 3 (Pure Code)**: Deterministic heuristic engine ensuring the app runs flawlessly offline or without API keys.
+| Tier | Engine                                      | When                                                 |
+| ---- | ------------------------------------------- | ---------------------------------------------------- |
+| 1    | Gemma (`gemma-4-31b-it`)                    | First choice, 8 s timeout, one repair                |
+| 2    | Gemini Flash Lite (`gemini-3.5-flash-lite`) | If tier 1 fails                                      |
+| 3    | Deterministic code                          | No API key, daily cap reached, or both models failed |
 
----
+The app is fully usable at tier 3, so an API key is optional. A run record says which tier answered. When a model fails, the reason shown is a stable code such as `tier_1_failed:model_timeout`; the raw error stays in the server log.
 
-## ✨ Features
+## Getting started
 
-- **🎭 Interactive Hero Experience**: Cinematic landing page featuring custom animated Ewert slab display typography, interactive Hairline line art that answers the cursor, and festive procedural Rangoli & Fireworks.
-- **⚡ Step-by-Step Brief Wizard**: Guided 5-step intake for guest count, dates, city archetypes, budget targets, and protected categories with instant starter archetypes (e.g., North/South Indian weddings, milestone birthdays).
-- **📊 Linked Workspace Shell**:
-  - **Budget Tab**: Dynamic budget lines with zero-sum sliders, floor protections, and instant visual impact indicators.
-  - **Timeline Tab**: Backwards scheduling timeline calculated from the celebration date, including vendor payment milestones and ceremony schedules.
-  - **Ideas Tab**: Curated cultural ideas with zero-sum displacement previews before adoption.
-  - **Style Tab**: Visual Vibe Gallery with 24 curated festive aesthetic swatches and AI-powered vibe synthesis.
-  - **History Tab**: Immutable version history of every change, with plain-language explanations and one-click undo.
-- **🧾 Quarantined Quote Analyst**: Upload vendor quotes or contracts (PDF/Image) to extract line items into a sandboxed preview before committing changes to the live plan.
-- **🔗 Dual-Link Collaboration**:
-  - **Read-Only Family Link** (`/share/[token]`): Sanitized celebratory view that shows overall category splits, schedule milestones, and filtered `.ics` calendar export, while concealing private vendor costs, notes, and organizer contact details.
-  - **Capability Key Access**: Organizers claim editing capability via cryptographic secret tokens (`edit_key_hash`) with constant-time verification and automatic rotation.
-
----
-
-## 🎨 Design Discipline & Palette
-
-Mehfil follows a strict 3-hue festive palette honoring celebratory traditions while ensuring **WCAG AAA (4.5:1+)** contrast compliance:
-
-| Token          | Name            | Value                | Purpose                         |
-| -------------- | --------------- | -------------------- | ------------------------------- |
-| `--background` | **Warm Ivory**  | `hsl(43, 85%, 97%)`  | Primary canvas & cards          |
-| `--foreground` | **Royal Plum**  | `hsl(300, 29%, 20%)` | High-contrast ink & typography  |
-| `--primary`    | **Marigold**    | `hsl(38, 92%, 50%)`  | Festive accents, active buttons |
-| `--secondary`  | **Gulabi Rose** | `hsl(338, 70%, 55%)` | Celebratory highlights & badges |
-| `--maroon`     | **Deep Maroon** | `hsl(348, 60%, 25%)` | Distinctive decorative accents  |
-
-> **Rule**: Pastels are used exclusively as fills—never as text on light backgrounds.
-
----
-
-## 🛠️ Technology Stack
-
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router, Server Actions, Dynamic Routes)
-- **Language**: [TypeScript 5.6+](https://www.typescriptlang.org/) (Strict mode, exhaustive typing)
-- **UI & Components**: [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [Radix UI](https://www.radix-ui.com/), [Lucide Icons](https://lucide.dev/)
-- **Animation & Motion**: [Motion](https://motion.dev/) (Framer Motion), [GSAP](https://gsap.com/)
-- **AI SDK**: [Vercel AI SDK](https://sdk.vercel.ai/) (`@ai-sdk/google`)
-- **Database & Auth**: [Supabase](https://supabase.com/) (PostgreSQL 16, Row-Level Security, RPC functions)
-- **Validation**: [Zod](https://zod.dev/)
-- **Testing**: [Vitest](https://vitest.dev/), [@testing-library/react](https://testing-library.com/)
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **Node.js**: `v20.x` or higher
-- **Package Manager**: [pnpm](https://pnpm.io/) (`corepack enable pnpm`)
-
-### 1. Clone & Install
+Requires Node 20.9 or newer and [pnpm](https://pnpm.io) (`corepack enable pnpm`).
 
 ```bash
 git clone https://github.com/Zephyrxx0/mehfil.git
 cd mehfil
 pnpm install
+cp .env.example .env.local   # optional, see below
+pnpm dev                     # http://localhost:3000
 ```
 
-### 2. Configure Environment Variables
+With no configuration, plans are kept in the browser and the deterministic engine does all the work. Two things are optional:
 
-Copy the example file to `.env.local`:
+| Variable                                                       | Enables                                                        |
+| -------------------------------------------------------------- | -------------------------------------------------------------- |
+| `GOOGLE_GENERATIVE_AI_API_KEY`                                 | Tier 1 and 2 models (`GEMINI_API_KEY` also works)              |
+| `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Cloud save, cross-device edit links and family share links     |
+| `MODEL_DAILY_CAP`                                              | Daily ceiling on model calls per server instance (default 300) |
+| `LOG_LEVEL`                                                    | `debug`, `info`, `warn`, `error` or `silent` (default `info`)  |
 
-```bash
-cp .env.example .env.local
-```
+### Cloud setup (optional)
 
-Mehfil works **out-of-the-box with zero configuration** using local browser storage and deterministic heuristic algorithms. To enable cloud sync and AI features, provide:
+Apply every file in `supabase/migrations/` to your project, in order (`supabase db push`):
 
-```env
-# Google Generative AI / Gemini API (Optional)
-GOOGLE_GENERATIVE_AI_API_KEY=your-gemini-api-key
+1. `20261027000000_create_collaboration_schema.sql`: tables for events, immutable versions and an audit log.
+2. `20261030000000_allow_shared_plan_read.sql`: the first family-link function (replaced by 3).
+3. `20261031000000_token_checked_access.sql`: closes the tables to the browser and adds the token-checked functions the app uses.
 
-# Supabase (Optional)
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
+`supabase/seed.sql` adds a sample event with published tokens. **Never run it against a production database.**
 
-### 3. Database Setup (If using Supabase)
+## Scripts
 
-If connecting to a live Supabase project, execute the SQL migrations located in `supabase/migrations/`:
+| Command              | Does                                                                |
+| -------------------- | ------------------------------------------------------------------- |
+| `pnpm dev`           | Development server                                                  |
+| `pnpm build`         | Production build (needs no network: fonts are self-hosted)          |
+| `pnpm lint`          | ESLint (Next, TypeScript, React hooks, jsx-a11y). `any` is an error |
+| `pnpm typecheck`     | `tsc --noEmit`, strict                                              |
+| `pnpm format:check`  | Prettier                                                            |
+| `pnpm test`          | Unit, component, property, accessibility and SQL tests              |
+| `pnpm test:coverage` | The same with a coverage floor that CI enforces                     |
+| `pnpm test:e2e`      | Playwright against a production build and a local database          |
+| `pnpm analyze`       | Build with the bundle analyzer                                      |
+| `pnpm deadcode`      | [fallow](https://fallow.tools) dead-code check                      |
 
-1. `20261027000000_create_collaboration_schema.sql` (Creates events, plan versions, and audit logs)
-2. `20261030000000_allow_shared_plan_read.sql` (Enables sanitized public share RPC)
+CI (`.github/workflows/ci.yml`) runs the audit, format, lint, typecheck, tests with coverage, build, and the end-to-end suite.
 
-### 4. Run Development Server
+## Testing
 
-```bash
-pnpm dev
-```
+About 600 tests across several layers, because each catches something the others cannot:
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+- **Engine and components** (Vitest, Testing Library): budget, timeline, diff, quote guard, hooks and screens.
+- **Property-based** (`tests/properties`, [fast-check](https://fast-check.dev)): for generated plans, totals add up exactly, protected lines are never lowered, flexible lines stay above their 40% floor, and retracting an idea restores every line. Failures shrink to a minimal case and print a seed. Run `FC_RUNS=20000 pnpm test tests/properties` for a deeper search.
+- **SQL** (`tests/db`, [PGlite](https://pglite.dev)): the real migrations run in an in-process Postgres and are exercised as the `anon` role the browser uses. Covered: table lockdown, token handling, version conflicts, immutability, link revocation, function grants. TypeScript tests use the same database.
+- **Accessibility** (`tests/a11y`, axe): every main screen and dialog, plus a check that Hindi text declares `lang="hi"`. Colour contrast is checked separately against the real design tokens (`tests/design/contrast.test.ts`), because it needs real layout.
+- **End to end** (`e2e`, Playwright): a plan created on one device is opened, edited and shared from others in separate browser contexts, against a local database with the real migrations. It also checks the CSP, the security headers, and that the app contacts nothing but itself.
 
----
+Coverage is about 90% of statements. `pnpm test:e2e` uses a Playwright browser; set `PLAYWRIGHT_CHROMIUM=/path/to/chromium` to use one you already have.
 
-## 🧪 Testing & Verification
+## Security model
 
-Mehfil includes a comprehensive suite of 380+ unit, property-based, and security tests:
+- **No hash is a credential.** The browser holds the plain edit key and share token. The database stores only SHA-256 hashes and compares them itself, inside `SECURITY DEFINER` functions. The tables are closed to the `anon` role (row-level security with no policies, and privileges revoked). See [ADR-0010](docs/adr/0010-token-checked-rpc-persistence.md).
+- **256-bit tokens, generated in the database,** returned once. Replacing the family link revokes the old one immediately. Unknown plans and wrong keys get the same answer.
+- **Prompt quarantine.** Vendor text and the user's "protected moment" sentence are wrapped in a tag with a random per-request suffix, so a quote cannot close its own data block. Validation text is never fed back into a repair prompt. Models get no tools, and the Numeric Guard rejects any figure without a verbatim anchor.
+- **Strict CSP.** `src/middleware.ts` sets a per-request nonce policy: no `unsafe-eval` or `unsafe-inline` for scripts in production, images only from this site, and the browser may contact only the configured Supabase project. HSTS, framing and MIME-sniffing protections are set too.
+- **Abuse limits.** Rate limiting trusts only platform-set client-address headers (a forged `x-vercel-ip` buys nothing). A daily cap on model calls drops to the deterministic tier. Request bodies and uploaded images are size-limited, and images are checked by type and by their first bytes.
+- **Fail closed.** The claim route returns 503 in production if no database is configured. Error text from models and storage is logged on the server, not returned.
 
-```bash
-# Run the entire test suite
-pnpm test
+Known limits: rate-limit and model-cap counters are per server instance, so on serverless hosting the effective ceiling is multiplied by the number of warm instances. A key kept in `localStorage` can be read by script running in the page (the CSP is the mitigation). `create_event` is open to anyone holding the public key, though it is size-limited. These and the trade-offs are written up in the ADR.
 
-# Run tests in watch mode
-pnpm test:watch
+## Accessibility and design
 
-# Run TypeScript compiler check
-pnpm tsc --noEmit
+The palette is three hues with plum ink: Warm Ivory `#FFF8EE`, Royal Plum `#3A2442`, Marigold `#F7C873`, Gulabi Rose `#F2A7B8`. Marigold and rose are pastels, so they are fills and decorative icons only, never text. Contrast is measured, not assumed:
 
-# Test production build
-pnpm build
-```
+| Pair                         | Ratio         |
+| ---------------------------- | ------------- |
+| Plum on ivory                | 13.2:1        |
+| Plum on marigold / on rose   | 8.9:1 / 7.2:1 |
+| Secondary text (plum at 70%) | 5.2:1         |
+| Terracotta warnings on ivory | 5.4:1         |
 
----
+Ink on ivory and on the pastel fills reaches AAA. Secondary text and warnings meet AA. Animations honour `prefers-reduced-motion`, and Hindi text is marked `lang="hi"`.
 
-## 🛡️ Security Architecture
-
-- **Constant-Time Verification**: All capability tokens and secret keys are hashed (SHA-256) and verified using `crypto.timingSafeEqual` to prevent side-channel timing attacks.
-- **Sliding-Window Rate Limiting**: All AI and mutation routes ([`/api/ai/quote-analyst`](file:///home/zeph/Code/mehfil/src/app/api/ai/quote-analyst/route.ts), [`/api/style-dna`](file:///home/zeph/Code/mehfil/src/app/api/style-dna/route.ts), [`/api/vibes/suggest`](file:///home/zeph/Code/mehfil/src/app/api/vibes/suggest/route.ts), [`/api/plan/[id]/claim`](file:///home/zeph/Code/mehfil/src/app/api/plan/[id]/claim/route.ts)) enforce per-IP rate limits with trusted reverse-proxy header normalization (`x-vercel-ip`, `cf-connecting-ip`, `x-real-ip`).
-- **Strict Content Security Policy (CSP)**: Hardened headers in `next.config.ts` blocking untrusted scripts, unauthorized frames (`frame-ancestors 'none'`), and dangerous MIME types.
-- **Row-Level Security & RPC**: Database tables enforce strict owner-only RLS policies. Anonymous guest links query via a `SECURITY DEFINER` Postgres function that strips sensitive tokens and hashes.
-
----
-
-## 📁 Project Structure
+## Project structure
 
 ```text
-mehfil/
-├── public/                 # Static brand assets, fonts, swatches, hairline figures
-├── src/
-│   ├── app/                # Next.js App Router pages & API routes
-│   │   ├── (landing)/      # Home page (Hero, line art, fireworks)
-│   │   ├── new/            # Plan creation wizard
-│   │   ├── plan/[id]/      # Linked celebration workspace (5 tabs)
-│   │   ├── share/[token]/  # Public sanitized family view
-│   │   └── api/            # Secured API routes
-│   ├── components/         # React UI components
-│   │   ├── brand/          # Wordmark & branding primitives
-│   │   ├── hero/           # Landing page typography & animation
-│   │   ├── intake/         # Wizard steps & starter chips
-│   │   ├── workspace/      # Tab panes (Budget, Timeline, Ideas, Style, History)
-│   │   └── ui/             # shadcn/ui primitives
-│   ├── lib/
-│   │   ├── engine/         # Pure TS arithmetic engine, timeline, sanitization
-│   │   ├── security/       # Rate limiting, proxy normalization, crypto helpers
-│   │   └── supabase/       # Supabase client & server factories
-│   └── types/              # Database schemas & domain contracts
-├── supabase/migrations/    # PostgreSQL RLS & schema migrations
-└── tests/                  # Vitest test suite (engine, components, storage, security)
+src/
+  app/                  Next.js App Router pages and API routes
+    api/                ai/quote-analyst, style-dna, vibes/suggest, plan/[id]/claim
+    new/  plan/[id]/  share/[token]/
+    fonts/              Self-hosted fonts and their licence notice
+  components/           brand, hero, intake wizard, workspace (+ hooks/), quotes, ui (shadcn)
+  lib/
+    engine/             Pure TypeScript: budget, timeline, diff, quote guard, sanitisation
+    ai/                 The ladder, prompts, quarantine, heuristics, schemas
+    security/           CSP, rate limit, model budget, request and image checks
+    storage/            Cloud (database functions), local, and the hybrid adapter
+    supabase/           Config and a small fetch client for the database functions
+supabase/migrations/    Schema and the token-checked functions
+tests/  e2e/            Unit and integration tests; Playwright
+docs/adr/               Ten architecture decision records
 ```
 
----
+`.planning/` and `.agents/` are the spec-driven workflow's own files (roadmap, requirements, phase plans and agent instructions). They are kept in the repository to show how the project was planned and are not used at runtime.
 
-## 📄 License
+## Performance
 
-This project is open-source and available under the [MIT License](LICENSE).
+Fonts are self-hosted, so a build needs no network and the app contacts only its own origin and the configured database. The browser talks to the database through a 70-line fetch client instead of the Supabase SDK, which took about 70 KB off the workspace page's first load (348 KB to 279 KB). Run `pnpm analyze` for the treemaps.
+
+## Known gaps
+
+- The timeline records which vendor bookings are done, but does not yet show a completed state.
+- The Ewert display font (`src/app/Ewert.ttf`) has no licence file in this repository.
+- No `LICENSE` file has been added yet.

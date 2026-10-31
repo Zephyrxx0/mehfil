@@ -127,7 +127,7 @@ export function StyleDNARetuneSheet({
         <div className="flex flex-col gap-5">
           <SheetHeader className="border-b border-royal-plum/10 pb-4">
             <SheetTitle className="font-serif text-xl font-bold text-royal-plum flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-marigold" />
+              <Sparkles className="w-5 h-5 text-marigold" aria-hidden="true" />
               <span>Retune Style DNA</span>
             </SheetTitle>
             <SheetDescription className="text-xs text-royal-plum/70">
@@ -159,7 +159,7 @@ export function StyleDNARetuneSheet({
                     aria-label={`Adjust ${label}`}
                   />
 
-                  <div className="flex items-center justify-between text-3xs text-royal-plum/50">
+                  <div className="flex items-center justify-between text-3xs text-royal-plum/70">
                     <span>{lowLabel}</span>
                     <span>{highLabel}</span>
                   </div>

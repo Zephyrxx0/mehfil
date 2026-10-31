@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { CloudPlans, isCloudPlanId, type RpcClient } from '@/lib/storage/cloud-plans'
+import { CloudPlans, isCloudPlanId } from '@/lib/storage/cloud-plans'
 import { createLogger } from '@/lib/logger'
 import { enforceRateLimit } from '@/lib/security/rate-limit'
 import { readJsonBody } from '@/lib/security/request'
-import { getServerSupabase } from '@/lib/supabase/server'
+import { getServerRpc } from '@/lib/supabase/server'
 
 const logger = createLogger('api.claim')
 
@@ -28,8 +28,8 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     return NextResponse.json({ error: 'Missing capability key' }, { status: 400 })
   }
 
-  const supabase = await getServerSupabase()
-  if (!supabase) {
+  const client = getServerRpc()
+  if (!client) {
     // Fail closed: with no database there is nothing to verify the key against.
     if (isProduction()) {
       return NextResponse.json({ error: 'Cloud editing is not available' }, { status: 503 })
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   }
 
   try {
-    const cloud = new CloudPlans(supabase as unknown as RpcClient)
+    const cloud = new CloudPlans(client)
     if (!(await cloud.verifyEditKey(planId, key))) {
       // One answer for "wrong key" and "no such plan", so the route is not a lookup oracle.
       return NextResponse.json(
