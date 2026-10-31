@@ -212,3 +212,31 @@ Anonymous Supabase auth was never wired, so owner-RLS denies everything. Instead
 
 - Applying migrations to the live Supabase project (consequential; run `supabase db push` yourself after review).
 - Upstash/Redis for rate limiting (stack rule: Postgres only). Counters move to Postgres in Phase 8 only if Supabase is configured; otherwise per-instance fallback with a documented limit.
+
+## Follow-ups when cloud is activated (currently running local-only, by owner choice)
+
+The owner is staying in local mode (no Supabase keys) for now but wants the full cloud
+integration kept intact. These three audit items were reviewed and deliberately NOT implemented
+now, because two are unreachable without Supabase (and must not ship untested against a real
+database — that is what caused the original S1 bug), and one costs more than the risk it removes.
+
+- **[cloud] S3/#5 — Shared rate-limit and model-cap counters.** Today both counters live in a
+  per-instance in-memory Map (`src/lib/security/rate-limit.ts`, `model-budget.ts`). Correct in
+  local mode (one instance); on serverless the effective ceiling is `limit x warm instances`.
+  **When Supabase is on:** move both behind `SECURITY DEFINER` functions (a sliding-window
+  `rate_limit_hits` table and a `model_usage(day, count)` row with atomic increment), keeping the
+  existing `tryConsumeModelCall()` / `enforceRateLimit()` seams. Add PGlite SQL tests like the
+  other functions. Also set a spend limit in the Google AI console. Est. 2-3 h.
+
+- **[cloud] S10/#6 — Rate-limit `create_event` per client.** Only runs when Supabase is
+  configured (local mode creates plans in the browser). It is size-limited but not rate-limited,
+  so it is a spam/storage concern, never data exposure (every other function checks the secret
+  key). **When Supabase is on:** route creation through a `POST /api/plan` handler that applies
+  `enforceRateLimit` with the trusted platform IP, then calls `create_event`. A CAPTCHA or
+  platform WAF is the only real stop for a distributed attacker — a hosting decision. Est. 2-3 h.
+
+- **[won't do] S4/#7 — Edit key in localStorage.** Reviewed and declined, not deferred. Moving to
+  an HttpOnly signed-session cookie plus server-side save/read routes would undo the decentralised
+  token-checked design (ADR-0010) and add a round-trip to every save, to defend against an XSS bug
+  the strict nonce CSP already prevents (e2e confirms zero CSP violations). Documented as a
+  residual risk in ADR-0010. Revisit only if a concrete threat model demands it.
