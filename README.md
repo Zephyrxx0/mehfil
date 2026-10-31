@@ -151,7 +151,7 @@ tests/  e2e/            Unit and integration tests; Playwright
 docs/adr/               Eleven architecture decision records
 ```
 
-`.planning/` and `.agents/` are the spec-driven workflow's own files (roadmap, requirements, phase plans and agent instructions). They are kept in the repository to show how the project was planned and are not used at runtime.
+The spec-driven workflow's own files (`.planning/` and `.agents/`) are local-only and gitignored. They are not part of the repository and are not used at runtime.
 
 ## Performance
 
@@ -160,4 +160,3 @@ Fonts are self-hosted, so a build needs no network and the app contacts only its
 ## Known gaps
 
 - The Ewert display font (`src/app/Ewert.ttf`) has no licence file in this repository.
-- No `LICENSE` file has been added yet.
