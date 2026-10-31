@@ -189,3 +189,26 @@ Plans:
 
 ---
 *Roadmap created: 2026-10-27*
+
+---
+
+# Milestone v1.1: Audit Hardening
+
+**Trigger:** AI evaluation scored 96.79/100 (Code Quality 89, Security 98, Testing 99, Accessibility 99). Source findings: `.temp/TODO-FIXES.md` (IDs CQ*, S*, T*, A*, E* below). Baseline: `tsc` clean, 55 files / 385 tests green.
+**Goal:** Raise Code Quality and Security without touching the engine, the closed registry, or the fallback ladder.
+**Rule:** every phase ends with `tsc`, lint, full test run and a commit. No phase may reduce the test count.
+
+- [ ] **Phase 7: Guardrails & Hygiene** - CQ1 ESLint/Prettier/CI, CQ5 dead code, CQ6 logger, CQ8 package hygiene, S10 ids, A1 MotionConfig.
+- [ ] **Phase 8: Security Quick Wins** - S3 rate-limit identity + daily model cap, S4 fail-closed claim + signed session cookie, S5 upload limits, S6 stable error codes, S7 random quarantine delimiter, S8 style prompt fencing, S9 CSP.
+- [ ] **Phase 9: Working Cloud Save & Share (S1, S2, T1)** - Token-checked Postgres RPCs replace owner-RLS; server-issued edit/share tokens; honest local-mode share UI; SQL tests on PGlite.
+- [ ] **Phase 10: Structure (CQ2, CQ3, CQ4)** - generic `runLadder`, split orchestrator by agent, split PlanWorkspace into hooks, remove `any`, enable `no-explicit-any`.
+- [ ] **Phase 11: Accessibility, Tests & Docs** - A2 contrast, A3 `lang="hi"`, A4 jsx-a11y + vitest-axe, T2 Playwright, T3 coverage floor, T4 new injection/rate-limit cases, T5 fast-check, E1/E3/E4, CQ7 README, CQ9.
+
+## Design decision for Phase 9 (ADR-0010)
+
+Anonymous Supabase auth was never wired, so owner-RLS denies everything. Instead of adding sessions, RLS stays on with **no** policies for `anon`/`authenticated` (deny by default) and all access goes through `SECURITY DEFINER` functions that take the plain capability token and hash it inside Postgres (`pgcrypto`). Tokens are generated in the database and returned once. No hash is ever a client credential. The edit cookie becomes an HMAC-signed, expiring session, not a hash.
+
+## Deferred / out of scope (needs owner action)
+
+- Applying migrations to the live Supabase project (consequential; run `supabase db push` yourself after review).
+- Upstash/Redis for rate limiting (stack rule: Postgres only). Counters move to Postgres in Phase 8 only if Supabase is configured; otherwise per-instance fallback with a documented limit.
