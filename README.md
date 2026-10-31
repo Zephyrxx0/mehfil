@@ -99,15 +99,16 @@ CI (`.github/workflows/ci.yml`) runs the audit, format, lint, typecheck, tests w
 
 ## Testing
 
-About 600 tests across several layers, because each catches something the others cannot:
+More than 1,000 tests across several layers, because each catches something the others cannot:
 
 - **Engine and components** (Vitest, Testing Library): budget, timeline, diff, quote guard, hooks and screens.
 - **Property-based** (`tests/properties`, [fast-check](https://fast-check.dev)): for generated plans, totals add up exactly, protected lines are never lowered, flexible lines stay above their 40% floor, and retracting an idea restores every line. Failures shrink to a minimal case and print a seed. Run `FC_RUNS=20000 pnpm test tests/properties` for a deeper search.
 - **SQL** (`tests/db`, [PGlite](https://pglite.dev)): the real migrations run in an in-process Postgres and are exercised as the `anon` role the browser uses. Covered: table lockdown, token handling, version conflicts, immutability, link revocation, function grants. TypeScript tests use the same database.
 - **Accessibility** (`tests/a11y`, axe): every main screen and dialog, plus a check that Hindi text declares `lang="hi"`. Colour contrast is checked separately against the real design tokens (`tests/design/contrast.test.ts`), because it needs real layout.
 - **End to end** (`e2e`, Playwright): a plan created on one device is opened, edited and shared from others in separate browser contexts, against a local database with the real migrations. It also checks the CSP, the security headers, and that the app contacts nothing but itself.
+- **Accessibility in a real browser** (`e2e/accessibility.spec.ts`, axe): six screens at desktop and phone widths, a keyboard-only pass, and a check that the page title and noindex tag survive switching tabs. Real browsers catch what the jsdom-style tests cannot, such as colour contrast and a title that disappears on navigation.
 
-Coverage is about 90% of statements. `pnpm test:e2e` uses a Playwright browser; set `PLAYWRIGHT_CHROMIUM=/path/to/chromium` to use one you already have.
+Coverage is about 95% of statements. `pnpm test:e2e` uses a Playwright browser; set `PLAYWRIGHT_CHROMIUM=/path/to/chromium` to use one you already have.
 
 ## Security model
 

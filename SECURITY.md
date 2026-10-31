@@ -35,3 +35,12 @@ Out of scope:
 | Brute force on keys or links      | Per plan, 20 failed edit-key attempts in 10 minutes lock further attempts on that plan, enforced in the database. Opening a share link is limited to 120 per minute per plan. The claim route is also limited to 10 attempts per minute per client.                                                   | `tests/db/edit-key-limit.test.ts`, `tests/db/share-link-limit.test.ts`, `tests/security/claim-rate-limit.test.ts` |
 | Prompt injection into model calls | User text and quotes are wrapped in a per-request random tag, lookalike tags and control characters are stripped, and the model's output is checked against a schema before use. Models never emit numbers or dates; code computes every amount and date.                                             | `tests/security/prompt-quarantine.test.ts`, `tests/security/ai-routes.test.ts`                                    |
 | Cross-site scripting (XSS)        | Nonce-based CSP on every page, React escaping, and a closed registry of components instead of model-generated markup.                                                                                                                                                                                 | `tests/security/headers.test.ts`, `tests/security/middleware.test.ts`, CSP test in `e2e/cloud-sharing.spec.ts`    |
+
+## Known trade-offs
+
+These are decisions, not oversights. Reports that only restate them are out of scope, but a way around the stated protection is not.
+
+- **A plan id is not secret.** It appears in the edit link. Anyone who knows it can send 20 wrong keys and make the database refuse every key for that plan for up to 10 minutes. This cannot expose or change a plan. It delays cloud saves, and the app keeps the organizer's latest edit on their device and shows "Sync paused" meanwhile. See [ADR-0010](docs/adr/0010-token-checked-rpc-persistence.md).
+- **The family link is a bearer link.** Whoever holds it can see the sanitized family view. Replacing the link revokes the old one at once. One person opening it in a loop can make it look expired to others for the rest of that minute.
+- **The `style-src` directive allows `'unsafe-inline'`.** The animation and dialog libraries set inline style attributes, which cannot carry a nonce. Scripts do not allow it.
+- **Edit keys live in the browser's `localStorage`.** Script running on the page could read them, which is what the CSP guards against.
