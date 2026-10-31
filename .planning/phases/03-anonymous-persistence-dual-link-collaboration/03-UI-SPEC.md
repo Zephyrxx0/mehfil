@@ -122,7 +122,7 @@ All interactive elements must use specific, actionable verbs and nouns. Generic 
 | Read-Only Unlock CTA | "Unlock Organizer Editing" |
 | Unlock Dialog Title | "Enter Organizer Edit Key" |
 | Unlock Dialog Subtext | "Paste the 32-character edit key or capability URL shared by the celebration creator." |
-| Unlock Dialog Input Placeholder | "e.g. 7f9a2b... or full mehfil.app/plan/... URL" |
+| Unlock Dialog Input Placeholder | "e.g. 7f9a2b... or full bookmymehfil.vercel.app/plan/... URL" |
 | Unlock Submit CTA | "Verify & Unlock Editing" |
 | Unlock Dismiss CTA | "Stay in Read-Only Mode" |
 | Concurrency Conflict Banner | "Plan updated from another device — your local draft is out of sync." |
@@ -154,7 +154,7 @@ All interactive elements must use specific, actionable verbs and nouns. Generic 
 - **Dialog Container:** `rounded-3xl border border-royal-plum/10 bg-warm-ivory p-6 max-w-lg shadow-xl`.
 - **Tab Navigation:** Radix Tabs with 2 pills: "Organizer Edit Key" (Tab 1) and "Family Share Link" (Tab 2). Active pill has Marigold `#F7C873` wash with subtle Plum ring.
 - **Tab 1: Organizer Edit Key:**
-  - Capability URL Box: Read-only input with masked or truncated token `mehfil.app/plan/abc...#key=••••`, accompanied by primary button: "Copy Private Edit Key".
+  - Capability URL Box: Read-only input with masked or truncated token `bookmymehfil.vercel.app/plan/abc...#key=••••`, accompanied by primary button: "Copy Private Edit Key".
   - QR Code Section: Centered white-padded card `p-4 rounded-2xl bg-white border border-royal-plum/8 inline-block shadow-2xs` containing 160x160 SVG QR code pointing to `/plan/[id]?key=[token]`.
   - QR Subtext: "Scan with phone camera to resume editing on mobile" (`text-sm text-royal-plum/70`).
   - WhatsApp Self-Share Button: Secondary ghost pill `rounded-full border border-royal-plum/15 px-4 py-2 text-sm font-semibold hover:bg-royal-plum/5 flex items-center justify-center gap-2`.

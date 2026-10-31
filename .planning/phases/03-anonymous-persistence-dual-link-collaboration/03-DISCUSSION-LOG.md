@@ -43,11 +43,11 @@
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Secure 32-byte URL-safe nanoid/token | Stored as a SHA-256 hash in Postgres `events.edit_key_hash` (constant-time comparison) to protect against DB read leaks, with clean URL format `mehfil.app/plan/[id]?key=[token]`. | ✓ |
+| Secure 32-byte URL-safe nanoid/token | Stored as a SHA-256 hash in Postgres `events.edit_key_hash` (constant-time comparison) to protect against DB read leaks, with clean URL format `bookmymehfil.vercel.app/plan/[id]?key=[token]`. | ✓ |
 | Dual distinct slug URLs | `/plan/[edit_token]` for organizer and `/share/[share_token]` for family, with tokens stored directly in indexed columns. | |
 | You decide | The agent discretion on cryptographic token storage and URL schema. | |
 
-**User's choice:** Secure 32-byte URL-safe nanoid/token stored as a SHA-256 hash in Postgres `events.edit_key_hash` (constant-time comparison) to protect against DB read leaks, with clean URL format `mehfil.app/plan/[id]?key=[token]`.
+**User's choice:** Secure 32-byte URL-safe nanoid/token stored as a SHA-256 hash in Postgres `events.edit_key_hash` (constant-time comparison) to protect against DB read leaks, with clean URL format `bookmymehfil.vercel.app/plan/[id]?key=[token]`.
 
 ---
 

@@ -15,7 +15,7 @@
 - **D-01:** Top-bar "Share & Save" trigger with modal featuring 1-click Copy, QR Code for phone camera scanning, and WhatsApp self-share button. — **Reversibility:** reversible
 - **D-02:** Automatic seamless claim: opening `/plan/[id]?key=[token]` validates token against Postgres hash, claims edit authority into session/cookie, and strips secret from URL query params (via router.replace) to prevent accidental shoulder-surfing or URL sharing. — **Reversibility:** costly — impacts URL routing, middleware, and auth session hydration
 - **D-03:** Graceful downgrade to Read-Only with an "Unlock Editing" badge if a visitor lands on `/plan/[id]` without a valid Edit Key or cookie, opening an "Enter Edit Key" dialog for organizers who forgot to append their token. — **Reversibility:** reversible
-- **D-04:** Secure 32-byte URL-safe nanoid/token stored as a SHA-256 hash in Postgres `events.edit_key_hash` (constant-time comparison) to protect against DB read leaks, with clean URL format `mehfil.app/plan/[id]?key=[token]`. — **Reversibility:** one-way — database schema and cryptographic security contract
+- **D-04:** Secure 32-byte URL-safe nanoid/token stored as a SHA-256 hash in Postgres `events.edit_key_hash` (constant-time comparison) to protect against DB read leaks, with clean URL format `bookmymehfil.vercel.app/plan/[id]?key=[token]`. — **Reversibility:** one-way — database schema and cryptographic security contract
 
 ### Family Share Link Experience
 - **D-05:** Celebratory Editorial Overview layout for `/share/[token]`: warm life-milestone presentation featuring event countdown, category breakdown, Protected Moment showcase, and key timeline milestones, without intimidating workspace sliders or editing chrome. — **Reversibility:** reversible
@@ -82,8 +82,8 @@
 - **Hash Algorithm:** SHA-256 (`crypto.subtle.digest('SHA-256', textEncoder.encode(token))`).
 - **Database Column Storage:** `events.edit_key_hash` (VARCHAR(64) / TEXT, UNIQUE, NOT NULL). Raw tokens are NEVER stored in plaintext in the database.
 - **Capability URL Structure:**
-  - Organizer Edit Key: `https://mehfil.app/plan/[id]?key=[token]`
-  - Family Share Link: `https://mehfil.app/share/[token]`
+  - Organizer Edit Key: `https://bookmymehfil.vercel.app/plan/[id]?key=[token]`
+  - Family Share Link: `https://bookmymehfil.vercel.app/share/[token]`
 - **Claim Cookie:** `mehfil_edit_[planId]` (HttpOnly, SameSite=Lax, Secure in production, Max-Age=30 days).
 
 ### 4.2 Database Schema Architecture (`supabase/migrations/`) (D-16, PRD §9.2)
@@ -279,7 +279,7 @@ When an organizer first creates a plan:
 
 **The Capability Security Problem:**
 How does an organizer resume editing on their phone without signing up or entering passwords?
-1. **Creation:** Plan creation creates an unguessable 32-byte token $T$. The client displays `mehfil.app/plan/[id]?key=[token]`.
+1. **Creation:** Plan creation creates an unguessable 32-byte token $T$. The client displays `bookmymehfil.vercel.app/plan/[id]?key=[token]`.
 2. **Storage:** The server stores $H = \text{SHA-256}(T)$ in `events.edit_key_hash`. Database leaks or read replicas never expose the plaintext token.
 3. **Claiming on Phone:**
    - Organizer scans QR code or clicks WhatsApp link on phone.

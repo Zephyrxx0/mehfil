@@ -1313,7 +1313,7 @@ router.replace('/plan/[id]')                                     POST /api/plan/
     const [activeShareToken, setActiveShareToken] = useState(shareToken)
     const [isRegenerating, setIsRegenerating] = useState(false)
 
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://mehfil.app'
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://bookmymehfil.vercel.app'
     const editUrl = `${baseUrl}/plan/${planId}?key=${editToken}`
     const shareUrl = `${baseUrl}/share/${activeShareToken}`
 
