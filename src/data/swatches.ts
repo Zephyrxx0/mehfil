@@ -46,3 +46,15 @@ export function getSwatchById(id: string): StyleSwatch | undefined {
 export function getSwatchesByTag(tag: string): StyleSwatch[] {
   return SWATCHES.filter((s) => s.tags.includes(tag as SwatchPresetTag))
 }
+
+/**
+ * Flip to true once the `.webp` photos listed in `swatches.json` are actually shipped in
+ * `public/swatches/`. Until then the SVG is the only real asset, so it is requested directly
+ * instead of provoking a 404 per swatch before falling back.
+ */
+export const SWATCH_WEBP_SHIPPED = false
+
+/** The URL a swatch image should request first. */
+export function primarySwatchSrc(swatch: StyleSwatch, webpShipped = SWATCH_WEBP_SHIPPED): string {
+  return webpShipped ? swatch.image : swatch.svgFallback
+}
