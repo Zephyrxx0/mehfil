@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Lock, KeyRound, Loader2 } from 'lucide-react'
+import { capabilityStore } from '@/lib/storage/capability-store'
 
 export interface UnlockEditDialogProps {
   open: boolean
@@ -59,6 +60,7 @@ export function UnlockEditDialog({
       const data = await response.json().catch(() => ({}))
 
       if (response.ok && data.authorized) {
+        capabilityStore.setEditKey(planId, normalizedKey)
         onUnlocked()
         onOpenChange(false)
       } else {

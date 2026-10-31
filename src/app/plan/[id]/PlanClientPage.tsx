@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams, useSelectedLayoutSegment } from 'next/navigation'
 import type { Plan } from '@/lib/engine/types'
 import { persistence } from '@/lib/storage/persistence'
+import { capabilityStore } from '@/lib/storage/capability-store'
 import { PlanWorkspace } from '@/components/workspace/PlanWorkspace'
 import { UnlockEditDialog } from '@/components/workspace/UnlockEditDialog'
 import { isPlanTab } from '@/components/workspace/tabs'
@@ -38,16 +39,18 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
   const [isReadOnly, setIsReadOnly] = useState<boolean>(true)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isUnlockOpen, setIsUnlockOpen] = useState<boolean>(false)
-  const [claimedKey, setClaimedKey] = useState<string | undefined>(keyFromUrl)
+  const [editKey, setEditKey] = useState<string | undefined>(undefined)
+  const [shareToken, setShareToken] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     let isMounted = true
 
     async function initializePlan() {
       setIsLoading(true)
-      let effectiveKey = keyFromUrl
+      let effectiveKey = capabilityStore.getEditKey(planId)
 
-      // If key is present in query parameters, claim session and clean URL immediately (D-02)
+      // A key in the address bar is checked by the server, kept in this browser only if it
+      // is accepted, and removed from the URL right away (D-02).
       if (keyFromUrl) {
         try {
           const res = await fetch(`/api/plan/${planId}/claim`, {
@@ -56,7 +59,7 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
             body: JSON.stringify({ key: keyFromUrl }),
           })
           if (res.ok) {
-            setClaimedKey(keyFromUrl)
+            capabilityStore.setEditKey(planId, keyFromUrl)
             effectiveKey = keyFromUrl
           }
         } catch (e) {
@@ -69,6 +72,9 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
 
       const data = await persistence.getPlan(planId, effectiveKey)
       if (isMounted) {
+        // Read after getPlan: it forgets a key the server rejected.
+        setEditKey(capabilityStore.getEditKey(planId))
+        setShareToken(capabilityStore.getShareToken(planId))
         if (data) {
           setPlan(data.plan)
           setIsReadOnly(data.isReadOnly)
@@ -129,6 +135,8 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
               if (res) {
                 setPlan(res.plan)
                 setIsReadOnly(res.isReadOnly)
+                setEditKey(capabilityStore.getEditKey(planId))
+                setShareToken(capabilityStore.getShareToken(planId))
               }
             })
           }}
@@ -142,7 +150,8 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
       <PlanWorkspace
         initialPlan={plan}
         isReadOnly={isReadOnly}
-        editKey={claimedKey}
+        editKey={editKey}
+        initialShareToken={shareToken}
         activeTab={activeTab}
         basePath={`/plan/${planId}`}
         onUnlockEdit={() => setIsUnlockOpen(true)}
@@ -153,9 +162,12 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
         onOpenChange={setIsUnlockOpen}
         planId={planId}
         onUnlocked={() => {
-          setIsReadOnly(false)
           persistence.getPlan(planId).then((res) => {
-            if (res) setPlan(res.plan)
+            if (!res) return
+            setPlan(res.plan)
+            setIsReadOnly(res.isReadOnly)
+            setEditKey(capabilityStore.getEditKey(planId))
+            setShareToken(capabilityStore.getShareToken(planId))
           })
         }}
       />

@@ -200,13 +200,13 @@ Plans:
 
 - [x] **Phase 7: Guardrails & Hygiene** - CQ1 ESLint/Prettier/CI, CQ5 dead code, CQ6 logger, CQ8 package hygiene, S10 ids, A1 MotionConfig.
 - [x] **Phase 8: Security Quick Wins** - S3 rate-limit identity + daily model cap, S4 fail-closed claim + signed session cookie, S5 upload limits, S6 stable error codes, S7 random quarantine delimiter, S8 style prompt fencing, S9 CSP.
-- [ ] **Phase 9: Working Cloud Save & Share (S1, S2, T1)** - Token-checked Postgres RPCs replace owner-RLS; server-issued edit/share tokens; honest local-mode share UI; SQL tests on PGlite.
+- [x] **Phase 9: Working Cloud Save & Share (S1, S2, T1)** - Token-checked Postgres RPCs replace owner-RLS; database-issued edit/share tokens; honest local-mode share UI; SQL tests on PGlite. The planned signed session cookie was dropped (see ADR-0010).
 - [ ] **Phase 10: Structure (CQ2, CQ3, CQ4)** - generic `runLadder`, split orchestrator by agent, split PlanWorkspace into hooks, remove `any`, enable `no-explicit-any`.
 - [ ] **Phase 11: Accessibility, Tests & Docs** - A2 contrast, A3 `lang="hi"`, A4 jsx-a11y + vitest-axe, T2 Playwright, T3 coverage floor, T4 new injection/rate-limit cases, T5 fast-check, E1/E3/E4, CQ7 README, CQ9.
 
 ## Design decision for Phase 9 (ADR-0010)
 
-Anonymous Supabase auth was never wired, so owner-RLS denies everything. Instead of adding sessions, RLS stays on with **no** policies for `anon`/`authenticated` (deny by default) and all access goes through `SECURITY DEFINER` functions that take the plain capability token and hash it inside Postgres (`pgcrypto`). Tokens are generated in the database and returned once. No hash is ever a client credential. The edit cookie becomes an HMAC-signed, expiring session, not a hash.
+Anonymous Supabase auth was never wired, so owner-RLS denies everything. Instead of adding sessions, RLS stays on with **no** policies for `anon`/`authenticated` (deny by default) and all access goes through `SECURITY DEFINER` functions that take the plain capability token and hash it inside Postgres (`pgcrypto`). Tokens are generated in the database and returned once. No hash is ever a client credential. There is no session cookie: the database re-checks the key on every call.
 
 ## Deferred / out of scope (needs owner action)
 

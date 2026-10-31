@@ -3,6 +3,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ShareSaveModal } from '@/components/workspace/ShareSaveModal'
+import { persistence } from '@/lib/storage/persistence'
+
+vi.mock('@/lib/storage/persistence', () => ({
+  persistence: { regenerateShareKey: vi.fn() },
+}))
 
 describe('ShareSaveModal UI Component (D-01, D-08, COLLAB-02, COLLAB-03)', () => {
   const planId = 'test-plan-id-123'
@@ -88,11 +93,9 @@ describe('ShareSaveModal UI Component (D-01, D-08, COLLAB-02, COLLAB-03)', () =>
 
   it('Tab 2 displays sanitized view disclaimer, share link, and handles link regeneration', async () => {
     const user = userEvent.setup()
-
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ shareToken: 'new-fresh-token-999' }),
-    } as any)
+    vi.mocked(persistence.regenerateShareKey).mockResolvedValue({
+      shareToken: 'new-fresh-token-999',
+    })
 
     render(
       <ShareSaveModal
@@ -102,34 +105,113 @@ describe('ShareSaveModal UI Component (D-01, D-08, COLLAB-02, COLLAB-03)', () =>
         planTitle={planTitle}
         editKey={editKey}
         initialShareToken={initialShareToken}
+        isCloudConfigured={true}
       />
     )
 
-    // Switch to Family tab using userEvent
-    const familyTab = screen.getByRole('tab', { name: /Family Share Link/i })
-    await user.click(familyTab)
-
+    await user.click(screen.getByRole('tab', { name: /Family Share Link/i }))
     await waitFor(() => {
       expect(screen.getByText(/Sanitized View:/i)).toBeInTheDocument()
     })
+    expect((screen.getByLabelText(/Celebration Share Link/i) as HTMLInputElement).value).toContain(
+      `/share/${initialShareToken}`
+    )
 
-    // Click Regenerate Link trigger
-    const regenerateBtn = screen.getByRole('button', { name: /Regenerate Link/i })
-    await user.click(regenerateBtn)
-
-    // Alert dialog opens
+    await user.click(screen.getByRole('button', { name: /Regenerate Link/i }))
     await waitFor(() => {
       expect(screen.getByText('Invalidate Old Link & Create New?')).toBeInTheDocument()
     })
-
-    const confirmBtn = screen.getByRole('button', { name: /Invalidate & Regenerate/i })
-    await user.click(confirmBtn)
+    await user.click(screen.getByRole('button', { name: /Invalidate & Regenerate/i }))
 
     await waitFor(() => {
-      expect(globalThis.fetch).toHaveBeenCalledWith(`/api/plan/${planId}/regenerate-share`, {
-        method: 'POST',
-      })
+      expect(persistence.regenerateShareKey).toHaveBeenCalledWith(planId, editKey)
     })
+    await waitFor(() => {
+      expect(
+        (screen.getByLabelText(/Celebration Share Link/i) as HTMLInputElement).value
+      ).toContain('/share/new-fresh-token-999')
+    })
+  })
+
+  it('S2: never shows a placeholder link; offers to create a real one instead', async () => {
+    const user = userEvent.setup()
+    vi.mocked(persistence.regenerateShareKey).mockResolvedValue({ shareToken: 'created-token-123' })
+
+    render(
+      <ShareSaveModal
+        open={true}
+        onOpenChange={vi.fn()}
+        planId={planId}
+        planTitle={planTitle}
+        editKey={editKey}
+        isCloudConfigured={true}
+      />
+    )
+    await user.click(screen.getByRole('tab', { name: /Family Share Link/i }))
+
+    expect(screen.getByTestId('no-share-link')).toBeInTheDocument()
+    expect(screen.queryByLabelText(/Celebration Share Link/i)).not.toBeInTheDocument()
+    expect(document.body.innerHTML).not.toContain('share-token-preview')
+
+    await user.click(screen.getByRole('button', { name: /Create family link/i }))
+    await waitFor(() => {
+      expect(
+        (screen.getByLabelText(/Celebration Share Link/i) as HTMLInputElement).value
+      ).toContain('/share/created-token-123')
+    })
+  })
+
+  it('S2: tells the user when the family link could not be created', async () => {
+    const user = userEvent.setup()
+    vi.mocked(persistence.regenerateShareKey).mockResolvedValue(null)
+
+    render(
+      <ShareSaveModal
+        open={true}
+        onOpenChange={vi.fn()}
+        planId={planId}
+        planTitle={planTitle}
+        editKey={editKey}
+        isCloudConfigured={true}
+      />
+    )
+    await user.click(screen.getByRole('tab', { name: /Family Share Link/i }))
+    await user.click(screen.getByRole('button', { name: /Create family link/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/could not update the family link/i)
+    expect(screen.queryByLabelText(/Celebration Share Link/i)).not.toBeInTheDocument()
+  })
+
+  it('S2: without cloud sync there is no family link and no way to create one', async () => {
+    const user = userEvent.setup()
+    render(
+      <ShareSaveModal
+        open={true}
+        onOpenChange={vi.fn()}
+        planId={planId}
+        planTitle={planTitle}
+        isCloudConfigured={false}
+      />
+    )
+    await user.click(screen.getByRole('tab', { name: /Family Share Link/i }))
+
+    expect(screen.getByTestId('no-share-link')).toHaveTextContent(/need cloud sync/i)
+    expect(screen.queryByRole('button', { name: /Create family link/i })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/Celebration Share Link/i)).not.toBeInTheDocument()
+  })
+
+  it('a plan with no edit key shows a note instead of a link that cannot work', () => {
+    render(
+      <ShareSaveModal
+        open={true}
+        onOpenChange={vi.fn()}
+        planId={planId}
+        planTitle={planTitle}
+        isCloudConfigured={false}
+      />
+    )
+    expect(screen.getByTestId('no-edit-link-notice')).toBeInTheDocument()
+    expect(screen.queryByLabelText(/Private Edit URL/i)).not.toBeInTheDocument()
   })
 
   it('displays presentable notice when cloud database is not configured', () => {

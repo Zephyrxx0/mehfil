@@ -1,16 +1,15 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { Database } from '@/types/database'
+import { readSupabaseConfig } from './config'
 
 /**
  * Creates a server-side Supabase client for Next.js 15 Server Components and Route Handlers.
  * Asynchronously awaits Next.js 15 cookies() store.
  */
 export async function getServerSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!url || !key) return null
+  const config = readSupabaseConfig()
+  if (!config) return null
 
   let cookieStore: Awaited<ReturnType<typeof cookies>>
   try {
@@ -20,7 +19,7 @@ export async function getServerSupabase() {
     return null
   }
 
-  return createServerClient<Database>(url, key, {
+  return createServerClient<Database>(config.url, config.anonKey, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
