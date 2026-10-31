@@ -1,0 +1,30 @@
+# Weekly dependency updates. pnpm is detected through pnpm-lock.yaml, so the `npm` ecosystem
+# covers it. Minor and patch updates arrive as one pull request per ecosystem; major updates
+# stay separate so each can be reviewed on its own.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: 'chore(deps)'
+    groups:
+      npm-minor-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: 'chore(deps)'
+    groups:
+      actions-minor-patch:
+        update-types:
+          - minor
+          - patch
