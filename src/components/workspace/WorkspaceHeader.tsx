@@ -20,10 +20,10 @@ const LINK_CLASSES =
 // keep their size; the save status gives way instead (its label is cut with an ellipsis),
 // the gaps and side padding are tighter below the `sm` breakpoint, and the read-only
 // "Unlock editing" button drops its second word there.
-export const HEADER_ROW_CLASSES =
+const HEADER_ROW_CLASSES =
   'mx-auto flex h-14 w-full max-w-4xl items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6'
-export const HEADER_ACTIONS_CLASSES = 'flex min-w-0 items-center gap-2 sm:gap-3'
-export const SYNC_BADGE_CLASSES = 'min-w-0 [&>span:last-child]:truncate'
+const HEADER_ACTIONS_CLASSES = 'flex min-w-0 items-center gap-2 sm:gap-3'
+const SYNC_BADGE_CLASSES = 'min-w-0 [&>span:last-child]:truncate'
 
 function formatEventDate(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
