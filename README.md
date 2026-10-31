@@ -50,7 +50,9 @@ With no configuration, plans are kept in the browser and the deterministic engin
 
 ### Cloud setup (optional)
 
-Apply every file in `supabase/migrations/` to your project, in order (`supabase db push`):
+Migrations run in order and each file runs once. Your project records which files have run in `supabase_migrations.schema_migrations`, so a push applies only the files that are not recorded yet. Use `supabase db push` for a new project, or let the Supabase GitHub integration run them. Check with `supabase migration list` or `supabase db push --dry-run`.
+
+**Do not edit a migration that has already run.** Write a new, later file instead. Old files are not replay-safe: for example `CREATE OR REPLACE FUNCTION` cannot rename a parameter, so `20261030000000` fails on a database that already has `20261031000000`. If you ever apply a file by hand, also add its version to `supabase_migrations.schema_migrations`, or the next push will try to run it again.
 
 1. `20261027000000_create_collaboration_schema.sql`: tables for events, immutable versions and an audit log.
 2. `20261030000000_allow_shared_plan_read.sql`: the first family-link function (replaced by 3).
@@ -66,7 +68,7 @@ The production address is <https://bookmymehfil.vercel.app>. The app is a standa
 
 Before the first deployment:
 
-1. **Database.** Apply the five migrations in `supabase/migrations/` in order, then check that the public key cannot call `consume_rate_limit` or `consume_model_call`.
+1. **Database.** Make sure the five migrations in `supabase/migrations/` are recorded as applied (`supabase migration list` shows no gaps and `supabase db push --dry-run` reports the database is up to date). Then check that the public key cannot call `consume_rate_limit` or `consume_model_call`.
 2. **Environment variables.** In Vercel, set these for Production, and for Preview if previews should use the cloud:
    - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are inlined into the browser bundle at build time. Redeploy after changing them.
    - `SUPABASE_SERVICE_ROLE_KEY` is runtime only. Mark it **Sensitive** in Vercel, and never give it a `NEXT_PUBLIC_` prefix.
