@@ -43,6 +43,7 @@ With no configuration, plans are kept in the browser and the deterministic engin
 | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `GOOGLE_GENERATIVE_AI_API_KEY`                                 | Tier 1 and 2 models (`GEMINI_API_KEY` also works)                                                       |
 | `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Cloud save, cross-device edit links and family share links                                              |
+| `NEXT_PUBLIC_APP_URL`                                          | Public address of this deployment (default `https://bookmymehfil.vercel.app`)                           |
 | `SUPABASE_SERVICE_ROLE_KEY`                                    | Server-only. Makes the rate limits and the daily model cap one shared count across all server instances |
 | `MODEL_DAILY_CAP`                                              | Daily ceiling on model calls per server instance (default 300)                                          |
 | `LOG_LEVEL`                                                    | `debug`, `info`, `warn`, `error` or `silent` (default `info`)                                           |
@@ -58,20 +59,36 @@ Apply every file in `supabase/migrations/` to your project, in order (`supabase 
 
 `supabase/seed.sql` adds a sample event with published tokens. **Never run it against a production database.**
 
+## Deploying
+
+The production address is <https://bookmymehfil.vercel.app>. The app is a standard Next.js app with no custom Vercel configuration. Vercel detects it, and Node 20.9 or newer and pnpm 12 come from `package.json`.
+
+Before the first deployment:
+
+1. **Database.** Apply the four migrations in `supabase/migrations/` in order, then check that the public key cannot call `consume_rate_limit` or `consume_model_call`.
+2. **Environment variables.** In Vercel, set these for Production, and for Preview if previews should use the cloud:
+   - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are inlined into the browser bundle at build time. Redeploy after changing them.
+   - `SUPABASE_SERVICE_ROLE_KEY` is runtime only. Mark it **Sensitive** in Vercel, and never give it a `NEXT_PUBLIC_` prefix.
+   - `GOOGLE_GENERATIVE_AI_API_KEY`, `MODEL_DAILY_CAP` and `LOG_LEVEL` are optional, runtime only.
+   - Leave `NEXT_PUBLIC_APP_URL` unset for production.
+3. **Spend limit.** Set a budget alert and a quota in the Google AI console. `MODEL_DAILY_CAP` is a ceiling per deployment, not a billing limit.
+4. **Check after deploying.** `/llms.txt`, `/robots.txt` and `/sitemap.xml` should load. Create a plan, then open its edit link and its family link in another browser. `pnpm test:e2e:live` runs the same flows against the project in `.env.local`, and it writes real plans into that project.
+
 ## Scripts
 
-| Command              | Does                                                                |
-| -------------------- | ------------------------------------------------------------------- |
-| `pnpm dev`           | Development server                                                  |
-| `pnpm build`         | Production build (needs no network: fonts are self-hosted)          |
-| `pnpm lint`          | ESLint (Next, TypeScript, React hooks, jsx-a11y). `any` is an error |
-| `pnpm typecheck`     | `tsc --noEmit`, strict                                              |
-| `pnpm format:check`  | Prettier                                                            |
-| `pnpm test`          | Unit, component, property, accessibility and SQL tests              |
-| `pnpm test:coverage` | The same with a coverage floor that CI enforces                     |
-| `pnpm test:e2e`      | Playwright against a production build and a local database          |
-| `pnpm analyze`       | Build with the bundle analyzer                                      |
-| `pnpm deadcode`      | [fallow](https://fallow.tools) dead-code check                      |
+| Command              | Does                                                                           |
+| -------------------- | ------------------------------------------------------------------------------ |
+| `pnpm dev`           | Development server                                                             |
+| `pnpm build`         | Production build (needs no network: fonts are self-hosted)                     |
+| `pnpm lint`          | ESLint (Next, TypeScript, React hooks, jsx-a11y). `any` is an error            |
+| `pnpm typecheck`     | `tsc --noEmit`, strict                                                         |
+| `pnpm format:check`  | Prettier                                                                       |
+| `pnpm test`          | Unit, component, property, accessibility and SQL tests                         |
+| `pnpm test:coverage` | The same with a coverage floor that CI enforces                                |
+| `pnpm test:e2e`      | Playwright against a production build and a local database                     |
+| `pnpm test:e2e:live` | The same flows against the Supabase project in `.env.local` (writes real rows) |
+| `pnpm analyze`       | Build with the bundle analyzer                                                 |
+| `pnpm deadcode`      | [fallow](https://fallow.tools) dead-code check                                 |
 
 CI (`.github/workflows/ci.yml`) runs the audit, format, lint, typecheck, tests with coverage, build, and the end-to-end suite.
 
