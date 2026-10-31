@@ -52,6 +52,13 @@ const LINE_TYPE_LABELS: Record<string, string> = {
   buffer: 'Buffer',
 }
 
+/**
+ * Invisible hit-area extension for the h-8 (32px) `sm` buttons: the ::before box grows 6px above
+ * and below (32 + 12 = 44px). Widths are already well over 44px, so no horizontal inset is needed.
+ * The pseudo-element is transparent and out of flow, so visible size and layout are unchanged.
+ */
+const TOUCH_TARGET_CLASSES = "relative before:absolute before:-inset-y-1.5 before:content-['']"
+
 /** A small festive icon for each budget category, shown in a tinted circle. */
 const CATEGORY_ICONS: Record<BudgetCategory, LucideIcon> = {
   venue: Landmark,
@@ -186,7 +193,7 @@ export function BudgetLineRow({
           ))}
         </p>
         {!isReadOnly && (
-          <div className="-mr-2 flex flex-wrap items-center gap-1">
+          <div className="-mr-2 flex flex-wrap items-center gap-x-1 gap-y-3">
             {line.isCommitted ? (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -194,7 +201,7 @@ export function BudgetLineRow({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="underline underline-offset-4"
+                    className={cn('underline underline-offset-4', TOUCH_TARGET_CLASSES)}
                   >
                     Unlock / Replace Quote
                   </Button>
@@ -229,7 +236,7 @@ export function BudgetLineRow({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="underline underline-offset-4"
+                className={cn('underline underline-offset-4', TOUCH_TARGET_CLASSES)}
                 onClick={() => onCheckQuote(line.category)}
               >
                 Check Quote
@@ -241,7 +248,7 @@ export function BudgetLineRow({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="underline underline-offset-4"
+                className={cn('underline underline-offset-4', TOUCH_TARGET_CLASSES)}
                 onClick={handleToggleProtected}
                 title="Make this category your Protected Moment"
               >

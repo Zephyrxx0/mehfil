@@ -127,4 +127,32 @@ describe('BudgetLineRow Component (MOMENT-03, BUDGET-04, D-05, D-08)', () => {
     const indicator = screen.getByTestId('floor-indicator')
     expect(indicator).toHaveTextContent('40% floor: ₹2,00,000 protected')
   })
+
+  it('gives every small action button a >=44px pseudo-element hit area without resizing it', () => {
+    const base = { totalBudgetPaise: 2_000_000_00, onSetProtected: vi.fn() }
+    const committedLine: BudgetLine = {
+      ...flexibleLine,
+      isCommitted: true,
+      committedPaise: 400_000_00,
+      committedVendor: 'Bloom Co',
+    }
+
+    const expectHitArea = (button: HTMLElement) => {
+      expect(button).toHaveClass('h-8') // visible size unchanged
+      expect(button).toHaveClass('relative')
+      expect(button).toHaveClass('before:absolute')
+      expect(button).toHaveClass('before:-inset-y-1.5') // 32px + 2 x 6px = 44px
+      expect(button).toHaveClass("before:content-['']")
+    }
+
+    const { unmount } = render(
+      <BudgetLineRow {...base} line={flexibleLine} onCheckQuote={vi.fn()} />
+    )
+    expectHitArea(screen.getByRole('button', { name: /Check Quote/i }))
+    expectHitArea(screen.getByRole('button', { name: /Set as Protected/i }))
+    unmount()
+
+    render(<BudgetLineRow {...base} line={committedLine} onUnlockQuote={vi.fn()} />)
+    expectHitArea(screen.getByRole('button', { name: /Unlock \/ Replace Quote/i }))
+  })
 })
