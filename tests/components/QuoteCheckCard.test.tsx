@@ -234,7 +234,7 @@ describe('BudgetLineRow Integration with Quotes (D-01, D-10)', () => {
     category: 'venue',
     lineType: 'fixed',
     baselinePaise: 25000000, // ₹2,50,000
-    currentPaise: 22500000,  // ₹2,25,000
+    currentPaise: 22500000, // ₹2,25,000
     isCommitted: true,
     committedQuoteId: 'quote_venue_01',
     committedVendor: 'Royal Heritage Lawn',
@@ -255,14 +255,12 @@ describe('BudgetLineRow Integration with Quotes (D-01, D-10)', () => {
 
   it('renders Committed badge and Saved variance pill on committed line', () => {
     render(
-      <BudgetLineRow
-        line={committedLine}
-        totalBudgetPaise={105000000}
-        onSetProtected={vi.fn()}
-      />
+      <BudgetLineRow line={committedLine} totalBudgetPaise={105000000} onSetProtected={vi.fn()} />
     )
 
-    expect(screen.getByTestId('committed-quote-badge')).toHaveTextContent(/Royal Heritage Lawn \(Classic Lawn\)/i)
+    expect(screen.getByTestId('committed-quote-badge')).toHaveTextContent(
+      /Royal Heritage Lawn \(Classic Lawn\)/i
+    )
     expect(screen.getByTestId('committed-variance-badge')).toHaveTextContent(/Saved ₹25,000/i)
     expect(screen.getByRole('button', { name: /Unlock \/ Replace Quote/i })).toBeInTheDocument()
   })

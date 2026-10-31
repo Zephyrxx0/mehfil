@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
 import { adoptIdea, retractIdea, setProtectedMoment } from '@/lib/engine/budget'
-import type { CuratedIdea, EventBrief, Plan } from '@/lib/engine/types'
+import type { CuratedIdea, EventBrief } from '@/lib/engine/types'
 
 describe('Pure TypeScript Zero-Sum Idea Displacement & Protected Immunity (MOMENT-02, BUDGET-04, IDEA-02, IDEA-03)', () => {
   const weddingBrief: EventBrief = {
@@ -48,18 +48,20 @@ describe('Pure TypeScript Zero-Sum Idea Displacement & Protected Immunity (MOMEN
     // Decor: 12% = 30,000,000 paise, floor (40%) = 12,000,000 paise, headroom = 18,000,000
     // Entertainment: 6% = 15,000,000 paise, floor (40%) = 6,000,000 paise, headroom = 9,000,000
     // Misc: 0% = 0 paise, floor = 0, headroom = 0
-    const initialEntertainment = plan.lines.find(l => l.category === 'entertainment')!.currentPaise
-    const initialDecor = plan.lines.find(l => l.category === 'decor')!.currentPaise
-    const initialCatering = plan.lines.find(l => l.category === 'catering')!.currentPaise
+    const initialEntertainment = plan.lines.find(
+      (l) => l.category === 'entertainment'
+    )!.currentPaise
+    const initialDecor = plan.lines.find((l) => l.category === 'decor')!.currentPaise
+    const initialCatering = plan.lines.find((l) => l.category === 'catering')!.currentPaise
 
     // Chai cart costs 50,000 rupees (5,000,000 paise)
     // Misc has 0 available, so Entertainment (Rank 2) is drained first: 5,000,000 <= 9,000,000 headroom
     // Decor (Rank 3) should be completely untouched!
     const updatedPlan = adoptIdea(plan, sampleChaiCartIdea)
 
-    const entertainmentLine = updatedPlan.lines.find(l => l.category === 'entertainment')!
-    const decorLine = updatedPlan.lines.find(l => l.category === 'decor')!
-    const cateringLine = updatedPlan.lines.find(l => l.category === 'catering')!
+    const entertainmentLine = updatedPlan.lines.find((l) => l.category === 'entertainment')!
+    const decorLine = updatedPlan.lines.find((l) => l.category === 'decor')!
+    const cateringLine = updatedPlan.lines.find((l) => l.category === 'catering')!
 
     expect(entertainmentLine.currentPaise).toBe(initialEntertainment - 5_000_000)
     expect(decorLine.currentPaise).toBe(initialDecor) // Untouched because Entertainment had capacity!
@@ -91,9 +93,9 @@ describe('Pure TypeScript Zero-Sum Idea Displacement & Protected Immunity (MOMEN
 
     const updatedPlan = adoptIdea(plan, largeIdea)
 
-    const entertainmentLine = updatedPlan.lines.find(l => l.category === 'entertainment')!
-    const decorLine = updatedPlan.lines.find(l => l.category === 'decor')!
-    const entFloor = Math.round(entertainmentLine.baselinePaise * 0.40 / 100) * 100
+    const entertainmentLine = updatedPlan.lines.find((l) => l.category === 'entertainment')!
+    const decorLine = updatedPlan.lines.find((l) => l.category === 'decor')!
+    const entFloor = Math.round((entertainmentLine.baselinePaise * 0.4) / 100) * 100
 
     expect(entertainmentLine.currentPaise).toBe(entFloor) // Clamped to 40% floor
     expect(decorLine.currentPaise).toBe(decorLine.baselinePaise - 3_000_000) // Absorbed remaining 30,000 rupees
@@ -107,19 +109,19 @@ describe('Pure TypeScript Zero-Sum Idea Displacement & Protected Immunity (MOMEN
     const basePlan = instantiatePlanFromBrief(weddingBrief)
     const protectedDecorPlan = setProtectedMoment(basePlan, 'decor')
 
-    expect(protectedDecorPlan.lines.find(l => l.category === 'decor')!.isProtected).toBe(true)
-    const initialDecor = protectedDecorPlan.lines.find(l => l.category === 'decor')!.currentPaise
+    expect(protectedDecorPlan.lines.find((l) => l.category === 'decor')!.isProtected).toBe(true)
+    const initialDecor = protectedDecorPlan.lines.find((l) => l.category === 'decor')!.currentPaise
 
     // Adopt an idea targeting photo_film requiring 8,000,000 paise
     const updatedPlan = adoptIdea(protectedDecorPlan, samplePhotoBoothIdea)
 
-    const decorLine = updatedPlan.lines.find(l => l.category === 'decor')!
+    const decorLine = updatedPlan.lines.find((l) => l.category === 'decor')!
     // Decor must NOT have donated a single paise!
     expect(decorLine.currentPaise).toBe(initialDecor)
     expect(decorLine.isProtected).toBe(true)
 
     // Entertainment is not protected and absorbs it
-    const entLine = updatedPlan.lines.find(l => l.category === 'entertainment')!
+    const entLine = updatedPlan.lines.find((l) => l.category === 'entertainment')!
     expect(entLine.currentPaise).toBe(entLine.baselinePaise - 8_000_000)
   })
 
@@ -149,11 +151,11 @@ describe('Pure TypeScript Zero-Sum Idea Displacement & Protected Immunity (MOMEN
     expect(infeasiblePlan.remedies).toBeDefined()
     expect(infeasiblePlan.remedies?.length).toBe(3)
 
-    const entertainmentLine = infeasiblePlan.lines.find(l => l.category === 'entertainment')!
-    const decorLine = infeasiblePlan.lines.find(l => l.category === 'decor')!
+    const entertainmentLine = infeasiblePlan.lines.find((l) => l.category === 'entertainment')!
+    const decorLine = infeasiblePlan.lines.find((l) => l.category === 'decor')!
 
-    const entFloor = Math.round(entertainmentLine.baselinePaise * 0.40 / 100) * 100
-    const decorFloor = Math.round(decorLine.baselinePaise * 0.40 / 100) * 100
+    const entFloor = Math.round((entertainmentLine.baselinePaise * 0.4) / 100) * 100
+    const decorFloor = Math.round((decorLine.baselinePaise * 0.4) / 100) * 100
 
     expect(entertainmentLine.currentPaise).toBe(entFloor)
     expect(decorLine.currentPaise).toBe(decorFloor)
@@ -161,22 +163,30 @@ describe('Pure TypeScript Zero-Sum Idea Displacement & Protected Immunity (MOMEN
 
   it('restores exact paise to exact donor lines in reverse order upon retractIdea (IDEA-03, D-07)', () => {
     const plan = instantiatePlanFromBrief(weddingBrief)
-    const initialEntertainment = plan.lines.find(l => l.category === 'entertainment')!.currentPaise
-    const initialDecor = plan.lines.find(l => l.category === 'decor')!.currentPaise
-    const initialCatering = plan.lines.find(l => l.category === 'catering')!.currentPaise
+    const initialEntertainment = plan.lines.find(
+      (l) => l.category === 'entertainment'
+    )!.currentPaise
+    const initialDecor = plan.lines.find((l) => l.category === 'decor')!.currentPaise
+    const initialCatering = plan.lines.find((l) => l.category === 'catering')!.currentPaise
 
     // Adopt Chai Cart
     const planWithIdea = adoptIdea(plan, sampleChaiCartIdea)
     expect(planWithIdea.adoptedIdeas).toHaveLength(1)
-    expect(planWithIdea.lines.find(l => l.category === 'catering')!.currentPaise).toBe(initialCatering + 5_000_000)
+    expect(planWithIdea.lines.find((l) => l.category === 'catering')!.currentPaise).toBe(
+      initialCatering + 5_000_000
+    )
 
     // Retract Chai Cart
     const revertedPlan = retractIdea(planWithIdea, sampleChaiCartIdea.id)
 
     expect(revertedPlan.adoptedIdeas).toBeUndefined()
-    expect(revertedPlan.lines.find(l => l.category === 'catering')!.currentPaise).toBe(initialCatering)
-    expect(revertedPlan.lines.find(l => l.category === 'entertainment')!.currentPaise).toBe(initialEntertainment)
-    expect(revertedPlan.lines.find(l => l.category === 'decor')!.currentPaise).toBe(initialDecor)
+    expect(revertedPlan.lines.find((l) => l.category === 'catering')!.currentPaise).toBe(
+      initialCatering
+    )
+    expect(revertedPlan.lines.find((l) => l.category === 'entertainment')!.currentPaise).toBe(
+      initialEntertainment
+    )
+    expect(revertedPlan.lines.find((l) => l.category === 'decor')!.currentPaise).toBe(initialDecor)
 
     const sum = revertedPlan.lines.reduce((s, l) => s + l.currentPaise, 0)
     expect(sum).toBe(plan.totalBudgetPaise)
@@ -268,7 +278,7 @@ describe('Pure TypeScript Zero-Sum Idea Displacement & Protected Immunity (MOMEN
       const shouldAdopt = adoptedIdStack.length === 0 || Math.random() > 0.4
       if (shouldAdopt && adoptedIdStack.length < mockIdeas.length) {
         // pick an idea not yet adopted
-        const availableIdeas = mockIdeas.filter(m => !adoptedIdStack.includes(m.id))
+        const availableIdeas = mockIdeas.filter((m) => !adoptedIdStack.includes(m.id))
         const picked = availableIdeas[Math.floor(Math.random() * availableIdeas.length)]
         currentPlan = adoptIdea(currentPlan, picked)
         adoptedIdStack.push(picked.id)

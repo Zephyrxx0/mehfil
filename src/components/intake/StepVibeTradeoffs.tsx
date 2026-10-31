@@ -48,7 +48,8 @@ export function StepVibeTradeoffs({
           Protected Moment & Festive Trade-offs
         </h3>
         <p className="text-xs text-royal-plum/70">
-          Anchor your celebration&apos;s untouchable centerpiece and balance key aesthetic priorities.
+          Anchor your celebration&apos;s untouchable centerpiece and balance key aesthetic
+          priorities.
         </p>
       </div>
 
@@ -59,13 +60,13 @@ export function StepVibeTradeoffs({
             htmlFor="protected-moment-input"
             className="flex items-center gap-1.5 text-xs font-semibold text-royal-plum"
           >
-            <ShieldCheck className="w-4 h-4 text-gulabi-rose" />
+            <ShieldCheck className="w-4 h-4 text-gulabi-rose" aria-hidden="true" />
             <span>Single-Sentence Protected Moment (Immune from Trimming)</span>
           </label>
           <span
             className={cn(
               'text-xs font-mono tabular-nums',
-              charCount >= 190 ? 'text-amber-800 font-bold' : 'text-royal-plum/50'
+              charCount >= 190 ? 'text-amber-800 font-bold' : 'text-royal-plum/70'
             )}
           >
             ({charCount}/200)
@@ -79,11 +80,12 @@ export function StepVibeTradeoffs({
           maxLength={200}
           rows={5}
           placeholder="e.g. Live soulful qawwali night under fairy lights"
-          className="w-full resize-none rounded-xl border border-royal-plum/15 bg-warm-ivory/60 p-3 text-sm text-royal-plum placeholder:text-royal-plum/40 focus:border-royal-plum/50 focus:outline-hidden focus:ring-1 focus:ring-royal-plum/20"
+          className="w-full resize-none rounded-xl border border-royal-plum/15 bg-warm-ivory/60 p-3 text-sm text-royal-plum placeholder:text-royal-plum/70 focus:border-royal-plum/50 focus:outline-hidden focus:ring-1 focus:ring-royal-plum/20"
         />
 
-        <p className="text-xs text-royal-plum/55">
-          This vision statement locks a 1.25x floor multiplier on its matching budget line so it will never be trimmed.
+        <p className="text-xs text-royal-plum/70">
+          This vision statement locks a 1.25x floor multiplier on its matching budget line so it
+          will never be trimmed.
         </p>
       </div>
 
@@ -106,7 +108,9 @@ export function StepVibeTradeoffs({
               role="radio"
               aria-checked={tradeoffs.feastVsSpectacle === 'feast'}
               tabIndex={0}
-              onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && handleUpdate('feastVsSpectacle', 'feast')}
+              onKeyDown={(e) =>
+                (e.key === ' ' || e.key === 'Enter') && handleUpdate('feastVsSpectacle', 'feast')
+              }
               className={cn(
                 'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
                 tradeoffs.feastVsSpectacle === 'feast'
@@ -122,7 +126,7 @@ export function StepVibeTradeoffs({
                   <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Sumptuous Multi-Course Dining
                   </span>
-                  <span className="text-xs text-royal-plum/60 leading-snug">
+                  <span className="text-xs text-royal-plum/70 leading-snug">
                     Focus on culinary craft, live stations & feasts
                   </span>
                 </div>
@@ -141,7 +145,10 @@ export function StepVibeTradeoffs({
               role="radio"
               aria-checked={tradeoffs.feastVsSpectacle === 'spectacle'}
               tabIndex={0}
-              onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && handleUpdate('feastVsSpectacle', 'spectacle')}
+              onKeyDown={(e) =>
+                (e.key === ' ' || e.key === 'Enter') &&
+                handleUpdate('feastVsSpectacle', 'spectacle')
+              }
               className={cn(
                 'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
                 tradeoffs.feastVsSpectacle === 'spectacle'
@@ -151,13 +158,13 @@ export function StepVibeTradeoffs({
             >
               <div className="flex items-center gap-2.5">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-royal-plum/5 text-royal-plum">
-                  <Sparkles className="w-3.5 h-3.5 text-marigold" />
+                  <Sparkles className="w-3.5 h-3.5 text-marigold" aria-hidden="true" />
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Dazzling Stage & Visual Production
                   </span>
-                  <span className="text-xs text-royal-plum/60 leading-snug">
+                  <span className="text-xs text-royal-plum/70 leading-snug">
                     High impact lighting, grand sets & stagecraft
                   </span>
                 </div>
@@ -173,9 +180,7 @@ export function StepVibeTradeoffs({
 
         {/* Trade-off 2: Intimate vs Grand */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold text-royal-plum/70">
-            2. Gathering Energy
-          </span>
+          <span className="text-xs font-semibold text-royal-plum/70">2. Gathering Energy</span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {/* Option A: Intimate */}
             <motion.div
@@ -184,7 +189,9 @@ export function StepVibeTradeoffs({
               role="radio"
               aria-checked={tradeoffs.intimateVsGrand === 'intimate'}
               tabIndex={0}
-              onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && handleUpdate('intimateVsGrand', 'intimate')}
+              onKeyDown={(e) =>
+                (e.key === ' ' || e.key === 'Enter') && handleUpdate('intimateVsGrand', 'intimate')
+              }
               className={cn(
                 'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
                 tradeoffs.intimateVsGrand === 'intimate'
@@ -200,7 +207,7 @@ export function StepVibeTradeoffs({
                   <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Warm & Cozy Close Circle
                   </span>
-                  <span className="text-xs text-royal-plum/60 leading-snug">
+                  <span className="text-xs text-royal-plum/70 leading-snug">
                     Personal conversations, subtle music & intimacy
                   </span>
                 </div>
@@ -219,7 +226,9 @@ export function StepVibeTradeoffs({
               role="radio"
               aria-checked={tradeoffs.intimateVsGrand === 'grand'}
               tabIndex={0}
-              onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && handleUpdate('intimateVsGrand', 'grand')}
+              onKeyDown={(e) =>
+                (e.key === ' ' || e.key === 'Enter') && handleUpdate('intimateVsGrand', 'grand')
+              }
               className={cn(
                 'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
                 tradeoffs.intimateVsGrand === 'grand'
@@ -235,7 +244,7 @@ export function StepVibeTradeoffs({
                   <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Grand High-Energy Extravaganza
                   </span>
-                  <span className="text-xs text-royal-plum/60 leading-snug">
+                  <span className="text-xs text-royal-plum/70 leading-snug">
                     Expansive scale, electric beats & large crowd
                   </span>
                 </div>
@@ -251,9 +260,7 @@ export function StepVibeTradeoffs({
 
         {/* Trade-off 3: Heritage vs Modern */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold text-royal-plum/70">
-            3. Cultural Styling
-          </span>
+          <span className="text-xs font-semibold text-royal-plum/70">3. Cultural Styling</span>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {/* Option A: Heritage */}
             <motion.div
@@ -262,7 +269,9 @@ export function StepVibeTradeoffs({
               role="radio"
               aria-checked={tradeoffs.heritageVsModern === 'heritage'}
               tabIndex={0}
-              onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && handleUpdate('heritageVsModern', 'heritage')}
+              onKeyDown={(e) =>
+                (e.key === ' ' || e.key === 'Enter') && handleUpdate('heritageVsModern', 'heritage')
+              }
               className={cn(
                 'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
                 tradeoffs.heritageVsModern === 'heritage'
@@ -278,7 +287,7 @@ export function StepVibeTradeoffs({
                   <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Timeless Rituals & Cultural Craft
                   </span>
-                  <span className="text-xs text-royal-plum/60 leading-snug">
+                  <span className="text-xs text-royal-plum/70 leading-snug">
                     Traditional fabrics, classic motifs & heirloom touches
                   </span>
                 </div>
@@ -297,7 +306,9 @@ export function StepVibeTradeoffs({
               role="radio"
               aria-checked={tradeoffs.heritageVsModern === 'modern'}
               tabIndex={0}
-              onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && handleUpdate('heritageVsModern', 'modern')}
+              onKeyDown={(e) =>
+                (e.key === ' ' || e.key === 'Enter') && handleUpdate('heritageVsModern', 'modern')
+              }
               className={cn(
                 'flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all',
                 tradeoffs.heritageVsModern === 'modern'
@@ -313,7 +324,7 @@ export function StepVibeTradeoffs({
                   <span className="text-sm font-semibold text-royal-plum leading-snug">
                     Contemporary Chic & Minimalist Elegance
                   </span>
-                  <span className="text-xs text-royal-plum/60 leading-snug">
+                  <span className="text-xs text-royal-plum/70 leading-snug">
                     Clean lines, architectural floral styling & modern palettes
                   </span>
                 </div>

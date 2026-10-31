@@ -64,9 +64,7 @@ export function UndoActionBar({
       className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 max-w-[calc(100vw-2rem)] flex flex-col overflow-hidden rounded-full bg-royal-plum text-warm-ivory shadow-2xl border border-white/20 backdrop-blur-md"
     >
       <div className="flex items-center gap-3 px-4 py-2.5">
-        <span className="text-xs font-medium max-w-xs sm:max-w-md truncate">
-          {message}
-        </span>
+        <span className="text-xs font-medium max-w-xs sm:max-w-md truncate">{message}</span>
 
         <button
           type="button"

@@ -39,11 +39,12 @@ export function VendorChecklist({
   }
 
   // Resolve lines: if lineIds is provided, pick those lines; otherwise show all lines
-  const resolvedLines: BudgetLine[] = lineIds && lineIds.length > 0
-    ? lineIds
-        .map((id) => plan.lines.find((l) => l.id === id))
-        .filter((l): l is BudgetLine => l !== undefined)
-    : plan.lines
+  const resolvedLines: BudgetLine[] =
+    lineIds && lineIds.length > 0
+      ? lineIds
+          .map((id) => plan.lines.find((l) => l.id === id))
+          .filter((l): l is BudgetLine => l !== undefined)
+      : plan.lines
 
   return (
     <ul
@@ -57,31 +58,47 @@ export function VendorChecklist({
         return (
           <li
             key={line.id}
-            onClick={() => handleSelectLine?.(line.id)}
             className={cn(
               'relative flex flex-col gap-2 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4',
               isHighlighted && 'bg-marigold/10',
-              line.isProtected && 'bg-gulabi-rose/10 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-gulabi-rose'
+              line.isProtected &&
+                'bg-gulabi-rose/10 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-gulabi-rose'
             )}
           >
             <div className="min-w-0">
               <p className="text-base font-semibold text-royal-plum">
-                {line.name}
+                {handleSelectLine ? (
+                  <button
+                    type="button"
+                    onClick={() => handleSelectLine(line.id)}
+                    className="text-left hover:underline focus-visible:underline"
+                  >
+                    {line.name}
+                  </button>
+                ) : (
+                  line.name
+                )}
                 {line.isProtected && (
-                  <span className="ml-2 text-sm font-normal text-royal-plum/70">Protected Moment</span>
+                  <span className="ml-2 text-sm font-normal text-royal-plum/70">
+                    Protected Moment
+                  </span>
                 )}
               </p>
-              <p className="mt-0.5 text-sm tabular-nums text-royal-plum/60">
+              <p className="mt-0.5 text-sm tabular-nums text-royal-plum/70">
                 Baseline: {formatINR(line.baselinePaise)}
                 <span aria-hidden="true"> · </span>
-                <span className="font-medium text-royal-plum/80">Allocated: {formatINR(line.currentPaise)}</span>
+                <span className="font-medium text-royal-plum/80">
+                  Allocated: {formatINR(line.currentPaise)}
+                </span>
               </p>
             </div>
 
             <div className="shrink-0 text-sm sm:text-right">
               {isCommitted ? (
                 <>
-                  <p className="font-medium text-royal-plum">Committed: {line.committedVendor || 'Vendor'}</p>
+                  <p className="font-medium text-royal-plum">
+                    Committed: {line.committedVendor || 'Vendor'}
+                  </p>
                   {line.variancePaise !== undefined && line.variancePaise !== 0 && (
                     <p
                       className={cn(
@@ -99,10 +116,7 @@ export function VendorChecklist({
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleCheckQuote?.(line.category)
-                  }}
+                  onClick={() => handleCheckQuote?.(line.category)}
                 >
                   Check Quote
                 </Button>

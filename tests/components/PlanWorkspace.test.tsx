@@ -135,11 +135,7 @@ describe('PlanWorkspace Component', () => {
     it('renders Read-Only View banner and unlock button when isReadOnly is true', () => {
       const handleUnlock = vi.fn()
       render(
-        <PlanWorkspace
-          initialPlan={initialPlan}
-          isReadOnly={true}
-          onUnlockEdit={handleUnlock}
-        />
+        <PlanWorkspace initialPlan={initialPlan} isReadOnly={true} onUnlockEdit={handleUnlock} />
       )
 
       expect(screen.getByText('Read-Only View')).toBeInTheDocument()

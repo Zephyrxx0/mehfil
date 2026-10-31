@@ -6,10 +6,13 @@ import { Loader2 } from 'lucide-react'
 import { usePathname, useRouter, useSearchParams, useSelectedLayoutSegment } from 'next/navigation'
 import type { Plan } from '@/lib/engine/types'
 import { persistence } from '@/lib/storage/persistence'
+import { capabilityStore } from '@/lib/storage/capability-store'
 import { PlanWorkspace } from '@/components/workspace/PlanWorkspace'
 import { UnlockEditDialog } from '@/components/workspace/UnlockEditDialog'
 import { isPlanTab } from '@/components/workspace/tabs'
 import { Button } from '@/components/ui/button'
+import { createLogger } from '@/lib/logger'
+const logger = createLogger('plan-page')
 
 export interface PlanClientPageProps {
   planId: string
@@ -36,16 +39,18 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
   const [isReadOnly, setIsReadOnly] = useState<boolean>(true)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isUnlockOpen, setIsUnlockOpen] = useState<boolean>(false)
-  const [claimedKey, setClaimedKey] = useState<string | undefined>(keyFromUrl)
+  const [editKey, setEditKey] = useState<string | undefined>(undefined)
+  const [shareToken, setShareToken] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     let isMounted = true
 
     async function initializePlan() {
       setIsLoading(true)
-      let effectiveKey = keyFromUrl
+      let effectiveKey = capabilityStore.getEditKey(planId)
 
-      // If key is present in query parameters, claim session and clean URL immediately (D-02)
+      // A key in the address bar is checked by the server, kept in this browser only if it
+      // is accepted, and removed from the URL right away (D-02).
       if (keyFromUrl) {
         try {
           const res = await fetch(`/api/plan/${planId}/claim`, {
@@ -54,11 +59,11 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
             body: JSON.stringify({ key: keyFromUrl }),
           })
           if (res.ok) {
-            setClaimedKey(keyFromUrl)
+            capabilityStore.setEditKey(planId, keyFromUrl)
             effectiveKey = keyFromUrl
           }
         } catch (e) {
-          console.warn('[PlanPage] Auto-claim network error:', e)
+          logger.warn('[PlanPage] Auto-claim network error:', e)
         } finally {
           // Immediately strip the secret capability token from the address bar
           router.replace(pathname)
@@ -67,6 +72,9 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
 
       const data = await persistence.getPlan(planId, effectiveKey)
       if (isMounted) {
+        // Read after getPlan: it forgets a key the server rejected.
+        setEditKey(capabilityStore.getEditKey(planId))
+        setShareToken(capabilityStore.getShareToken(planId))
         if (data) {
           setPlan(data.plan)
           setIsReadOnly(data.isReadOnly)
@@ -91,7 +99,7 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
       <CenteredMessage>
         <div role="status" className="flex flex-col items-center gap-4">
           <Loader2 className="h-7 w-7 animate-spin text-marigold" aria-hidden="true" />
-          <p className="text-sm text-royal-plum/60">Opening your plan...</p>
+          <p className="text-sm text-royal-plum/70">Opening your plan...</p>
         </div>
       </CenteredMessage>
     )
@@ -101,10 +109,12 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
     return (
       <CenteredMessage>
         <div className="max-w-md">
-          <h1 className="font-serif text-2xl font-bold text-royal-plum">Celebration Plan Not Found</h1>
+          <h1 className="font-serif text-2xl font-bold text-royal-plum">
+            Celebration Plan Not Found
+          </h1>
           <p className="mt-3 text-base leading-relaxed text-royal-plum/70">
-            We couldn’t find a plan with this identifier. It may have expired, or it was created in a
-            different browser.
+            We couldn’t find a plan with this identifier. It may have expired, or it was created in
+            a different browser.
           </p>
           <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
             <Button asChild>
@@ -125,6 +135,8 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
               if (res) {
                 setPlan(res.plan)
                 setIsReadOnly(res.isReadOnly)
+                setEditKey(capabilityStore.getEditKey(planId))
+                setShareToken(capabilityStore.getShareToken(planId))
               }
             })
           }}
@@ -138,7 +150,8 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
       <PlanWorkspace
         initialPlan={plan}
         isReadOnly={isReadOnly}
-        editKey={claimedKey}
+        editKey={editKey}
+        initialShareToken={shareToken}
         activeTab={activeTab}
         basePath={`/plan/${planId}`}
         onUnlockEdit={() => setIsUnlockOpen(true)}
@@ -149,9 +162,12 @@ export function PlanClientPage({ planId }: PlanClientPageProps) {
         onOpenChange={setIsUnlockOpen}
         planId={planId}
         onUnlocked={() => {
-          setIsReadOnly(false)
           persistence.getPlan(planId).then((res) => {
-            if (res) setPlan(res.plan)
+            if (!res) return
+            setPlan(res.plan)
+            setIsReadOnly(res.isReadOnly)
+            setEditKey(capabilityStore.getEditKey(planId))
+            setShareToken(capabilityStore.getShareToken(planId))
           })
         }}
       />

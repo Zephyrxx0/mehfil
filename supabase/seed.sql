@@ -1,16 +1,22 @@
+-- !! LOCAL DEVELOPMENT ONLY. NEVER RUN THIS AGAINST A PRODUCTION DATABASE. !!
+-- The edit and share tokens below are published in this file, so anyone who can read
+-- the repository can open or edit the seeded celebration.
 -- Seed: supabase/seed.sql
 -- Mehfil Milestone 1: Realistic seed data based on South Indian Wedding Archetype
+
+-- pgcrypto's digest() lives in the `extensions` schema on Supabase.
+SET search_path = public, extensions;
 
 DO $$
 DECLARE
   v_event_id UUID := '11111111-1111-1111-1111-111111111111';
   v_version_id UUID := '22222222-2222-2222-2222-222222222222';
-  -- Precomputed SHA-256 for test edit token '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-  -- sha256: 4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce
-  v_edit_hash TEXT := '4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce';
-  -- Precomputed SHA-256 for test share token 'fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210'
-  -- sha256: 12f468dc04332ab8a14ec47183eec17621f3fc4cfa432049e62cf0c4516ff2be
-  v_share_hash TEXT := '12f468dc04332ab8a14ec47183eec17621f3fc4cfa432049e62cf0c4516ff2be';
+  -- Development tokens (published on purpose; see the warning above). Only their hashes are
+  -- stored, computed here so the data can never drift from the tokens in these comments:
+  --   edit  key: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  --   share key: fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210
+  v_edit_hash TEXT := encode(digest('0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef', 'sha256'), 'hex');
+  v_share_hash TEXT := encode(digest('fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210', 'sha256'), 'hex');
 BEGIN
   -- 1. Insert Event
   INSERT INTO public.events (

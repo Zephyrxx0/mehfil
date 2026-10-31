@@ -24,7 +24,9 @@ const SIZES = {
 export function Wordmark({ size = 'md', className }: WordmarkProps) {
   return (
     <span className={cn('inline-flex items-center text-royal-plum', className)}>
-      <span className="sr-only">Mehfil (महफ़िल)</span>
+      <span className="sr-only">
+        Mehfil (<span lang="hi">महफ़िल</span>)
+      </span>
       <svg
         viewBox={TITLE_VIEWBOX}
         role="presentation"

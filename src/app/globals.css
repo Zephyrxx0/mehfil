@@ -4,37 +4,37 @@
 
 @layer base {
   :root {
-    --background: 36 100% 97%;        /* #FFF8EE Warm Ivory */
-    --foreground: 287 29% 20%;         /* #3A2442 Royal Plum */
+    --background: 36 100% 97%; /* #FFF8EE Warm Ivory */
+    --foreground: 287 29% 20%; /* #3A2442 Royal Plum */
 
-    --card: 36 100% 97%;              /* #FFF8EE */
+    --card: 36 100% 97%; /* #FFF8EE */
     --card-foreground: 287 29% 20%;
 
     --popover: 36 100% 97%;
     --popover-foreground: 287 29% 20%;
 
-    --primary: 39 89% 71%;            /* #F7C873 Marigold */
+    --primary: 39 89% 71%; /* #F7C873 Marigold */
     --primary-foreground: 287 29% 20%; /* Royal Plum text on Primary */
 
-    --secondary: 346 76% 80%;          /* #F2A7B8 Gulabi Rose */
+    --secondary: 346 76% 80%; /* #F2A7B8 Gulabi Rose */
     --secondary-foreground: 287 29% 20%;
 
-    --muted: 38 73% 94%;               /* Ivory-900 #FBF2E3 */
+    --muted: 38 73% 94%; /* Ivory-900 #FBF2E3 */
     --muted-foreground: 287 20% 40%;
 
-    --accent: 346 76% 80%;             /* Gulabi Rose */
+    --accent: 346 76% 80%; /* Gulabi Rose */
     --accent-foreground: 287 29% 20%;
 
-    --destructive: 13 68% 54%;         /* Terracotta #D95D39 */
+    --destructive: 13 68% 42%; /* Terracotta #B3361C, 5.4:1 on Warm Ivory */
     --destructive-foreground: 36 100% 97%;
 
-    --border: 287 29% 20% / 0.08;      /* Hairline Plum border */
+    --border: 287 29% 20% / 0.08; /* Hairline Plum border */
     --input: 287 29% 20% / 0.12;
-    --ring: 287 29% 20%;               /* High-visibility Plum ring */
+    --ring: 287 29% 20%; /* High-visibility Plum ring */
 
-    --radius: 1.25rem;                 /* 20px - Warm, generous curves */
+    --radius: 1.25rem; /* 20px - Warm, generous curves */
 
-    --maroon: 347 62% 25%;             /* #68182B mehendi maroon, used for line art only */
+    --maroon: 347 62% 25%; /* #68182B mehendi maroon, used for line art only */
   }
 
   body {
@@ -274,23 +274,27 @@
 
 .fw-streak {
   stroke-dasharray: 0.3 2;
-  animation: fw-streak var(--fw-seconds, 6s) cubic-bezier(0.12, 0.7, 0.3, 1) var(--fw-delay, 0s) infinite;
+  animation: fw-streak var(--fw-seconds, 6s) cubic-bezier(0.12, 0.7, 0.3, 1) var(--fw-delay, 0s)
+    infinite;
 }
 
 .fw-spark {
-  animation: fw-spark var(--fw-seconds, 6s) cubic-bezier(0.12, 0.7, 0.3, 1) var(--fw-delay, 0s) infinite;
+  animation: fw-spark var(--fw-seconds, 6s) cubic-bezier(0.12, 0.7, 0.3, 1) var(--fw-delay, 0s)
+    infinite;
 }
 
 .fw-ring {
   transform-box: view-box;
   transform-origin: 0 0;
-  animation: fw-ring var(--fw-seconds, 6s) cubic-bezier(0.12, 0.7, 0.3, 1) var(--fw-delay, 0s) infinite;
+  animation: fw-ring var(--fw-seconds, 6s) cubic-bezier(0.12, 0.7, 0.3, 1) var(--fw-delay, 0s)
+    infinite;
 }
 
 .fw-bloom {
   transform-box: view-box;
   transform-origin: 0 0;
-  animation: fw-bloom var(--fw-seconds, 6s) cubic-bezier(0.12, 0.7, 0.3, 1) var(--fw-delay, 0s) infinite;
+  animation: fw-bloom var(--fw-seconds, 6s) cubic-bezier(0.12, 0.7, 0.3, 1) var(--fw-delay, 0s)
+    infinite;
 }
 
 .fw-twinkle {

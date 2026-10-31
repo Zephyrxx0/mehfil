@@ -7,7 +7,7 @@ import { CURATED_IDEAS } from '@/data/curatedIdeas'
 import { usePlanContext } from './PlanContext'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Sparkles, CheckCircle2, Plus, X, ArrowRight } from 'lucide-react'
+import { CheckCircle2, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export interface IdeaGridProps {
@@ -34,15 +34,14 @@ export function IdeaGrid({
   const handleRetractIdea = onRetractIdea || context.onRetractIdea
 
   // Resolve ideas from CURATED_IDEAS catalog
-  const resolvedIdeas: CuratedIdea[] = (ideaIds && ideaIds.length > 0)
-    ? ideaIds
-        .map((id) => CURATED_IDEAS.find((i) => i.id === id))
-        .filter((i): i is CuratedIdea => i !== undefined)
-    : CURATED_IDEAS.slice(0, 4)
+  const resolvedIdeas: CuratedIdea[] =
+    ideaIds && ideaIds.length > 0
+      ? ideaIds
+          .map((id) => CURATED_IDEAS.find((i) => i.id === id))
+          .filter((i): i is CuratedIdea => i !== undefined)
+      : CURATED_IDEAS.slice(0, 4)
 
-  const adoptedRecordIds = new Set(
-    (plan?.adoptedIdeas || []).map((rec) => rec.ideaId)
-  )
+  const adoptedRecordIds = new Set((plan?.adoptedIdeas || []).map((rec) => rec.ideaId))
 
   if (resolvedIdeas.length === 0) {
     return (
@@ -53,10 +52,7 @@ export function IdeaGrid({
   }
 
   return (
-    <div
-      className={cn('grid grid-cols-1 sm:grid-cols-2 gap-4', className)}
-      data-testid="idea-grid"
-    >
+    <div className={cn('grid grid-cols-1 sm:grid-cols-2 gap-4', className)} data-testid="idea-grid">
       {resolvedIdeas.map((idea) => {
         const isAdopted = adoptedRecordIds.has(idea.id)
         const isHighlighted = highlightEntityId === idea.id
@@ -83,7 +79,7 @@ export function IdeaGrid({
                 </Badge>
 
                 {idea.devanagariTitle && (
-                  <span className="text-xs text-royal-plum/70 font-serif">
+                  <span lang="hi" className="text-xs text-royal-plum/70 font-serif">
                     {idea.devanagariTitle}
                   </span>
                 )}
@@ -101,19 +97,15 @@ export function IdeaGrid({
             {/* Middle: Cost & Donor Tag */}
             <div className="pt-3 border-t border-royal-plum/10 flex flex-col gap-1.5">
               <div className="flex items-baseline justify-between">
-                <span className="text-xs text-royal-plum/60 font-medium">
-                  Estimated Investment
-                </span>
+                <span className="text-xs text-royal-plum/70 font-medium">Estimated Investment</span>
                 <span className="text-base font-bold text-royal-plum tabular-nums">
                   {formatINR(idea.costPaise)}
                 </span>
               </div>
 
-              <div className="text-[11px] text-royal-plum/60 bg-soft-ivory/80 px-2.5 py-1 rounded-lg flex items-center justify-between">
+              <div className="text-[11px] text-royal-plum/70 bg-soft-ivory/80 px-2.5 py-1 rounded-lg flex items-center justify-between">
                 <span>Displacement</span>
-                <span className="font-medium text-royal-plum/80">
-                  Funds from: Misc & Decor
-                </span>
+                <span className="font-medium text-royal-plum/80">Funds from: Misc & Decor</span>
               </div>
             </div>
 
@@ -146,4 +138,3 @@ export function IdeaGrid({
     </div>
   )
 }
-

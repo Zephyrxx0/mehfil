@@ -114,10 +114,14 @@ describe('Capability Router & Read-Only Downgrade (D-02, D-03, D-04, COLLAB-02)'
 
     expect(screen.getByText('Enter Organizer Edit Key')).toBeInTheDocument()
 
-    const input = screen.getByPlaceholderText(/e\.g\. 7f9a2b\.\.\. or full mehfil\.app\/plan\/\.\.\. URL/i)
+    const input = screen.getByPlaceholderText(
+      /e\.g\. 7f9a2b\.\.\. or full mehfil\.app\/plan\/\.\.\. URL/i
+    )
     // User pastes full URL
     fireEvent.change(input, {
-      target: { value: 'https://mehfil.app/plan/test-collab-event-456?key=9876543210abcdef9876543210abcdef' },
+      target: {
+        value: 'https://mehfil.app/plan/test-collab-event-456?key=9876543210abcdef9876543210abcdef',
+      },
     })
 
     const submitBtn = screen.getByRole('button', { name: /Verify & Unlock Editing/i })
@@ -143,15 +147,12 @@ describe('Capability Router & Read-Only Downgrade (D-02, D-03, D-04, COLLAB-02)'
     } as any)
 
     render(
-      <UnlockEditDialog
-        open={true}
-        onOpenChange={vi.fn()}
-        planId={planId}
-        onUnlocked={vi.fn()}
-      />
+      <UnlockEditDialog open={true} onOpenChange={vi.fn()} planId={planId} onUnlocked={vi.fn()} />
     )
 
-    const input = screen.getByPlaceholderText(/e\.g\. 7f9a2b\.\.\. or full mehfil\.app\/plan\/\.\.\. URL/i)
+    const input = screen.getByPlaceholderText(
+      /e\.g\. 7f9a2b\.\.\. or full mehfil\.app\/plan\/\.\.\. URL/i
+    )
     fireEvent.change(input, { target: { value: 'wrongtoken123' } })
 
     const submitBtn = screen.getByRole('button', { name: /Verify & Unlock Editing/i })
@@ -159,7 +160,9 @@ describe('Capability Router & Read-Only Downgrade (D-02, D-03, D-04, COLLAB-02)'
 
     await waitFor(() => {
       expect(
-        screen.getByText(/This edit key does not match this celebration\. Please verify the URL or ask the host for an updated key\./i)
+        screen.getByText(
+          /This edit key does not match this celebration\. Please verify the URL or ask the host for an updated key\./i
+        )
       ).toBeInTheDocument()
     })
   })

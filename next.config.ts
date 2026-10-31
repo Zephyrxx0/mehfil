@@ -1,27 +1,13 @@
 import type { NextConfig } from 'next'
+import bundleAnalyzer from '@next/bundle-analyzer'
 
-// Static design assets served from /public are content-stable (their contents
-// change only when the filename changes), so we let browsers and CDNs cache
-// them aggressively. `immutable` tells caches they never need to revalidate.
-const IMMUTABLE_CACHE = 'public, max-age=31536000, immutable'
+// Files in /public keep their names when edited, so they cannot be cached as immutable.
+// A day of fresh caching plus a week of stale-while-revalidate keeps repeat visits fast and
+// lets edits reach returning visitors.
+const STATIC_ASSET_CACHE = 'public, max-age=86400, stale-while-revalidate=604800'
 
-const CSP_DIRECTIVES = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com data:",
-  "img-src 'self' data: blob: https:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com",
-  "frame-ancestors 'none'",
-  "form-action 'self'",
-  "base-uri 'self'",
-].join('; ')
-
+// The Content-Security-Policy is built per request in src/middleware.ts because it carries a nonce.
 const SECURITY_HEADERS = [
-  {
-    key: 'Content-Security-Policy',
-    value: CSP_DIRECTIVES,
-  },
   {
     key: 'X-Frame-Options',
     value: 'DENY',
@@ -42,6 +28,15 @@ const SECURITY_HEADERS = [
     key: 'X-DNS-Prefetch-Control',
     value: 'on',
   },
+  {
+    key: 'Cross-Origin-Opener-Policy',
+    value: 'same-origin',
+  },
+  // Browsers ignore HSTS on plain http, and local development stays on http.
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=63072000; includeSubDomains',
+  },
 ]
 
 const nextConfig: NextConfig = {
@@ -53,22 +48,20 @@ const nextConfig: NextConfig = {
         headers: SECURITY_HEADERS,
       },
       {
-        // Visual Vibe Gallery swatches (images + SVG fallbacks + the catalogue JSON).
+        // Vibe Gallery swatches (images, SVG fallbacks, catalogue JSON).
         source: '/swatches/:path*',
-        headers: [{ key: 'Cache-Control', value: IMMUTABLE_CACHE }],
-      },
-      {
-        // Local display/brand fonts.
-        source: '/fonts/:path*',
-        headers: [{ key: 'Cache-Control', value: IMMUTABLE_CACHE }],
+        headers: [{ key: 'Cache-Control', value: STATIC_ASSET_CACHE }],
       },
       {
         // Hairline line-art figures (kernel + per-figure scripts).
         source: '/hairline/:path*',
-        headers: [{ key: 'Cache-Control', value: IMMUTABLE_CACHE }],
+        headers: [{ key: 'Cache-Control', value: STATIC_ASSET_CACHE }],
       },
     ]
   },
 }
 
-export default nextConfig
+// `pnpm analyze` builds with ANALYZE=true and opens treemaps of each bundle.
+const withBundleAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === 'true' })
+
+export default withBundleAnalyzer(nextConfig)

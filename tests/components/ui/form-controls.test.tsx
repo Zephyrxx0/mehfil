@@ -11,7 +11,16 @@ afterEach(() => vi.useRealTimers())
 
 function Stepper(props: { initial?: number; min?: number; max?: number; step?: number }) {
   const [v, setV] = useState(props.initial ?? 300)
-  return <NumberStepper aria-label="Guests" value={v} onChange={setV} min={props.min} max={props.max} step={props.step} />
+  return (
+    <NumberStepper
+      aria-label="Guests"
+      value={v}
+      onChange={setV}
+      min={props.min}
+      max={props.max}
+      step={props.step}
+    />
+  )
 }
 
 describe('NumberStepper', () => {
@@ -97,7 +106,8 @@ describe('DatePicker', () => {
     await user.click(screen.getByRole('button', { name: 'Date' }))
 
     const grid = await screen.findByRole('grid')
-    const day = (n: number) => within(grid).getByRole('button', { name: new RegExp(`October ${n}(st|nd|rd|th), 2026`) })
+    const day = (n: number) =>
+      within(grid).getByRole('button', { name: new RegExp(`October ${n}(st|nd|rd|th), 2026`) })
 
     expect(day(28)).toBeDisabled()
     expect(day(1)).toBeDisabled()
@@ -117,7 +127,10 @@ describe('DatePicker', () => {
     render(<Picker initial="2026-10-29" />)
     await user.click(screen.getByRole('button', { name: 'Date' }))
     await screen.findByRole('grid')
-    expect(screen.getByRole('button', { name: /previous month/i })).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByRole('button', { name: /previous month/i })).toHaveAttribute(
+      'aria-disabled',
+      'true'
+    )
   })
 
   it('opens on the current month when the stored date has already passed', async () => {
@@ -126,7 +139,9 @@ describe('DatePicker', () => {
     render(<Picker initial="2026-06-15" />)
     await user.click(screen.getByRole('button', { name: 'Date' }))
     const grid = await screen.findByRole('grid')
-    expect(within(grid).getByRole('button', { name: /October 29(st|nd|rd|th), 2026/ })).toBeEnabled()
+    expect(
+      within(grid).getByRole('button', { name: /October 29(st|nd|rd|th), 2026/ })
+    ).toBeEnabled()
   })
 })
 

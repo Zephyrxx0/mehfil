@@ -40,7 +40,7 @@ describe('instantiatePlanFromBrief', () => {
 
   it('marks the correct Protected Moment', () => {
     const plan = instantiatePlanFromBrief(weddingBrief)
-    const protected_ = plan.lines.filter(l => l.isProtected)
+    const protected_ = plan.lines.filter((l) => l.isProtected)
     expect(protected_).toHaveLength(1)
     expect(protected_[0].category).toBe('catering')
   })

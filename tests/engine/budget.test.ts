@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { apportionRupees, rebalanceGuestCount, calculateShortfallRemedies, setProtectedMoment } from '@/lib/engine/budget'
+import { apportionRupees, rebalanceGuestCount, setProtectedMoment } from '@/lib/engine/budget'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
 import type { EventBrief } from '@/lib/engine/types'
 
@@ -15,7 +15,7 @@ const weddingBrief: EventBrief = {
 
 describe('apportionRupees', () => {
   it('sum invariant: returned values sum exactly to totalPaise', () => {
-    const ratios = [0.30, 0.35, 0.12, 0.10, 0.06, 0.02, 0.00, 0.05]
+    const ratios = [0.3, 0.35, 0.12, 0.1, 0.06, 0.02, 0.0, 0.05]
     const total = 250_000_000
     const result = apportionRupees(total, ratios)
     const sum = result.reduce((a, b) => a + b, 0)
@@ -23,7 +23,7 @@ describe('apportionRupees', () => {
   })
 
   it('property test: 1000 random budgets all satisfy sum invariant', () => {
-    const ratios = [0.30, 0.35, 0.12, 0.10, 0.06, 0.02, 0.00, 0.05]
+    const ratios = [0.3, 0.35, 0.12, 0.1, 0.06, 0.02, 0.0, 0.05]
 
     for (let i = 0; i < 1000; i++) {
       // Random budgets from ₹50,000 to ₹1,00,00,000 (5K to 10Cr)
@@ -34,13 +34,15 @@ describe('apportionRupees', () => {
       const sum = result.reduce((a, b) => a + b, 0)
 
       if (sum !== totalPaise) {
-        throw new Error(`Sum invariant violated for budget ₹${rupees}: got ${sum}, expected ${totalPaise}`)
+        throw new Error(
+          `Sum invariant violated for budget ₹${rupees}: got ${sum}, expected ${totalPaise}`
+        )
       }
     }
   })
 
   it('all returned values are non-negative integers', () => {
-    const ratios = [0.30, 0.35, 0.12, 0.10, 0.06, 0.02, 0.00, 0.05]
+    const ratios = [0.3, 0.35, 0.12, 0.1, 0.06, 0.02, 0.0, 0.05]
     const result = apportionRupees(250_000_000, ratios)
     for (const v of result) {
       expect(v).toBeGreaterThanOrEqual(0)
@@ -52,10 +54,10 @@ describe('apportionRupees', () => {
 describe('rebalanceGuestCount', () => {
   it('per-guest lines scale up proportionally', () => {
     const plan = instantiatePlanFromBrief(weddingBrief)
-    const originalFavors = plan.lines.find(l => l.category === 'favors')!.currentPaise
+    const originalFavors = plan.lines.find((l) => l.category === 'favors')!.currentPaise
 
-    const rebalanced = rebalanceGuestCount(plan, 600)  // 2x guests
-    const newFavors = rebalanced.lines.find(l => l.category === 'favors')!.currentPaise
+    const rebalanced = rebalanceGuestCount(plan, 600) // 2x guests
+    const newFavors = rebalanced.lines.find((l) => l.category === 'favors')!.currentPaise
 
     // Favors should roughly double
     expect(newFavors).toBeGreaterThan(originalFavors)
@@ -73,10 +75,10 @@ describe('rebalanceGuestCount', () => {
 
   it('Protected Moment allocation never decreases when guests increase', () => {
     const plan = instantiatePlanFromBrief(weddingBrief)
-    const originalProtected = plan.lines.find(l => l.isProtected)!.currentPaise
+    const originalProtected = plan.lines.find((l) => l.isProtected)!.currentPaise
 
     const rebalanced = rebalanceGuestCount(plan, 600)
-    const newProtected = rebalanced.lines.find(l => l.isProtected)!.currentPaise
+    const newProtected = rebalanced.lines.find((l) => l.isProtected)!.currentPaise
 
     expect(newProtected).toBeGreaterThanOrEqual(originalProtected)
   })
@@ -89,7 +91,7 @@ describe('rebalanceGuestCount', () => {
 
     for (const line of rebalanced.lines) {
       if (line.lineType === 'flexible' && !line.isProtected) {
-        const floor = Math.round(line.baselinePaise * 0.40 / 100) * 100
+        const floor = Math.round((line.baselinePaise * 0.4) / 100) * 100
         expect(line.currentPaise).toBeGreaterThanOrEqual(floor)
       }
     }
@@ -117,7 +119,7 @@ describe('setProtectedMoment', () => {
     const plan = instantiatePlanFromBrief(weddingBrief)
     const newPlan = setProtectedMoment(plan, 'venue')
 
-    const protectedLines = newPlan.lines.filter(l => l.isProtected)
+    const protectedLines = newPlan.lines.filter((l) => l.isProtected)
     expect(protectedLines).toHaveLength(1)
     expect(protectedLines[0].category).toBe('venue')
   })
@@ -126,7 +128,7 @@ describe('setProtectedMoment', () => {
     const plan = instantiatePlanFromBrief(weddingBrief)
     const newPlan = setProtectedMoment(plan, 'decor')
 
-    const protectedCount = newPlan.lines.filter(l => l.isProtected).length
+    const protectedCount = newPlan.lines.filter((l) => l.isProtected).length
     expect(protectedCount).toBe(1)
   })
 })

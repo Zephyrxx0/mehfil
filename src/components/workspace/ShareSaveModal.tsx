@@ -21,7 +21,23 @@ import {
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog'
 import { QRCodeSVG } from 'qrcode.react'
-import { Copy, Check, MessageCircle, RefreshCw, KeyRound, Share2, ShieldAlert, Lock, Loader2, CloudOff } from 'lucide-react'
+import {
+  Copy,
+  Check,
+  MessageCircle,
+  RefreshCw,
+  KeyRound,
+  Share2,
+  ShieldAlert,
+  Lock,
+  Loader2,
+  CloudOff,
+} from 'lucide-react'
+import { createLogger } from '@/lib/logger'
+import { persistence } from '@/lib/storage/persistence'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
+
+const logger = createLogger('share-modal')
 
 export interface ShareSaveModalProps {
   open: boolean
@@ -42,27 +58,25 @@ export function ShareSaveModal({
   initialShareToken,
   isCloudConfigured: customIsCloudConfigured,
 }: ShareSaveModalProps) {
-  const isCloudConfigured =
-    customIsCloudConfigured ??
-    Boolean(
-      process.env.NEXT_PUBLIC_SUPABASE_URL &&
-        !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your-project-id') &&
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-        !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.includes('your-anon-key')
-    )
+  const isCloudConfigured = customIsCloudConfigured ?? isSupabaseConfigured()
 
   const [copiedEditKey, setCopiedEditKey] = React.useState(false)
   const [copiedShareLink, setCopiedShareLink] = React.useState(false)
-  const [shareToken, setShareToken] = React.useState<string>(initialShareToken || 'share-token-preview')
+  // Only a token the database stored can open a page, so there is no placeholder (S2).
+  const [shareToken, setShareToken] = React.useState<string | undefined>(initialShareToken)
   const [isRegenerating, setIsRegenerating] = React.useState(false)
+  const [regenerateFailed, setRegenerateFailed] = React.useState(false)
   const [isAlertOpen, setIsAlertOpen] = React.useState(false)
+
+  React.useEffect(() => {
+    setShareToken(initialShareToken)
+  }, [initialShareToken])
 
   // Construct absolute capability URLs safely on browser mount
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://mehfil.app'
-  const editUrl = editKey
-    ? `${origin}/plan/${planId}?key=${editKey}`
-    : `${origin}/plan/${planId}`
-  const shareUrl = `${origin}/share/${shareToken}`
+  const editUrl = editKey ? `${origin}/plan/${planId}?key=${editKey}` : undefined
+  const shareUrl = shareToken ? `${origin}/share/${shareToken}` : undefined
+  const canManageShareLink = isCloudConfigured && Boolean(editKey)
 
   const copyToClipboard = async (text: string, isEdit: boolean) => {
     try {
@@ -77,22 +91,20 @@ export function ShareSaveModal({
         setTimeout(() => setCopiedShareLink(false), 2000)
       }
     } catch {
-      console.warn('Clipboard write failed')
+      logger.warn('Clipboard write failed')
     }
   }
 
   const handleRegenerateShareKey = async () => {
     setIsRegenerating(true)
+    setRegenerateFailed(false)
     try {
-      const res = await fetch(`/api/plan/${planId}/regenerate-share`, {
-        method: 'POST',
-      })
-      const data = await res.json().catch(() => ({}))
-      if (res.ok && data.shareToken) {
-        setShareToken(data.shareToken)
-      }
-    } catch (e) {
-      console.warn('Failed to regenerate share key:', e)
+      const result = await persistence.regenerateShareKey(planId, editKey)
+      if (result) setShareToken(result.shareToken)
+      else setRegenerateFailed(true)
+    } catch (err) {
+      logger.warn('Failed to regenerate share key', { err })
+      setRegenerateFailed(true)
     } finally {
       setIsRegenerating(false)
       setIsAlertOpen(false)
@@ -100,10 +112,10 @@ export function ShareSaveModal({
   }
 
   const whatsappEditMessage = encodeURIComponent(
-    `Here is my private Mehfil organizer edit link for ${planTitle}. Keep this secret: ${editUrl}`
+    `Here is my private Mehfil organizer edit link for ${planTitle}. Keep this secret: ${editUrl ?? ''}`
   )
   const whatsappShareMessage = encodeURIComponent(
-    `Here's our ${planTitle} celebration plan on Mehfil! Take a look: ${shareUrl}`
+    `Here's our ${planTitle} celebration plan on Mehfil! Take a look: ${shareUrl ?? ''}`
   )
 
   return (
@@ -112,11 +124,12 @@ export function ShareSaveModal({
         <DialogContent className="max-w-xl p-6 sm:p-8">
           <DialogHeader>
             <DialogTitle className="font-serif text-2xl font-bold text-royal-plum flex items-center gap-2">
-              <Share2 className="h-6 w-6 text-marigold" />
+              <Share2 className="h-6 w-6 text-marigold" aria-hidden="true" />
               <span>Share & Save Celebration</span>
             </DialogTitle>
             <DialogDescription className="text-sm text-royal-plum/70">
-              Manage secret editing capability keys or share a celebratory sanitized view with family.
+              Manage secret editing capability keys or share a celebratory sanitized view with
+              family.
             </DialogDescription>
           </DialogHeader>
 
@@ -127,11 +140,11 @@ export function ShareSaveModal({
             >
               <CloudOff className="h-5 w-5 text-royal-plum/70 shrink-0 mt-0.5" />
               <div className="space-y-0.5 text-xs text-royal-plum leading-relaxed">
-                <p className="font-semibold text-royal-plum">
-                  Saved to this device only
-                </p>
+                <p className="font-semibold text-royal-plum">Saved to this device only</p>
                 <p className="text-royal-plum/80">
-                  Cloud database sync isn&apos;t configured yet. Your celebration is safely stored in this browser, but shared links and QR codes won&apos;t open on other phones or computers.
+                  Cloud database sync isn&apos;t configured yet. Your celebration is safely stored
+                  in this browser, but shared links and QR codes won&apos;t open on other phones or
+                  computers.
                 </p>
               </div>
             </div>
@@ -154,73 +167,88 @@ export function ShareSaveModal({
               <div className="rounded-2xl border border-terracotta/30 bg-terracotta/10 p-3.5 flex items-start gap-3">
                 <ShieldAlert className="h-5 w-5 text-terracotta shrink-0 mt-0.5" />
                 <p className="text-xs text-royal-plum leading-relaxed">
-                  <strong>Keep this private.</strong> Anyone with this capability key can modify budgets, guests, and dates.
+                  <strong>Keep this private.</strong> Anyone with this capability key can modify
+                  budgets, guests, and dates.
                 </p>
               </div>
 
-              {/* URL Box */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-royal-plum/80">
-                  Private Edit URL
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={editUrl}
-                    className="w-full rounded-xl border border-royal-plum/15 bg-white/70 px-3.5 py-2 text-xs font-mono text-royal-plum select-all focus:outline-hidden"
-                  />
+              {editUrl ? (
+                <>
+                  {/* URL Box */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="edit-url" className="text-xs font-semibold text-royal-plum/80">
+                      Private Edit URL
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        id="edit-url"
+                        type="text"
+                        readOnly
+                        value={editUrl}
+                        className="w-full rounded-xl border border-royal-plum/15 bg-white/70 px-3.5 py-2 text-xs font-mono text-royal-plum select-all focus:outline-hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => copyToClipboard(editUrl, true)}
+                        className="shrink-0 gap-1.5 text-xs font-semibold"
+                      >
+                        {copiedEditKey ? (
+                          <>
+                            <Check className="h-3.5 w-3.5 text-[#4A7C59]" />
+                            <span>Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3.5 w-3.5" />
+                            <span>Copy Key</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* QR Code */}
+                  <div className="flex flex-col items-center justify-center p-4 rounded-2xl border border-royal-plum/10 bg-warm-ivory/50">
+                    <div className="bg-white p-3 rounded-2xl shadow-xs border border-royal-plum/5">
+                      <QRCodeSVG
+                        value={editUrl}
+                        size={160}
+                        level="M"
+                        fgColor="#3A2442"
+                        bgColor="#FFFFFF"
+                        title="QR code for the private organizer edit link"
+                      />
+                    </div>
+                    <p className="text-xs text-royal-plum/70 mt-3 font-medium">
+                      Scan with phone camera to resume editing on mobile
+                    </p>
+                  </div>
+
+                  {/* WhatsApp Button */}
                   <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => copyToClipboard(editUrl, true)}
-                    className="shrink-0 gap-1.5 text-xs font-semibold"
+                    asChild
+                    className="w-full bg-[#25D366] text-white hover:bg-[#20bd5a] font-semibold gap-2"
                   >
-                    {copiedEditKey ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-[#4A7C59]" />
-                        <span>Copied!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3.5 w-3.5" />
-                        <span>Copy Key</span>
-                      </>
-                    )}
+                    <a
+                      href={`https://wa.me/?text=${whatsappEditMessage}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      <span>Send Edit Key via WhatsApp</span>
+                    </a>
                   </Button>
-                </div>
-              </div>
-
-              {/* QR Code */}
-              <div className="flex flex-col items-center justify-center p-4 rounded-2xl border border-royal-plum/10 bg-warm-ivory/50">
-                <div className="bg-white p-3 rounded-2xl shadow-xs border border-royal-plum/5">
-                  <QRCodeSVG
-                    value={editUrl}
-                    size={160}
-                    level="M"
-                    fgColor="#3A2442"
-                    bgColor="#FFFFFF"
-                  />
-                </div>
-                <p className="text-xs text-royal-plum/60 mt-3 font-medium">
-                  Scan with phone camera to resume editing on mobile
-                </p>
-              </div>
-
-              {/* WhatsApp Button */}
-              <Button
-                asChild
-                className="w-full bg-[#25D366] text-white hover:bg-[#20bd5a] font-semibold gap-2"
-              >
-                <a
-                  href={`https://wa.me/?text=${whatsappEditMessage}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                </>
+              ) : (
+                <p
+                  data-testid="no-edit-link-notice"
+                  className="rounded-2xl border border-royal-plum/10 bg-warm-ivory/60 p-3.5 text-xs leading-relaxed text-royal-plum/80"
                 >
-                  <MessageCircle className="h-4 w-4" />
-                  <span>Send Edit Key via WhatsApp</span>
-                </a>
-              </Button>
+                  An organizer edit link is created together with a cloud-saved plan. This plan is
+                  stored in this browser only, so there is nothing to carry to another device yet.
+                </p>
+              )}
             </TabsContent>
 
             {/* TAB 2: Family Share Link */}
@@ -228,84 +256,119 @@ export function ShareSaveModal({
               <div className="rounded-2xl border border-marigold/40 bg-marigold/15 p-3.5 flex items-start gap-3">
                 <Lock className="h-5 w-5 text-royal-plum/70 shrink-0 mt-0.5" />
                 <p className="text-xs text-royal-plum leading-relaxed">
-                  <strong>Sanitized View:</strong> Strips vendor contract prices, draft notes, and contingency margins. Family only sees high-level category totals and ceremony milestones.
+                  <strong>Sanitized View:</strong> Strips vendor contract prices, draft notes, and
+                  contingency margins. Family only sees high-level category totals and ceremony
+                  milestones.
                 </p>
               </div>
 
-              {/* Share URL Box */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-royal-plum/80">
-                  Celebration Share Link
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={shareUrl}
-                    className="w-full rounded-xl border border-royal-plum/15 bg-white/70 px-3.5 py-2 text-xs font-mono text-royal-plum select-all focus:outline-hidden"
-                  />
+              {shareUrl ? (
+                <>
+                  {/* Share URL Box */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="share-url" className="text-xs font-semibold text-royal-plum/80">
+                      Celebration Share Link
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        id="share-url"
+                        type="text"
+                        readOnly
+                        value={shareUrl}
+                        className="w-full rounded-xl border border-royal-plum/15 bg-white/70 px-3.5 py-2 text-xs font-mono text-royal-plum select-all focus:outline-hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => copyToClipboard(shareUrl, false)}
+                        className="shrink-0 gap-1.5 text-xs font-semibold"
+                      >
+                        {copiedShareLink ? (
+                          <>
+                            <Check className="h-3.5 w-3.5 text-[#4A7C59]" />
+                            <span>Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3.5 w-3.5" />
+                            <span>Copy Link</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* WhatsApp Family Share */}
                   <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => copyToClipboard(shareUrl, false)}
-                    className="shrink-0 gap-1.5 text-xs font-semibold"
+                    asChild
+                    className="w-full bg-[#25D366] text-white hover:bg-[#20bd5a] font-semibold gap-2"
                   >
-                    {copiedShareLink ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-[#4A7C59]" />
-                        <span>Copied!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3.5 w-3.5" />
-                        <span>Copy Link</span>
-                      </>
-                    )}
+                    <a
+                      href={`https://wa.me/?text=${whatsappShareMessage}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      <span>Share Plan via WhatsApp</span>
+                    </a>
                   </Button>
-                </div>
-              </div>
 
-              {/* WhatsApp Family Share */}
-              <Button
-                asChild
-                className="w-full bg-[#25D366] text-white hover:bg-[#20bd5a] font-semibold gap-2"
-              >
-                <a
-                  href={`https://wa.me/?text=${whatsappShareMessage}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  <span>Share Plan via WhatsApp</span>
-                </a>
-              </Button>
-
-              {/* Regenerate Trigger */}
-              <div className="pt-2 border-t border-royal-plum/10 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-royal-plum">
-                    Need to revoke access?
+                  {/* Regenerate Trigger */}
+                  <div className="pt-2 border-t border-royal-plum/10 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-semibold text-royal-plum">
+                        Need to revoke access?
+                      </p>
+                      <p className="text-2xs text-royal-plum/70">
+                        Regenerating invalidates previously shared links.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsAlertOpen(true)}
+                      disabled={isRegenerating}
+                      className="text-terracotta border-terracotta/30 hover:bg-terracotta/10 text-xs gap-1.5 font-semibold"
+                    >
+                      {isRegenerating ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      )}
+                      <span>Regenerate Link</span>
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="space-y-3" data-testid="no-share-link">
+                  <p className="text-xs leading-relaxed text-royal-plum/80">
+                    {canManageShareLink
+                      ? 'There is no family link on this device yet. Creating one gives you a fresh link to send. Any link made earlier on another device stops working.'
+                      : 'Family links need cloud sync, which is not set up for this plan. Until then your plan stays in this browser.'}
                   </p>
-                  <p className="text-2xs text-royal-plum/60">
-                    Regenerating invalidates previously shared links.
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAlertOpen(true)}
-                  disabled={isRegenerating}
-                  className="text-terracotta border-terracotta/30 hover:bg-terracotta/10 text-xs gap-1.5 font-semibold"
-                >
-                  {isRegenerating ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-3.5 w-3.5" />
+                  {canManageShareLink && (
+                    <Button
+                      type="button"
+                      onClick={handleRegenerateShareKey}
+                      disabled={isRegenerating}
+                      className="gap-2"
+                    >
+                      {isRegenerating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Share2 className="h-4 w-4" />
+                      )}
+                      <span>Create family link</span>
+                    </Button>
                   )}
-                  <span>Regenerate Link</span>
-                </Button>
-              </div>
+                </div>
+              )}
+              {regenerateFailed && (
+                <p role="alert" className="text-xs font-medium text-terracotta">
+                  We could not update the family link. Check your connection and try again.
+                </p>
+              )}
             </TabsContent>
           </Tabs>
         </DialogContent>
@@ -317,7 +380,8 @@ export function ShareSaveModal({
           <AlertDialogHeader>
             <AlertDialogTitle>Invalidate Old Link & Create New?</AlertDialogTitle>
             <AlertDialogDescription>
-              Anyone with the previous link will immediately lose access and see an expired celebration screen. This action cannot be undone.
+              Anyone with the previous link will immediately lose access and see an expired
+              celebration screen. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

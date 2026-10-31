@@ -1,67 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSupabase } from '@/lib/supabase/server'
-import { hashCapabilityToken, constantTimeCompare } from '@/lib/engine/crypto'
-import { cookies } from 'next/headers'
+import { CloudPlans, isCloudPlanId } from '@/lib/storage/cloud-plans'
+import { createLogger } from '@/lib/logger'
 import { enforceRateLimit } from '@/lib/security/rate-limit'
+import { readJsonBody } from '@/lib/security/request'
+import { getServerRpc } from '@/lib/supabase/server'
 
-export async function POST(
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  // Rate limit: 10 attempts per minute per IP to protect against key brute-forcing
+const logger = createLogger('api.claim')
+
+const isProduction = () => process.env.NODE_ENV === 'production'
+
+/**
+ * Checks an organizer edit key against the database, behind a rate limit. The route does not
+ * set a cookie: the browser keeps the key itself and sends it with each save, and the
+ * database re-checks it every time (ADR-0010).
+ */
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  // 10 attempts per minute per client to slow down key guessing
   const rateLimitResponse = enforceRateLimit(req, 'claim-plan', 10, 60_000)
   if (rateLimitResponse) return rateLimitResponse
 
   const { id: planId } = await context.params
-  const body = await req.json().catch(() => ({}))
-  const token = body.key
+  const payload = await readJsonBody(req, 4_000)
+  if (!payload.ok) return payload.response
+  const key = (payload.body as { key?: unknown } | null)?.key
 
-  if (!token || typeof token !== 'string') {
+  if (!key || typeof key !== 'string') {
     return NextResponse.json({ error: 'Missing capability key' }, { status: 400 })
   }
 
-  const supabase = await getServerSupabase()
-  if (!supabase) {
-    // Offline / Local development fallback: authorize session cookie
-    const cookieStore = await cookies()
-    cookieStore.set(`mehfil_edit_${planId}`, 'local_authorized', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-    })
+  const client = getServerRpc()
+  if (!client) {
+    // Fail closed: with no database there is nothing to verify the key against.
+    if (isProduction()) {
+      return NextResponse.json({ error: 'Cloud editing is not available' }, { status: 503 })
+    }
+    // Local development only: plans live in this browser, so there is no key to check.
     return NextResponse.json({ authorized: true, mode: 'local' })
   }
 
-  // 1. Query event from database
-  const { data: event, error } = await supabase
-    .from('events')
-    .select('id, edit_key_hash')
-    .eq('id', planId)
-    .single()
-
-  if (error || !event) {
+  if (!isCloudPlanId(planId)) {
     return NextResponse.json({ error: 'Celebration not found' }, { status: 404 })
   }
 
-  // 2. Hash incoming token and constant-time compare
-  const tokenHash = await hashCapabilityToken(token)
-  const isMatch = constantTimeCompare(tokenHash, event.edit_key_hash)
-
-  if (!isMatch) {
-    return NextResponse.json({ authorized: false, error: 'Invalid capability token' }, { status: 401 })
+  try {
+    const cloud = new CloudPlans(client)
+    if (!(await cloud.verifyEditKey(planId, key))) {
+      // One answer for "wrong key" and "no such plan", so the route is not a lookup oracle.
+      return NextResponse.json(
+        { authorized: false, error: 'Invalid capability token' },
+        { status: 401 }
+      )
+    }
+    return NextResponse.json({ authorized: true })
+  } catch (err) {
+    logger.error('edit key check failed', { err })
+    return NextResponse.json({ error: 'Could not verify the key right now' }, { status: 502 })
   }
-
-  // 3. Set HttpOnly authorization cookie
-  const cookieStore = await cookies()
-  cookieStore.set(`mehfil_edit_${planId}`, tokenHash, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 30, // 30 days
-  })
-
-  return NextResponse.json({ authorized: true })
 }

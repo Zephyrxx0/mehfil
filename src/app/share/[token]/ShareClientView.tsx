@@ -7,18 +7,7 @@ import { formatINR } from '@/lib/engine/currency'
 import { generatePublicCeremoniesICS, downloadICS } from '@/lib/engine/ics'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Calendar,
-  Clock,
-  Heart,
-  CalendarPlus,
-  Sparkles,
-  MapPin,
-  Users,
-  Compass,
-  ArrowRight,
-  ShieldCheck,
-} from 'lucide-react'
+import { Calendar, Clock, Heart, CalendarPlus, MapPin, Users } from 'lucide-react'
 import Link from 'next/link'
 
 export interface ShareClientViewProps {
@@ -40,7 +29,8 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
               Celebration Link Expired
             </h1>
             <p className="text-sm text-royal-plum/70 leading-relaxed">
-              The celebration organizer has refreshed this link or concluded the planning phase. Please request an updated share link from the family host.
+              The celebration organizer has refreshed this link or concluded the planning phase.
+              Please request an updated share link from the family host.
             </p>
           </div>
 
@@ -54,6 +44,14 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
     )
   }
 
+  return <SharedPlanContent sanitizedPlan={sanitizedPlan} />
+}
+
+interface SharedPlanContentProps {
+  sanitizedPlan: SanitizedSharedPlan
+}
+
+function SharedPlanContent({ sanitizedPlan }: SharedPlanContentProps) {
   // Calculate days remaining until celebration
   const daysRemaining = React.useMemo(() => {
     const today = new Date()
@@ -90,7 +88,7 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
         <header className="flex flex-col items-center text-center space-y-4">
           <div className="flex items-center gap-2">
             <Wordmark size="lg" hideTag />
-            <span className="text-xs uppercase tracking-widest text-royal-plum/50 font-medium">
+            <span className="text-xs uppercase tracking-widest text-royal-plum/70 font-medium">
               • Celebration
             </span>
           </div>
@@ -101,17 +99,17 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
 
           <div className="flex flex-wrap items-center justify-center gap-3 text-xs sm:text-sm font-medium text-royal-plum/80 pt-1">
             <span className="flex items-center gap-1.5">
-              <Calendar className="h-4 w-4 text-royal-plum/60" />
+              <Calendar className="h-4 w-4 text-royal-plum/70" />
               <span>{formattedEventDate}</span>
             </span>
             <span className="text-royal-plum/30">•</span>
             <span className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4 text-royal-plum/60" />
+              <MapPin className="h-4 w-4 text-royal-plum/70" />
               <span>{sanitizedPlan.city}</span>
             </span>
             <span className="text-royal-plum/30">•</span>
             <span className="flex items-center gap-1.5">
-              <Users className="h-4 w-4 text-royal-plum/60" />
+              <Users className="h-4 w-4 text-royal-plum/70" />
               <span>{sanitizedPlan.guestCount} Celebrated Guests</span>
             </span>
           </div>
@@ -124,8 +122,8 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
                 {daysRemaining > 0
                   ? `${daysRemaining} days until celebration`
                   : daysRemaining === 0
-                  ? 'Celebration is today!'
-                  : 'Celebration completed'}
+                    ? 'Celebration is today!'
+                    : 'Celebration completed'}
               </span>
             </div>
           </div>
@@ -152,7 +150,8 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
             </h2>
 
             <p className="text-sm text-royal-plum/80 leading-relaxed max-w-xl">
-              The family has designated this ceremony as an uncompromising celebration priority, guaranteeing mathematical allocation protection throughout planning.
+              The family has designated this ceremony as an uncompromising celebration priority,
+              guaranteeing mathematical allocation protection throughout planning.
             </p>
           </section>
         )}
@@ -170,12 +169,12 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
               >
                 Celebration Overview
               </h2>
-              <p className="text-xs text-royal-plum/60 mt-0.5">
+              <p className="text-xs text-royal-plum/70 mt-0.5">
                 Harmonized resource distribution across celebration experiences
               </p>
             </div>
             <div className="text-right">
-              <span className="text-2xs uppercase tracking-wider text-royal-plum/50 font-bold block">
+              <span className="text-2xs uppercase tracking-wider text-royal-plum/70 font-bold block">
                 Total Budget
               </span>
               <span className="text-lg font-bold tabular-nums text-royal-plum">
@@ -231,7 +230,7 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
               >
                 Ceremony Milestones
               </h2>
-              <p className="text-xs text-royal-plum/60 mt-0.5">
+              <p className="text-xs text-royal-plum/70 mt-0.5">
                 Public celebration schedule for honored guests and family
               </p>
             </div>
@@ -241,7 +240,7 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
               onClick={handleExportICS}
               className="bg-royal-plum text-warm-ivory hover:bg-royal-plum/90 gap-2 text-xs font-semibold self-start sm:self-center"
             >
-              <CalendarPlus className="h-4 w-4 text-marigold" />
+              <CalendarPlus className="h-4 w-4 text-marigold" aria-hidden="true" />
               <span>Add Ceremonies to Calendar (.ics)</span>
             </Button>
           </div>
@@ -258,28 +257,24 @@ export function ShareClientView({ sanitizedPlan }: ShareClientViewProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-sm font-bold text-royal-plum">
-                        {milestone.title}
-                      </h3>
+                      <h3 className="text-sm font-bold text-royal-plum">{milestone.title}</h3>
                       {milestone.isCeremony && (
                         <Badge variant="secondary" className="text-2xs">
                           Ceremony
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-royal-plum/60 mt-1 flex items-center gap-1.5">
+                    <p className="text-xs text-royal-plum/70 mt-1 flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5" />
                       <span>{milestone.targetDate}</span>
-                      {milestone.leadDays > 0 && (
-                        <span>• T-{milestone.leadDays} days</span>
-                      )}
+                      {milestone.leadDays > 0 && <span>• T-{milestone.leadDays} days</span>}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-xs text-royal-plum/60 py-4 text-center">
+            <p className="text-xs text-royal-plum/70 py-4 text-center">
               Ceremonies will be published as celebration details are finalized.
             </p>
           )}

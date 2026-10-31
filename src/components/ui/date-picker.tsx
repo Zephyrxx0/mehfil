@@ -23,7 +23,14 @@ export interface DatePickerProps {
  * (today by default) cannot be picked, and the grid cannot page back to a
  * month that has no selectable day.
  */
-export function DatePicker({ value, onChange, min, id, className, 'aria-label': ariaLabel }: DatePickerProps) {
+export function DatePicker({
+  value,
+  onChange,
+  min,
+  id,
+  className,
+  'aria-label': ariaLabel,
+}: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
   const minISO = min ?? todayISO()
   const minDate = parseISODate(minISO) as Date
@@ -43,7 +50,7 @@ export function DatePicker({ value, onChange, min, id, className, 'aria-label': 
             className
           )}
         >
-          <span className={cn('tabular-nums', !selected && 'text-royal-plum/40')}>
+          <span className={cn('tabular-nums', !selected && 'text-royal-plum/70')}>
             {selected ? formatDisplayDate(value) : 'Pick a date'}
           </span>
           <CalendarDays className="h-4 w-4 shrink-0 text-royal-plum/60" aria-hidden="true" />
@@ -63,6 +70,7 @@ export function DatePicker({ value, onChange, min, id, className, 'aria-label': 
             onChange(next)
             setOpen(false)
           }}
+          // eslint-disable-next-line jsx-a11y/no-autofocus -- opened by a user action; focus must land here
           autoFocus
         />
       </PopoverContent>

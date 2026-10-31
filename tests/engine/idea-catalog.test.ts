@@ -75,11 +75,10 @@ describe('Curated Celebration Catalog & Style DNA Personalization Engine (IDEA-0
       title: 'Aarav 1st Birthday',
     }
 
-    const weddingIdeas = getPersonalizedIdeas(baseBrief)
     const birthdayIdeas = getPersonalizedIdeas(birthdayBrief)
 
     // Shehnai and Safa Tying are wedding rituals and should NOT appear in birthday
-    const birthdayIdeaIds = birthdayIdeas.map(i => i.id)
+    const birthdayIdeaIds = birthdayIdeas.map((i) => i.id)
     expect(birthdayIdeaIds).not.toContain('live_shehnai_jugalbandi')
     expect(birthdayIdeaIds).not.toContain('handloom_safa_tying')
 
@@ -103,7 +102,7 @@ describe('Curated Celebration Catalog & Style DNA Personalization Engine (IDEA-0
     }
 
     const ideas = getPersonalizedIdeas(baseBrief, heritageDNA)
-    const topIdeaIds = ideas.slice(0, 4).map(i => i.id)
+    const topIdeaIds = ideas.slice(0, 4).map((i) => i.id)
 
     // Shehnai, Safa Tying, Sufi Baithak, or Kulhad Chai should rank in the top ideas
     const heritageItems = [
@@ -112,12 +111,12 @@ describe('Curated Celebration Catalog & Style DNA Personalization Engine (IDEA-0
       'acoustic_sufi_baithak',
       'kulhad_chai_bar',
     ]
-    const hasHeritageInTop = topIdeaIds.some(id => heritageItems.includes(id))
+    const hasHeritageInTop = topIdeaIds.some((id) => heritageItems.includes(id))
     expect(hasHeritageInTop).toBe(true)
 
     // Modern items like Polaroid should rank lower than Shehnai
-    const shehnaiIndex = ideas.findIndex(i => i.id === 'live_shehnai_jugalbandi')
-    const polaroidIndex = ideas.findIndex(i => i.id === 'vintage_polaroid_station')
+    const shehnaiIndex = ideas.findIndex((i) => i.id === 'live_shehnai_jugalbandi')
+    const polaroidIndex = ideas.findIndex((i) => i.id === 'vintage_polaroid_station')
     expect(shehnaiIndex).toBeLessThan(polaroidIndex)
   })
 
@@ -131,15 +130,15 @@ describe('Curated Celebration Catalog & Style DNA Personalization Engine (IDEA-0
     }
 
     const ideas = getPersonalizedIdeas(baseBrief, modernDNA)
-    const topIdeaIds = ideas.slice(0, 4).map(i => i.id)
+    const topIdeaIds = ideas.slice(0, 4).map((i) => i.id)
 
     // Polaroid or Caricature should rank near top
     const modernItems = ['vintage_polaroid_station', 'caricature_pavilion']
-    const hasModernInTop = topIdeaIds.some(id => modernItems.includes(id))
+    const hasModernInTop = topIdeaIds.some((id) => modernItems.includes(id))
     expect(hasModernInTop).toBe(true)
 
-    const polaroidIndex = ideas.findIndex(i => i.id === 'vintage_polaroid_station')
-    const shehnaiIndex = ideas.findIndex(i => i.id === 'live_shehnai_jugalbandi')
+    const polaroidIndex = ideas.findIndex((i) => i.id === 'vintage_polaroid_station')
+    const shehnaiIndex = ideas.findIndex((i) => i.id === 'live_shehnai_jugalbandi')
     expect(polaroidIndex).toBeLessThan(shehnaiIndex)
   })
 
@@ -153,13 +152,13 @@ describe('Curated Celebration Catalog & Style DNA Personalization Engine (IDEA-0
     }
 
     const ideas = getPersonalizedIdeas(baseBrief, foodieDNA)
-    const topCategories = ideas.slice(0, 3).map(i => i.category)
+    const topCategories = ideas.slice(0, 3).map((i) => i.category)
     expect(topCategories).toContain('catering')
   })
 
   it('returns unfiltered catalog matching eventType when styleDNA is omitted', () => {
     const ideas = getPersonalizedIdeas(baseBrief)
-    const expectedLength = CURATED_IDEAS.filter(i => i.eventTypes.includes('wedding')).length
+    const expectedLength = CURATED_IDEAS.filter((i) => i.eventTypes.includes('wedding')).length
     expect(ideas.length).toBe(expectedLength)
   })
 

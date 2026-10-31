@@ -1,25 +1,10 @@
 'use client'
 
 import React, { useState } from 'react'
-import type {
-  VendorQuote,
-  Plan,
-  QuoteDroppedItem,
-  BudgetCategory,
-} from '@/lib/engine/types'
+import type { VendorQuote, Plan, QuoteDroppedItem, BudgetCategory } from '@/lib/engine/types'
 import { formatINR } from '@/lib/engine/currency'
 import { previewQuoteDisplacement } from '@/lib/engine/budget'
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Lock,
-  Quote,
-  Sparkles,
-  Info,
-  ExternalLink,
-  PlusCircle,
-  FileText,
-} from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Lock, Quote, Sparkles, Info, FileText } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -29,12 +14,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 export interface QuoteCheckCardProps {
@@ -42,7 +22,6 @@ export interface QuoteCheckCardProps {
   plan?: Plan
   guestCount?: number
   onCommit?: (tierId: string, activeAdderIds: string[]) => void
-  onUnlock?: () => void
   onViewSource?: (sourceAnchor: string) => void
   onAddManualItem?: (droppedItem: QuoteDroppedItem) => void
   className?: string
@@ -62,36 +41,26 @@ const CATEGORY_NAMES: Record<BudgetCategory, string> = {
 export function QuoteCheckCard({
   quote,
   plan,
-  guestCount,
   onCommit,
-  onUnlock,
   onViewSource,
   onAddManualItem,
   className,
 }: QuoteCheckCardProps) {
-  const [activeTierId, setActiveTierId] = useState<string>(
-    quote.tiers[0]?.tierId || 'tier_default'
-  )
+  const [activeTierId, setActiveTierId] = useState<string>(quote.tiers[0]?.tierId || 'tier_default')
   const [activeAdderIds, setActiveAdderIds] = useState<string[]>(() =>
-    (quote.omissionAdders || []).filter(a => a.isEnabled).map(a => a.id)
+    (quote.omissionAdders || []).filter((a) => a.isEnabled).map((a) => a.id)
   )
   const [rawTextOpen, setRawTextOpen] = useState(false)
   const [highlightAnchor, setHighlightAnchor] = useState<string>('')
   const [isCommitting, setIsCommitting] = useState(false)
 
-  const activeTier =
-    quote.tiers.find(t => t.tierId === activeTierId) ?? quote.tiers[0]
+  const activeTier = quote.tiers.find((t) => t.tierId === activeTierId) ?? quote.tiers[0]
 
   const categoryName = CATEGORY_NAMES[quote.category] || quote.category
 
   // Calculate tier total dynamically with active adders
-  const activeAdders = (quote.omissionAdders || []).filter(a =>
-    activeAdderIds.includes(a.id)
-  )
-  const activeAddersTotalPaise = activeAdders.reduce(
-    (sum, a) => sum + a.amountPaise,
-    0
-  )
+  const activeAdders = (quote.omissionAdders || []).filter((a) => activeAdderIds.includes(a.id))
+  const activeAddersTotalPaise = activeAdders.reduce((sum, a) => sum + a.amountPaise, 0)
   const currentTotalPaise = (activeTier?.baseTierPaise ?? 0) + activeAddersTotalPaise
 
   // Compute live plan displacement preview if plan is provided
@@ -100,8 +69,8 @@ export function QuoteCheckCard({
     : null
 
   const toggleAdder = (adderId: string) => {
-    setActiveAdderIds(prev =>
-      prev.includes(adderId) ? prev.filter(id => id !== adderId) : [...prev, adderId]
+    setActiveAdderIds((prev) =>
+      prev.includes(adderId) ? prev.filter((id) => id !== adderId) : [...prev, adderId]
     )
   }
 
@@ -162,9 +131,7 @@ export function QuoteCheckCard({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-royal-plum/8 pb-4">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-serif text-xl font-bold text-royal-plum">
-              {quote.vendorName}
-            </h3>
+            <h3 className="font-serif text-xl font-bold text-royal-plum">{quote.vendorName}</h3>
             <Badge
               variant="outline"
               className="bg-royal-plum/5 text-royal-plum border-royal-plum/15 text-xs font-semibold"
@@ -181,7 +148,7 @@ export function QuoteCheckCard({
         </div>
 
         <div className="text-right shrink-0">
-          <span className="text-xs text-royal-plum/60 uppercase tracking-wider font-mono">
+          <span className="text-xs text-royal-plum/70 uppercase tracking-wider font-mono">
             Total Package
           </span>
           <div className="font-serif font-bold text-2xl text-royal-plum tabular-nums">
@@ -193,14 +160,18 @@ export function QuoteCheckCard({
       {/* Package Tier Selector Tabs */}
       {quote.tiers.length > 1 && (
         <div className="flex flex-col gap-2">
-          <label className="text-xs font-semibold text-royal-plum/70 uppercase tracking-wider font-mono">
+          <span
+            id="package-tier-label"
+            className="text-xs font-semibold text-royal-plum/70 uppercase tracking-wider font-mono"
+          >
             Select Package Tier:
-          </label>
+          </span>
           <div
             role="tablist"
+            aria-labelledby="package-tier-label"
             className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none"
           >
-            {quote.tiers.map(tier => {
+            {quote.tiers.map((tier) => {
               const isSelected = tier.tierId === activeTierId
               return (
                 <button
@@ -234,19 +205,17 @@ export function QuoteCheckCard({
         </div>
 
         <div className="flex flex-col gap-2">
-          {activeTier?.lineItems.map(item => (
+          {activeTier?.lineItems.map((item) => (
             <div
               key={item.id}
               className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-xl bg-white/70 border border-royal-plum/6"
             >
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-[#4A7C59] shrink-0" />
-                <span className="text-sm font-medium text-royal-plum">
-                  {item.description}
-                </span>
+                <span className="text-sm font-medium text-royal-plum">{item.description}</span>
                 <Badge
                   variant="outline"
-                  className="text-3xs font-mono text-royal-plum/60 border-royal-plum/10"
+                  className="text-3xs font-mono text-royal-plum/70 border-royal-plum/10"
                 >
                   {item.pricingType === 'per_guest' ? 'Per Guest' : 'Flat'}
                 </Badge>
@@ -273,7 +242,8 @@ export function QuoteCheckCard({
                     <TooltipContent side="top" className="text-xs max-w-xs">
                       <p className="font-semibold">Verbatim Source Match</p>
                       <p className="text-3xs text-royal-plum/80 mt-0.5">
-                        Matched in vendor quote: &ldquo;{item.sourceAnchor}&rdquo;. Click to inspect in raw text.
+                        Matched in vendor quote: &ldquo;{item.sourceAnchor}&rdquo;. Click to inspect
+                        in raw text.
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -288,12 +258,12 @@ export function QuoteCheckCard({
       {quote.omissionAdders && quote.omissionAdders.length > 0 && (
         <div className="flex flex-col gap-2.5">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-royal-plum/80">
-            <Info className="w-3.5 h-3.5 text-royal-plum/60 shrink-0" />
+            <Info className="w-3.5 h-3.5 text-royal-plum/70 shrink-0" />
             <span>Unstated Costs &amp; Category Omissions Detected</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {quote.omissionAdders.map(adder => {
+            {quote.omissionAdders.map((adder) => {
               const isEnabled = activeAdderIds.includes(adder.id)
               return (
                 <button
@@ -327,7 +297,8 @@ export function QuoteCheckCard({
             <AlertTriangle className="w-4 h-4 text-[#E09F3E] shrink-0" />
             <span>
               <strong>{quote.droppedItems.length} figure excluded:</strong>{' '}
-              {formatINR(quote.droppedItems[0].amountStated * 100)} (no verbatim match in quote text)
+              {formatINR(quote.droppedItems[0].amountStated * 100)} (no verbatim match in quote
+              text)
             </span>
           </div>
 
@@ -350,25 +321,35 @@ export function QuoteCheckCard({
             displacementPreview.deltaPaise <= 0
               ? 'bg-[#4A7C59]/10 border-[#4A7C59]/30 text-[#4A7C59]'
               : displacementPreview.wouldTriggerShortfall
-              ? 'bg-amber-100/90 border-amber-300 text-amber-900'
-              : 'bg-marigold/15 border-marigold/40 text-royal-plum'
+                ? 'bg-amber-100/90 border-amber-300 text-amber-900'
+                : 'bg-marigold/15 border-marigold/40 text-royal-plum'
           )}
         >
           <Sparkles className="w-4 h-4 shrink-0" />
           <div className="leading-snug">
             {displacementPreview.deltaPaise <= 0 ? (
               <span>
-                <strong>Saved {formatINR(Math.abs(displacementPreview.deltaPaise))} vs allocation</strong> — Surplus added to Contingency buffer.
+                <strong>
+                  Saved {formatINR(Math.abs(displacementPreview.deltaPaise))} vs allocation
+                </strong>{' '}
+                — Surplus added to Contingency buffer.
               </span>
             ) : displacementPreview.wouldTriggerShortfall ? (
               <span>
-                <strong>Exceeds flexible donor capacity by {formatINR(displacementPreview.shortfallPaise)}</strong> — Permissive Shortfall active. 3 calculation remedies available.
+                <strong>
+                  Exceeds flexible donor capacity by {formatINR(displacementPreview.shortfallPaise)}
+                </strong>{' '}
+                — Permissive Shortfall active. 3 calculation remedies available.
               </span>
             ) : (
               <span>
-                <strong>Requires +{formatINR(displacementPreview.deltaPaise)}</strong> — Funded by trimming flexible lines:{' '}
+                <strong>Requires +{formatINR(displacementPreview.deltaPaise)}</strong> — Funded by
+                trimming flexible lines:{' '}
                 {displacementPreview.displacedDonors
-                  .map(d => `${CATEGORY_NAMES[d.category] || d.category} (-${formatINR(d.displacedPaise)})`)
+                  .map(
+                    (d) =>
+                      `${CATEGORY_NAMES[d.category] || d.category} (-${formatINR(d.displacedPaise)})`
+                  )
                   .join(', ')}
                 . Protected Moment held firm.
               </span>
@@ -411,7 +392,8 @@ export function QuoteCheckCard({
               Raw Vendor Quote Text
             </DialogTitle>
             <DialogDescription className="text-xs text-royal-plum/70">
-              Quarantined vendor text. Yellow highlight indicates verbatim evidence for the selected item.
+              Quarantined vendor text. Yellow highlight indicates verbatim evidence for the selected
+              item.
             </DialogDescription>
           </DialogHeader>
 

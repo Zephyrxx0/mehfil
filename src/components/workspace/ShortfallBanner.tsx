@@ -57,9 +57,9 @@ export function ShortfallBanner({
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h4 id="shortfall-heading" className="font-serif text-lg font-bold text-royal-plum">
+          <h2 id="shortfall-heading" className="font-serif text-lg font-bold text-royal-plum">
             Budget Balancing Shortfall: {formatINR(plan.shortfallPaise)}
-          </h4>
+          </h2>
           <p className="mt-1 max-w-xl text-sm leading-relaxed text-royal-plum/80">
             Guest count or idea adoptions have exceeded the flexible headroom. Your plan stays fully
             editable and savable (ADR-0002); allocations are held at their 40% floors. Pick a remedy

@@ -1,8 +1,4 @@
-import type {
-  CuratedIdea,
-  EventBrief,
-  StyleDNA,
-} from '../lib/engine/types'
+import type { CuratedIdea, EventBrief, StyleDNA } from '../lib/engine/types'
 
 /**
  * Culturally authentic curated Indian celebration enhancements (IDEA-01).
@@ -45,7 +41,8 @@ export const CURATED_IDEAS: CuratedIdea[] = [
       'Shehnai notes are deeply sanctified in Indian Vedic tradition, signaling Mangal sound at milestone family unions.',
     timelineTask: {
       title: 'Book Classical Shehnai Troupe',
-      notes: 'Finalize gateway riser location and acoustic sound check without harsh amplification.',
+      notes:
+        'Finalize gateway riser location and acoustic sound check without harsh amplification.',
     },
   },
   {
@@ -159,7 +156,8 @@ export const CURATED_IDEAS: CuratedIdea[] = [
       'Captures the nostalgia of childhood summer evenings with the ringing bell of the neighborhood kulfi wallah.',
     timelineTask: {
       title: 'Book Retro Kulfi Vendor & Bicycle Cart',
-      notes: 'Select kulfi flavors (Kesar Pista, Paan, Mango) and confirm cart placement near dessert bar.',
+      notes:
+        'Select kulfi flavors (Kesar Pista, Paan, Mango) and confirm cart placement near dessert bar.',
     },
   },
   {
@@ -283,14 +281,9 @@ export const CURATED_IDEAS: CuratedIdea[] = [
  * Filters celebration ideas by eventType and ranks them using Style DNA affinities.
  * Pure, synchronous, and runs in <1ms without LLM latency.
  */
-export function getPersonalizedIdeas(
-  brief: EventBrief,
-  styleDNA?: StyleDNA
-): CuratedIdea[] {
+export function getPersonalizedIdeas(brief: EventBrief, styleDNA?: StyleDNA): CuratedIdea[] {
   // 1. Strict event type filtering
-  const matchingIdeas = CURATED_IDEAS.filter(idea =>
-    idea.eventTypes.includes(brief.eventType)
-  )
+  const matchingIdeas = CURATED_IDEAS.filter((idea) => idea.eventTypes.includes(brief.eventType))
 
   // 2. Return unranked catalog if no styleDNA is provided
   if (!styleDNA) {
@@ -302,7 +295,7 @@ export function getPersonalizedIdeas(
   // 3. Deterministic dimension scoring
   function calculateAffinityScore(idea: CuratedIdea): number {
     let score = 0
-    const tags = new Set(idea.styleTags.map(t => t.toLowerCase()))
+    const tags = new Set(idea.styleTags.map((t) => t.toLowerCase()))
 
     // Dimension: Heritage vs Modern (0 = Heritage, 100 = Modern)
     if (dimensions.heritageVsModern < 50) {

@@ -24,6 +24,9 @@ import {
 } from 'lucide-react'
 import { QuoteCheckCard } from './QuoteCheckCard'
 import { cn } from '@/lib/utils'
+import { createLogger } from '@/lib/logger'
+import { ImageUploadError, prepareQuoteImage } from '@/lib/client/image-resize'
+const logger = createLogger('quote-intake')
 
 export interface QuoteIntakeSheetProps {
   open: boolean
@@ -68,13 +71,12 @@ export function QuoteIntakeSheet({
     }
   }, [open, initialCategory])
 
-  const categoryName =
-    CATEGORIES.find(c => c.id === category)?.label || category
+  const categoryName = CATEGORIES.find((c) => c.id === category)?.label || category
 
   const isInputValid = rawText.trim().length >= 10 || !!imageBase64
 
   const handleSelectSample = (sampleId: string) => {
-    const sample = SAMPLE_QUOTES.find(s => s.id === sampleId)
+    const sample = SAMPLE_QUOTES.find((s) => s.id === sampleId)
     if (!sample) return
     setCategory(sample.category)
     setRawText(sample.rawText)
@@ -83,16 +85,20 @@ export function QuoteIntakeSheet({
     setErrorMessage(null)
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setImageFileName(file.name)
-    const reader = new FileReader()
-    reader.onload = () => {
-      setImageBase64(reader.result as string)
+    setErrorMessage(null)
+    try {
+      setImageBase64(await prepareQuoteImage(file))
+      setImageFileName(file.name)
+    } catch (err) {
+      setImageBase64(undefined)
+      setImageFileName(undefined)
+      setErrorMessage(err instanceof ImageUploadError ? err.message : 'Could not read that image.')
     }
-    reader.readAsDataURL(file)
+    e.target.value = ''
   }
 
   const handleClearImage = () => {
@@ -124,20 +130,16 @@ export function QuoteIntakeSheet({
 
       if (!response.ok || !json.success) {
         throw new Error(
-          typeof json.error === 'string'
-            ? json.error
-            : 'Quote extraction failed. Please try again.'
+          typeof json.error === 'string' ? json.error : 'Quote extraction failed. Please try again.'
         )
       }
 
       const quote: VendorQuote = json.data.vendorQuote
       setExtractedQuote(quote)
       onQuoteExtracted?.(quote)
-    } catch (err: any) {
-      console.error('[QuoteIntakeSheet] Extraction error:', err)
-      setErrorMessage(
-        err instanceof Error ? err.message : 'Failed to extract vendor quote.'
-      )
+    } catch (err) {
+      logger.error('[QuoteIntakeSheet] Extraction error:', err)
+      setErrorMessage(err instanceof Error ? err.message : 'Failed to extract vendor quote.')
     } finally {
       setIsLoading(false)
     }
@@ -160,8 +162,11 @@ export function QuoteIntakeSheet({
       >
         <SheetHeader className="gap-2 text-left">
           <div className="flex items-center justify-between">
-            <span className="font-devanagari text-xs text-royal-plum/60 tracking-wider">
-              महफ़िल Quote Sandbox
+            <span className="text-xs text-royal-plum/70 tracking-wider">
+              <span lang="hi" className="font-devanagari">
+                महफ़िल
+              </span>{' '}
+              Quote Sandbox
             </span>
             {extractedQuote && (
               <Button
@@ -183,10 +188,10 @@ export function QuoteIntakeSheet({
           </SheetTitle>
 
           <SheetDescription className="text-xs text-royal-plum/70 leading-relaxed bg-soft-ivory p-3 rounded-xl border border-royal-plum/8 flex items-start gap-2">
-            <ShieldAlert className="w-4 h-4 text-marigold shrink-0 mt-0.5" />
+            <ShieldAlert className="w-4 h-4 text-marigold shrink-0 mt-0.5" aria-hidden="true" />
             <span>
-              Untrusted vendor quotes are safely quarantined with zero database access.
-              Numbers are verified verbatim before touching your plan.
+              Untrusted vendor quotes are safely quarantined with zero database access. Numbers are
+              verified verbatim before touching your plan.
             </span>
           </SheetDescription>
         </SheetHeader>
@@ -209,11 +214,18 @@ export function QuoteIntakeSheet({
           <div className="flex flex-col gap-5">
             {/* Category Switcher */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-royal-plum/80 uppercase tracking-wider font-mono">
+              <span
+                id="vendor-category-label"
+                className="text-xs font-semibold text-royal-plum/80 uppercase tracking-wider font-mono"
+              >
                 Vendor Category
-              </label>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {CATEGORIES.map(cat => (
+              </span>
+              <div
+                role="group"
+                aria-labelledby="vendor-category-label"
+                className="flex flex-wrap items-center gap-1.5"
+              >
+                {CATEGORIES.map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
@@ -237,7 +249,7 @@ export function QuoteIntakeSheet({
                 Try a realistic Indian celebration quote:
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {SAMPLE_QUOTES.map(sample => (
+                {SAMPLE_QUOTES.map((sample) => (
                   <button
                     key={sample.id}
                     type="button"
@@ -245,7 +257,7 @@ export function QuoteIntakeSheet({
                     className="p-2 text-left rounded-xl bg-white border border-royal-plum/10 hover:border-marigold hover:bg-marigold/10 transition-colors flex flex-col gap-0.5 text-xs text-royal-plum"
                   >
                     <span className="font-semibold truncate">{sample.name}</span>
-                    <span className="text-3xs text-royal-plum/60 font-mono">
+                    <span className="text-3xs text-royal-plum/70 font-mono">
                       {sample.headlineRate}
                     </span>
                   </button>
@@ -278,21 +290,21 @@ export function QuoteIntakeSheet({
                   <textarea
                     rows={7}
                     value={rawText}
-                    onChange={e => setRawText(e.target.value)}
+                    onChange={(e) => setRawText(e.target.value)}
                     placeholder="Paste a WhatsApp message, vendor email, or invoice breakdown here..."
-                    className="w-full p-4 rounded-2xl bg-white border border-royal-plum/15 focus:border-royal-plum focus:ring-1 focus:ring-royal-plum text-sm text-royal-plum placeholder:text-royal-plum/40 font-normal resize-y min-h-[160px]"
+                    className="w-full p-4 rounded-2xl bg-white border border-royal-plum/15 focus:border-royal-plum focus:ring-1 focus:ring-royal-plum text-sm text-royal-plum placeholder:text-royal-plum/70 font-normal resize-y min-h-[160px]"
                   />
                   {rawText && (
                     <button
                       type="button"
                       onClick={() => setRawText('')}
-                      className="absolute top-3 right-3 text-2xs text-royal-plum/50 hover:text-royal-plum bg-soft-ivory px-2 py-0.5 rounded-full border border-royal-plum/10"
+                      className="absolute top-3 right-3 text-2xs text-royal-plum/70 hover:text-royal-plum bg-soft-ivory px-2 py-0.5 rounded-full border border-royal-plum/10"
                     >
                       Clear
                     </button>
                   )}
                 </div>
-                <div className="flex items-center justify-between text-2xs text-royal-plum/60 px-1 font-mono">
+                <div className="flex items-center justify-between text-2xs text-royal-plum/70 px-1 font-mono">
                   <span>Minimum 10 characters</span>
                   <span>{rawText.length} characters</span>
                 </div>
@@ -307,11 +319,11 @@ export function QuoteIntakeSheet({
                     onChange={handleFileChange}
                     className="hidden"
                   />
-                  <UploadCloud className="w-8 h-8 text-royal-plum/50" />
+                  <UploadCloud className="w-8 h-8 text-royal-plum/70" />
                   <span className="text-xs font-semibold text-royal-plum">
                     Drop JPEG, PNG, or invoice screenshot here, or tap to browse
                   </span>
-                  <span className="text-3xs text-royal-plum/50">
+                  <span className="text-3xs text-royal-plum/70">
                     Supports estimates, WhatsApp screenshots &amp; PDF snapshots up to 10MB
                   </span>
                 </label>
@@ -319,13 +331,13 @@ export function QuoteIntakeSheet({
                 {imageFileName && (
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-royal-plum/10 text-xs">
                     <div className="flex items-center gap-2 truncate">
-                      <ImageIcon className="w-4 h-4 text-marigold shrink-0" />
+                      <ImageIcon className="w-4 h-4 text-marigold shrink-0" aria-hidden="true" />
                       <span className="font-medium truncate">{imageFileName}</span>
                     </div>
                     <button
                       type="button"
                       onClick={handleClearImage}
-                      className="p-1 rounded-full hover:bg-royal-plum/5 text-royal-plum/60 hover:text-royal-plum"
+                      className="p-1 rounded-full hover:bg-royal-plum/5 text-royal-plum/70 hover:text-royal-plum"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>

@@ -79,7 +79,9 @@ export function StarterChips({ onSelect, disabled }: StarterChipsProps) {
       <h3 id="starters-heading" className="text-sm font-semibold text-royal-plum">
         1-Click Celebration Starters
       </h3>
-      <p className="mt-0.5 text-sm text-royal-plum/60">Skip the steps and open a ready-made plan.</p>
+      <p className="mt-0.5 text-sm text-royal-plum/70">
+        Skip the steps and open a ready-made plan.
+      </p>
       <ul className="mt-3 flex flex-col gap-2">
         {STARTER_OPTIONS.map((starter) => (
           <li key={starter.label}>
@@ -90,7 +92,7 @@ export function StarterChips({ onSelect, disabled }: StarterChipsProps) {
               className="flex w-full flex-col gap-0.5 rounded-xl border border-royal-plum/10 bg-warm-ivory px-4 py-3 text-left transition hover:border-royal-plum/30 hover:bg-white focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-royal-plum disabled:opacity-50"
             >
               <span className="text-sm font-semibold text-royal-plum">{starter.label}</span>
-              <span className="text-xs tabular-nums text-royal-plum/60">
+              <span className="text-xs tabular-nums text-royal-plum/70">
                 {starter.brief.guestCount} guests · {starter.brief.city}
               </span>
             </button>

@@ -1,13 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
-import {
-  SWATCHES,
-  SWATCH_PRESET_TAGS,
-  getSwatchById,
-  getSwatchesByTag,
-  type SwatchPresetTag,
-} from '@/data/swatches'
+import { SWATCHES, SWATCH_PRESET_TAGS, getSwatchById, getSwatchesByTag } from '@/data/swatches'
 
 describe('Curated 24 Style Swatches Registry (ADR-0009, D-02, VIBE-01)', () => {
   it('contains exactly 24 curated swatches with unique IDs', () => {

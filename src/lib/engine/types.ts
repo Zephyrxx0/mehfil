@@ -1,12 +1,11 @@
-import type { StyleDNA, StyleDimensions, NamedPaletteColor, AgentRunRecord } from '../ai/schemas'
+import type { StyleDNA, AgentRunRecord } from '../ai/schemas'
 
-export type { StyleDNA, StyleDimensions, NamedPaletteColor, AgentRunRecord }
+export type { StyleDNA, AgentRunRecord }
 
 // All financial values are integers in paise (1 rupee = 100 paise)
 // NEVER use floating-point for money calculations
 
-export type Paise = number  // always a whole integer
-export type Rupees = number // always a whole integer, display only
+export type Paise = number // always a whole integer
 
 export type EventType = 'wedding' | 'birthday' | 'community'
 
@@ -27,11 +26,11 @@ export interface BudgetLine {
   name: string
   category: BudgetCategory
   lineType: LineType
-  baselinePaise: Paise        // original allocation from archetype
-  currentPaise: Paise         // current allocation (integer paise, mutable)
-  elasticityRank?: number     // lower rank = trimmed first (1 = first to trim)
-  isProtected?: boolean       // Protected Moment — immune to downward trimming (ADR-0004)
-  protectedQuote?: string     // Protected Moment verbatim quote
+  baselinePaise: Paise // original allocation from archetype
+  currentPaise: Paise // current allocation (integer paise, mutable)
+  elasticityRank?: number // lower rank = trimmed first (1 = first to trim)
+  isProtected?: boolean // Protected Moment — immune to downward trimming (ADR-0004)
+  protectedQuote?: string // Protected Moment verbatim quote
   isCommitted?: boolean
   committedQuoteId?: string
   committedVendor?: string
@@ -44,10 +43,10 @@ export interface BudgetLine {
 export interface EventBrief {
   title: string
   eventType: EventType
-  eventDate: string           // ISO date 'YYYY-MM-DD'
+  eventDate: string // ISO date 'YYYY-MM-DD'
   city: string
-  guestCount: number          // whole number
-  totalBudgetPaise: Paise     // integer paise
+  guestCount: number // whole number
+  totalBudgetPaise: Paise // integer paise
   protectedCategory: BudgetCategory
   nuances?: string[]
   customNotes?: string
@@ -67,17 +66,17 @@ export interface ShortfallRemedy {
   type: ShortfallRemedyType
   title: string
   description: string
-  deltaValue: number          // context-dependent: paise for money, guest count for reduce_guests
+  deltaValue: number // context-dependent: paise for money, guest count for reduce_guests
 }
 
 export interface Plan {
   id: string
   brief: EventBrief
   lines: BudgetLine[]
-  totalBudgetPaise: Paise     // INVARIANT: sum(lines[].currentPaise) === totalBudgetPaise
-  baselineGuestCount: number  // guest count at plan creation (for scaling reference)
-  isInfeasible?: boolean      // true when elastic capacity is exhausted
-  shortfallPaise?: Paise      // how much is unaccounted for
+  totalBudgetPaise: Paise // INVARIANT: sum(lines[].currentPaise) === totalBudgetPaise
+  baselineGuestCount: number // guest count at plan creation (for scaling reference)
+  isInfeasible?: boolean // true when elastic capacity is exhausted
+  shortfallPaise?: Paise // how much is unaccounted for
   remedies?: ShortfallRemedy[]
   styleDNA?: StyleDNA
   adoptedIdeas?: IdeaDisplacementRecord[]
@@ -162,8 +161,8 @@ export interface TimelineTask {
   id: string
   title: string
   budgetCategory: BudgetCategory
-  leadDays: number            // days before event (e.g. 180 for T-6M)
-  targetDate: string          // ISO date 'YYYY-MM-DD'
+  leadDays: number // days before event (e.g. 180 for T-6M)
+  targetDate: string // ISO date 'YYYY-MM-DD'
   isCompleted: boolean
   isCriticalPath: boolean
   dependencies?: string[]
@@ -179,7 +178,7 @@ export interface TimelineTask {
 export interface MilestoneBand {
   id: MilestoneBandId
   name: string
-  targetDate: string          // ISO date 'YYYY-MM-DD'
+  targetDate: string // ISO date 'YYYY-MM-DD'
   isImmediateAction?: boolean
   tasks: TimelineTask[]
 }
@@ -197,13 +196,14 @@ export interface PlanChangeDelta {
   deltaPaise: Paise
 }
 
-export interface ChangeRecord {
+/** One undoable edit. `previousSnapshot` is the plan as it was before the edit. */
+export interface PlanChangeRecord {
   id: string
-  planVersionId: string
+  timestamp: Date
+  description: string
   deltas: PlanChangeDelta[]
-  explanation: string
-  isFloorProtected: boolean
-  createdAt: string
+  isFloorProtected?: boolean
+  previousSnapshot?: Plan
 }
 
 export interface PlanVersionRecord {
@@ -253,10 +253,10 @@ export interface SanitizedSharedPlan {
 export interface ExtractedQuoteItem {
   id: string
   description: string
-  amountStated: number        // raw Rupee figure, e.g. 150000 or 950
+  amountStated: number // raw Rupee figure, e.g. 150000 or 950
   pricingType: 'flat' | 'per_guest'
-  sourceAnchor: string        // verbatim substring match
-  itemPaise: Paise            // computed by pure TS: rate * 100, scaled by guestCount if per_guest
+  sourceAnchor: string // verbatim substring match
+  itemPaise: Paise // computed by pure TS: rate * 100, scaled by guestCount if per_guest
   isVerified: boolean
 }
 
@@ -265,8 +265,8 @@ export interface QuoteOmissionAdder {
   name: string
   category: BudgetCategory
   rateType: 'percentage' | 'fixed'
-  percentageValue?: number    // e.g. 18 for 18% GST
-  fixedPaise?: Paise          // e.g. 1500000 for ₹15,000
+  percentageValue?: number // e.g. 18 for 18% GST
+  fixedPaise?: Paise // e.g. 1500000 for ₹15,000
   amountPaise: Paise
   rationale: string
   isEnabled: boolean
@@ -284,7 +284,7 @@ export interface PackageTier {
   name: string
   description?: string
   lineItems: ExtractedQuoteItem[]
-  baseTierPaise: Paise        // sum of verified itemPaise
+  baseTierPaise: Paise // sum of verified itemPaise
   totalWithAddersPaise: Paise // baseTierPaise + enabled adders
   tierTotalStated?: number
   isStatedTotalConsistent: boolean
@@ -306,31 +306,10 @@ export interface VendorQuote {
 
 // Generative UI Closed Registry Domain Types (Phase 6: GENUI-01, GENUI-02, GENUI-03, ADR-0008)
 
-export type GenerativeUIComponent =
-  | 'VendorChecklist'
-  | 'IdeaGrid'
-  | 'QuoteReport'
-  | 'ScenarioComparison'
-
-export type LayoutVariant = 'compact' | 'detailed' | 'side_by_side'
-
-export interface GenerativeUISection {
-  id: string
-  component: GenerativeUIComponent
-  variant: LayoutVariant
-  title: string
-  rationale: string
-  lineIds?: string[]
-  quoteIds?: string[]
-  ideaIds?: string[]
-  highlightEntityId?: string
-}
-
-export interface GenerativeUILayout {
-  layoutTitle: string
-  layoutSummary: string
-  sections: GenerativeUISection[]
-}
-
-
-
+// Derived from the zod schemas in `ai/schemas.ts`, so the validator and the type cannot drift.
+export type {
+  GenerativeUIComponent,
+  GenerativeUILayout,
+  GenerativeUISection,
+  LayoutVariant,
+} from '../ai/schemas'

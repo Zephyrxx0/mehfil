@@ -11,19 +11,19 @@ describe('calculateBackwardsTimeline', () => {
     expect(schedule.eventDate).toBe(futureEventDate)
     expect(schedule.isCompressedMode).toBe(false)
 
-    const bandIds = schedule.milestoneBands.map(b => b.id)
+    const bandIds = schedule.milestoneBands.map((b) => b.id)
     expect(bandIds).toContain('milestone_t6m')
     expect(bandIds).toContain('milestone_t3m')
     expect(bandIds).toContain('milestone_t1m')
     expect(bandIds).toContain('milestone_t2w')
     expect(bandIds).toContain('milestone_day0')
 
-    const t6m = schedule.milestoneBands.find(b => b.id === 'milestone_t6m')!
+    const t6m = schedule.milestoneBands.find((b) => b.id === 'milestone_t6m')!
     // 2026-10-15 minus 180 days:
     // Oct 15 -> Apr 18 (2026 is non-leap)
     expect(t6m.targetDate).toBe('2026-04-18')
 
-    const day0 = schedule.milestoneBands.find(b => b.id === 'milestone_day0')!
+    const day0 = schedule.milestoneBands.find((b) => b.id === 'milestone_day0')!
     expect(day0.targetDate).toBe(futureEventDate)
   })
 
@@ -31,14 +31,14 @@ describe('calculateBackwardsTimeline', () => {
     const standardSchedule = calculateBackwardsTimeline(futureEventDate, 150, anchorToday)
     const largeSchedule = calculateBackwardsTimeline(futureEventDate, 350, anchorToday)
 
-    const standardT6m = standardSchedule.milestoneBands.find(b => b.id === 'milestone_t6m')!
-    const largeT6m = largeSchedule.milestoneBands.find(b => b.id === 'milestone_t6m')!
+    const standardT6m = standardSchedule.milestoneBands.find((b) => b.id === 'milestone_t6m')!
+    const largeT6m = largeSchedule.milestoneBands.find((b) => b.id === 'milestone_t6m')!
 
     // Large gathering t6m is 210 days instead of 180 (earlier date)
     expect(largeT6m.targetDate < standardT6m.targetDate).toBe(true)
 
-    const standardT3m = standardSchedule.milestoneBands.find(b => b.id === 'milestone_t3m')!
-    const largeT3m = largeSchedule.milestoneBands.find(b => b.id === 'milestone_t3m')!
+    const standardT3m = standardSchedule.milestoneBands.find((b) => b.id === 'milestone_t3m')!
+    const largeT3m = largeSchedule.milestoneBands.find((b) => b.id === 'milestone_t3m')!
     expect(largeT3m.targetDate < standardT3m.targetDate).toBe(true)
   })
 
@@ -46,8 +46,8 @@ describe('calculateBackwardsTimeline', () => {
     const standardSchedule = calculateBackwardsTimeline(futureEventDate, 150, anchorToday)
     const intimateSchedule = calculateBackwardsTimeline(futureEventDate, 60, anchorToday)
 
-    const standardT6m = standardSchedule.milestoneBands.find(b => b.id === 'milestone_t6m')!
-    const intimateT6m = intimateSchedule.milestoneBands.find(b => b.id === 'milestone_t6m')!
+    const standardT6m = standardSchedule.milestoneBands.find((b) => b.id === 'milestone_t6m')!
+    const intimateT6m = intimateSchedule.milestoneBands.find((b) => b.id === 'milestone_t6m')!
 
     // Intimate event t6m is 120 days instead of 180 (later date)
     expect(intimateT6m.targetDate > standardT6m.targetDate).toBe(true)
@@ -65,7 +65,7 @@ describe('calculateBackwardsTimeline', () => {
     expect(firstBand.targetDate).toBe(anchorToday)
 
     // Triage tasks are sorted by topological criticality: Venue first, Catering second, Photo third
-    const immediateTaskCategories = firstBand.tasks.map(t => t.budgetCategory)
+    const immediateTaskCategories = firstBand.tasks.map((t) => t.budgetCategory)
     expect(immediateTaskCategories[0]).toBe('venue')
     expect(immediateTaskCategories).toContain('catering')
     expect(immediateTaskCategories).toContain('photo_film')
@@ -92,4 +92,3 @@ describe('calculateBackwardsTimeline', () => {
     }
   })
 })
-

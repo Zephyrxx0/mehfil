@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss'
+import tailwindAnimate from 'tailwindcss-animate'
 
 const config: Config = {
   content: [
@@ -45,10 +46,10 @@ const config: Config = {
         },
         'warm-ivory': 'hsl(var(--background) / <alpha-value>)',
         'royal-plum': 'hsl(var(--foreground) / <alpha-value>)',
-        'marigold': 'hsl(var(--primary) / <alpha-value>)',
+        marigold: 'hsl(var(--primary) / <alpha-value>)',
         'gulabi-rose': 'hsl(var(--secondary) / <alpha-value>)',
         'ivory-900': 'hsl(var(--muted) / <alpha-value>)',
-        'terracotta': 'hsl(var(--destructive) / <alpha-value>)',
+        terracotta: 'hsl(var(--destructive) / <alpha-value>)',
       },
       fontSize: {
         '3xs': ['0.625rem', { lineHeight: '0.875rem' }],
@@ -85,9 +86,13 @@ const config: Config = {
     },
   },
   plugins: [
-    require('tailwindcss-animate'),
+    tailwindAnimate,
     // Tailwind v4 names used across the components, provided for v3.
-    function ({ addUtilities }: { addUtilities: (u: Record<string, Record<string, string>>) => void }) {
+    function ({
+      addUtilities,
+    }: {
+      addUtilities: (u: Record<string, Record<string, string>>) => void
+    }) {
       addUtilities({
         '.outline-hidden': { outline: '2px solid transparent', 'outline-offset': '2px' },
       })

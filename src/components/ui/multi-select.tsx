@@ -61,7 +61,10 @@ export function MultiSelect({
           <ChevronDown className="h-4 w-4 shrink-0 text-royal-plum/60" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-56">
+      <DropdownMenuContent
+        align="start"
+        className="w-[var(--radix-dropdown-menu-trigger-width)] min-w-56"
+      >
         <DropdownMenuCheckboxItem
           checked={value.length === 0}
           onSelect={(e) => {
@@ -83,7 +86,9 @@ export function MultiSelect({
           >
             <span className="flex-1">{option}</span>
             {counts && (
-              <span className="ml-3 text-xs tabular-nums text-royal-plum/45">{counts[option] ?? 0}</span>
+              <span className="ml-3 text-xs tabular-nums text-royal-plum/70">
+                {counts[option] ?? 0}
+              </span>
             )}
           </DropdownMenuCheckboxItem>
         ))}

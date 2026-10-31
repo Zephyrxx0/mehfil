@@ -1,11 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
-import {
-  applyTrimElasticRemedy,
-  calculateShortfallRemedies,
-  rebalanceGuestCount,
-  setProtectedMoment,
-} from '@/lib/engine/budget'
+import { applyTrimElasticRemedy, rebalanceGuestCount } from '@/lib/engine/budget'
 import type { EventBrief, Plan } from '@/lib/engine/types'
 
 describe('Targeted Sequential Elasticity Trim Remedy & Permissive Shortfall Solver (BUDGET-03, BUDGET-04, ADR-0002)', () => {
@@ -108,9 +103,9 @@ describe('Targeted Sequential Elasticity Trim Remedy & Permissive Shortfall Solv
     // Apply targeted trim for the 1,000,000 paise deficit
     const resolvedPlan = applyTrimElasticRemedy(plan, 1_000_000)
 
-    const miscL = resolvedPlan.lines.find(l => l.category === 'misc')!
-    const entL = resolvedPlan.lines.find(l => l.category === 'entertainment')!
-    const decorL = resolvedPlan.lines.find(l => l.category === 'decor')!
+    const miscL = resolvedPlan.lines.find((l) => l.category === 'misc')!
+    const entL = resolvedPlan.lines.find((l) => l.category === 'entertainment')!
+    const decorL = resolvedPlan.lines.find((l) => l.category === 'decor')!
 
     // Misc (Rank 1) should have absorbed the entire ₹10,000 (1,000,000 paise)
     expect(miscL.currentPaise).toBe(9_000_000)
@@ -188,9 +183,9 @@ describe('Targeted Sequential Elasticity Trim Remedy & Permissive Shortfall Solv
     // and remaining 2,000,000 from Entertainment (Rank 2). Decor remains untouched!
     const resolvedPlan = applyTrimElasticRemedy(plan, 8_000_000)
 
-    const miscL = resolvedPlan.lines.find(l => l.category === 'misc')!
-    const entL = resolvedPlan.lines.find(l => l.category === 'entertainment')!
-    const decorL = resolvedPlan.lines.find(l => l.category === 'decor')!
+    const miscL = resolvedPlan.lines.find((l) => l.category === 'misc')!
+    const entL = resolvedPlan.lines.find((l) => l.category === 'entertainment')!
+    const decorL = resolvedPlan.lines.find((l) => l.category === 'decor')!
 
     expect(miscL.currentPaise).toBe(4_000_000) // Clamped to 40% floor
     expect(entL.currentPaise).toBe(13_000_000) // 15M - 2M
@@ -242,8 +237,8 @@ describe('Targeted Sequential Elasticity Trim Remedy & Permissive Shortfall Solv
     }
 
     const resolvedPlan = applyTrimElasticRemedy(plan, 5_000_000)
-    const decorL = resolvedPlan.lines.find(l => l.category === 'decor')!
-    const entL = resolvedPlan.lines.find(l => l.category === 'entertainment')!
+    const decorL = resolvedPlan.lines.find((l) => l.category === 'decor')!
+    const entL = resolvedPlan.lines.find((l) => l.category === 'entertainment')!
 
     expect(decorL.currentPaise).toBe(50_000_000) // Immune!
     expect(entL.currentPaise).toBe(45_000_000) // Absorbed trim

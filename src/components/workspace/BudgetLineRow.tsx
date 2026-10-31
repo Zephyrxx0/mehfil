@@ -16,12 +16,7 @@ import {
 import type { BudgetCategory, BudgetLine } from '@/lib/engine/types'
 import { formatINR } from '@/lib/engine/currency'
 import { Button } from '@/components/ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -121,19 +116,26 @@ export function BudgetLineRow({
         data-testid="committed-variance-badge"
         className={cn(
           'tabular-nums',
-          line.variancePaise > 0 ? 'text-[#2E5A44]' : line.variancePaise < 0 ? 'text-terracotta' : ''
+          line.variancePaise > 0
+            ? 'text-[#2E5A44]'
+            : line.variancePaise < 0
+              ? 'text-terracotta'
+              : ''
         )}
       >
         {line.variancePaise > 0
           ? `Saved ${formatINR(line.variancePaise)}`
           : line.variancePaise < 0
-          ? `+${formatINR(Math.abs(line.variancePaise))} actual`
-          : 'Exact to allocation'}
+            ? `+${formatINR(Math.abs(line.variancePaise))} actual`
+            : 'Exact to allocation'}
       </span>
     )
   } else if (delta !== 0) {
     facts.push(
-      <span key="delta" className={cn('tabular-nums', delta > 0 ? 'text-[#2E5A44]' : 'text-terracotta')}>
+      <span
+        key="delta"
+        className={cn('tabular-nums', delta > 0 ? 'text-[#2E5A44]' : 'text-terracotta')}
+      >
         {delta > 0 ? `+${formatINR(delta)}` : `-${formatINR(Math.abs(delta))}`} vs baseline
       </span>
     )
@@ -153,18 +155,20 @@ export function BudgetLineRow({
       )}
     >
       <div className="flex items-baseline justify-between gap-4">
-        <h4 className="flex min-w-0 items-center gap-2.5 text-base font-semibold text-royal-plum">
+        <h3 className="flex min-w-0 items-center gap-2.5 text-base font-semibold text-royal-plum">
           <span
             aria-hidden="true"
             className={cn(
               'flex h-8 w-8 shrink-0 items-center justify-center self-center rounded-full',
-              line.isProtected ? 'bg-gulabi-rose/25 text-royal-plum' : 'bg-marigold/15 text-royal-plum/80'
+              line.isProtected
+                ? 'bg-gulabi-rose/25 text-royal-plum'
+                : 'bg-marigold/15 text-royal-plum/80'
             )}
           >
             <Icon className="h-4 w-4" />
           </span>
           <span className="min-w-0 truncate">{line.name}</span>
-        </h4>
+        </h3>
         <div className="shrink-0 text-right">
           <span className="font-serif text-lg font-bold tabular-nums text-royal-plum">
             {formatINR(line.currentPaise)}
@@ -172,7 +176,7 @@ export function BudgetLineRow({
         </div>
       </div>
 
-      <div className="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 pl-[2.625rem] text-sm text-royal-plum/60">
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 pl-[2.625rem] text-sm text-royal-plum/70">
         <p className="flex flex-wrap items-baseline gap-x-2">
           {facts.map((f, i) => (
             <React.Fragment key={i}>
@@ -181,60 +185,71 @@ export function BudgetLineRow({
             </React.Fragment>
           ))}
         </p>
-      {!isReadOnly && (
-        <div className="-mr-2 flex flex-wrap items-center gap-1">
-          {line.isCommitted ? (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button type="button" variant="ghost" size="sm" className="underline underline-offset-4">
-                  Unlock / Replace Quote
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="font-serif text-lg font-bold">
-                    Unlock / Replace Quote
-                  </AlertDialogTitle>
-                  <AlertDialogDescription className="text-sm leading-relaxed text-royal-plum/70">
-                    Unlock this committed quote? This will release the locked{' '}
-                    <strong className="font-semibold text-royal-plum">
-                      {formatINR(line.committedPaise ?? line.currentPaise)}
-                    </strong>{' '}
-                    allocation and re-open the category&apos;s primary booking task on your timeline.
-                    Your existing plan snapshot remains safely preserved.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Keep Quote</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => onUnlockQuote?.(line.category)}
-                    className="bg-terracotta text-warm-ivory hover:bg-terracotta/90"
+        {!isReadOnly && (
+          <div className="-mr-2 flex flex-wrap items-center gap-1">
+            {line.isCommitted ? (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="underline underline-offset-4"
                   >
-                    Unlock Quote
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          ) : onCheckQuote ? (
-            <Button type="button" variant="ghost" size="sm" className="underline underline-offset-4" onClick={() => onCheckQuote(line.category)}>
-              Check Quote
-            </Button>
-          ) : null}
+                    Unlock / Replace Quote
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="font-serif text-lg font-bold">
+                      Unlock / Replace Quote
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-sm leading-relaxed text-royal-plum/70">
+                      Unlock this committed quote? This will release the locked{' '}
+                      <strong className="font-semibold text-royal-plum">
+                        {formatINR(line.committedPaise ?? line.currentPaise)}
+                      </strong>{' '}
+                      allocation and re-open the category&apos;s primary booking task on your
+                      timeline. Your existing plan snapshot remains safely preserved.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Keep Quote</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onUnlockQuote?.(line.category)}
+                      className="bg-terracotta text-warm-ivory hover:bg-terracotta/90"
+                    >
+                      Unlock Quote
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : onCheckQuote ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="underline underline-offset-4"
+                onClick={() => onCheckQuote(line.category)}
+              >
+                Check Quote
+              </Button>
+            ) : null}
 
-          {line.isProtected ? null : (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="underline underline-offset-4"
-              onClick={handleToggleProtected}
-              title="Make this category your Protected Moment"
-            >
-              Set as Protected
-            </Button>
-          )}
-        </div>
-      )}
+            {line.isProtected ? null : (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="underline underline-offset-4"
+                onClick={handleToggleProtected}
+                title="Make this category your Protected Moment"
+              >
+                Set as Protected
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Allocation bar */}
@@ -244,15 +259,15 @@ export function BudgetLineRow({
           initial={false}
           animate={{ width: `${percentageClamped}%` }}
           transition={
-            shouldReduceMotion
-              ? { duration: 0 }
-              : { type: 'spring', damping: 20, stiffness: 90 }
+            shouldReduceMotion ? { duration: 0 } : { type: 'spring', damping: 20, stiffness: 90 }
           }
         />
       </div>
 
       {/* State notes */}
-      {(line.isCommitted || line.isProtected || (displacedRecords && displacedRecords.length > 0)) && (
+      {(line.isCommitted ||
+        line.isProtected ||
+        (displacedRecords && displacedRecords.length > 0)) && (
         <div className="ml-[2.625rem] mt-3 flex flex-col gap-1.5 text-sm">
           {line.isCommitted && (
             <p
@@ -275,7 +290,7 @@ export function BudgetLineRow({
                   >
                     <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-gulabi-rose" />
                     Protected Moment
-                    <span className="font-normal text-royal-plum/60">· immune to displacement</span>
+                    <span className="font-normal text-royal-plum/70">· immune to displacement</span>
                   </p>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs text-xs">
@@ -286,7 +301,9 @@ export function BudgetLineRow({
           )}
 
           {line.isProtected && line.protectedQuote && (
-            <p className="font-serif italic text-royal-plum/80">&ldquo;{line.protectedQuote}&rdquo;</p>
+            <p className="font-serif italic text-royal-plum/80">
+              &ldquo;{line.protectedQuote}&rdquo;
+            </p>
           )}
 
           {displacedRecords && displacedRecords.length > 0 && (
@@ -300,7 +317,6 @@ export function BudgetLineRow({
           )}
         </div>
       )}
-
     </li>
   )
 }

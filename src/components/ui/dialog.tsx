@@ -38,7 +38,7 @@ export const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-5 top-5 rounded-full p-1.5 text-royal-plum/50 hover:bg-royal-plum/5 hover:text-royal-plum transition-opacity focus:outline-hidden">
+      <DialogPrimitive.Close className="absolute right-5 top-5 rounded-full p-1.5 text-royal-plum/70 hover:bg-royal-plum/5 hover:text-royal-plum transition-opacity focus:outline-hidden">
         <X className="h-5 w-5" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
@@ -47,21 +47,12 @@ export const DialogContent = React.forwardRef<
 ))
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
-export const DialogHeader = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn('flex flex-col space-y-1.5 text-left', className)}
-    {...props}
-  />
+export const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn('flex flex-col space-y-1.5 text-left', className)} {...props} />
 )
 DialogHeader.displayName = 'DialogHeader'
 
-export const DialogFooter = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
+export const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2', className)}
     {...props}

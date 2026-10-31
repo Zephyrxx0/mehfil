@@ -87,7 +87,9 @@ export function StepVibeSwatches({
   }
 
   const applySuggestion = (result: VibeSuggestionResult) => {
-    const ids = result.swatchIds.filter((id) => SWATCHES.some((s) => s.id === id)).slice(0, VIBE_MAX)
+    const ids = result.swatchIds
+      .filter((id) => SWATCHES.some((s) => s.id === id))
+      .slice(0, VIBE_MAX)
     if (ids.length === 0) return
     setAssistantNote({
       text: `${result.source === 'ai' ? 'Picked for you' : 'Matched for you'}: ${result.reasoning}`,
@@ -105,7 +107,8 @@ export function StepVibeSwatches({
     setAssistantNote(null)
   }
 
-  const imgFor = (swatch: StyleSwatch) => (brokenImages[swatch.id] ? swatch.svgFallback : swatch.image)
+  const imgFor = (swatch: StyleSwatch) =>
+    brokenImages[swatch.id] ? swatch.svgFallback : swatch.image
   const markBroken = (id: string) => setBrokenImages((prev) => ({ ...prev, [id]: true }))
 
   return (
@@ -115,7 +118,8 @@ export function StepVibeSwatches({
         <div>
           <h3 className="font-serif text-lg font-bold text-royal-plum">Visual Vibe Gallery</h3>
           <p className="text-sm text-royal-plum/70">
-            Select {VIBE_MIN} to {VIBE_MAX} visual references to calibrate your celebration&apos;s aesthetic Style DNA.
+            Select {VIBE_MIN} to {VIBE_MAX} visual references to calibrate your celebration&apos;s
+            aesthetic Style DNA.
           </p>
         </div>
         <Button
@@ -192,10 +196,14 @@ export function StepVibeSwatches({
             {isReady ? (
               <>
                 <Sparkles className="h-4 w-4 text-marigold" aria-hidden="true" />
-                <span>Ready! {count}/{VIBE_MAX} vibes selected</span>
+                <span>
+                  Ready! {count}/{VIBE_MAX} vibes selected
+                </span>
               </>
             ) : (
-              <span>Pick {VIBE_MIN} to {VIBE_MAX} vibes ({count}/{VIBE_MAX} selected)</span>
+              <span>
+                Pick {VIBE_MIN} to {VIBE_MAX} vibes ({count}/{VIBE_MAX} selected)
+              </span>
             )}
           </motion.div>
 
@@ -255,7 +263,9 @@ export function StepVibeSwatches({
                             : 'border-royal-plum/25 bg-warm-ivory'
                         )}
                       >
-                        {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" aria-hidden="true" />}
+                        {isSelected && (
+                          <Check className="h-3.5 w-3.5 stroke-[3]" aria-hidden="true" />
+                        )}
                       </span>
                     </button>
                   </li>
@@ -291,7 +301,9 @@ export function StepVibeSwatches({
 
             <div className="flex flex-1 flex-col gap-3 px-4 pt-4 lg:px-5 lg:pt-5">
               <div>
-                <h4 className="font-serif text-xl font-bold leading-snug text-royal-plum">{focused.title}</h4>
+                <h4 className="font-serif text-xl font-bold leading-snug text-royal-plum">
+                  {focused.title}
+                </h4>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {focused.tags.map((tag) => (
                     <span
@@ -308,12 +320,15 @@ export function StepVibeSwatches({
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-royal-plum/60">
+                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-royal-plum/70">
                     Palette
                   </span>
                   <ul className="flex flex-wrap gap-2">
                     {focused.palette.map((hex) => (
-                      <li key={hex} className="flex items-center gap-1.5 text-xs tabular-nums text-royal-plum/70">
+                      <li
+                        key={hex}
+                        className="flex items-center gap-1.5 text-xs tabular-nums text-royal-plum/70"
+                      >
                         <span
                           className="h-5 w-5 rounded-full border border-royal-plum/15"
                           style={{ backgroundColor: hex }}
@@ -325,7 +340,7 @@ export function StepVibeSwatches({
                   </ul>
                 </div>
                 <div>
-                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-royal-plum/60">
+                  <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-royal-plum/70">
                     Feel
                   </span>
                   <dl className="flex flex-col gap-1.5">
@@ -351,7 +366,9 @@ export function StepVibeSwatches({
                   className="w-full sm:w-auto"
                   onClick={() => toggle(focused.id)}
                 >
-                  {selectedSwatchIds.includes(focused.id) ? 'Remove from my vibes' : 'Add to my vibes'}
+                  {selectedSwatchIds.includes(focused.id)
+                    ? 'Remove from my vibes'
+                    : 'Add to my vibes'}
                 </Button>
               </div>
             </div>

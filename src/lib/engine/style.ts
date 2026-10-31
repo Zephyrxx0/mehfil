@@ -93,7 +93,8 @@ export function generateStyleModulationRationale(
   styleDNA: StyleDNA,
   deltas: Array<{ category: BudgetCategory; deltaPaise: number }>
 ): string {
-  const formatRupees = (paise: Paise) => `₹${Math.abs(Math.round(paise / 100)).toLocaleString('en-IN')}`
+  const formatRupees = (paise: Paise) =>
+    `₹${Math.abs(Math.round(paise / 100)).toLocaleString('en-IN')}`
 
   const elevated = deltas
     .filter((d) => d.deltaPaise > 0)

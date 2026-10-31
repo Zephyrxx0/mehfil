@@ -1,9 +1,15 @@
 import type { Plan, PlanVersionRecord } from '@/lib/engine/types'
-import { getClientSupabase } from '@/lib/supabase/client'
-import { generateCapabilityToken, hashCapabilityToken } from '@/lib/engine/crypto'
+import { createLogger } from '@/lib/logger'
+import { getRpcClient } from '@/lib/supabase/client'
+import { capabilityStore } from './capability-store'
+import { CloudPlans, isCloudPlanId, isUuid } from './cloud-plans'
+import { localPlans } from './local-plans'
+
+const logger = createLogger('persistence')
 
 export interface SavePlanResult {
   status: 'saved_cloud' | 'saved_local' | 'conflict' | 'error'
+  /** For a save: the new version. For a conflict: the newest version that won. */
   versionNumber?: number
   versionId?: string
   conflictPlan?: Plan
@@ -23,237 +29,168 @@ export interface PersistenceAdapter {
   regenerateShareKey(planId: string, editKey?: string): Promise<{ shareToken: string } | null>
 }
 
-const LOCAL_STORAGE_PREFIX = 'mehfil_plan_'
-const LOCAL_VERSIONS_PREFIX = 'mehfil_versions_'
-/** Marks a plan this browser created, so it opens editable without an edit key. */
-export const LOCAL_OWNER_PREFIX = 'mehfil_owner_'
+/** Supplies the cloud client on demand. Returns null in local-only mode. */
+export type CloudProvider = () => CloudPlans | null
 
+function defaultCloudProvider(): CloudPlans | null {
+  const client = getRpcClient()
+  return client ? new CloudPlans(client) : null
+}
+
+/**
+ * Saves to Postgres when the browser holds a verified edit key, and to this browser otherwise.
+ * A failed network call never loses work: it falls back to local storage.
+ */
 export class HybridPersistenceAdapter implements PersistenceAdapter {
+  constructor(private readonly cloudProvider: CloudProvider = defaultCloudProvider) {}
+
+  /** Creates a plan, in the cloud when possible. Returns the plan under its final id. */
+  async createPlan(plan: Plan, reason = 'Initial plan created from archetype'): Promise<Plan> {
+    const cloud = this.cloudProvider()
+    if (cloud) {
+      try {
+        const created = await cloud.createEvent(plan, reason)
+        const stored: Plan = { ...plan, id: created.eventId }
+        capabilityStore.setEditKey(created.eventId, created.editKey)
+        capabilityStore.setShareToken(created.eventId, created.shareKey)
+        localPlans.writePlan(stored)
+        localPlans.markOwner(created.eventId)
+        return stored
+      } catch (err) {
+        logger.warn('cloud create failed, keeping the plan on this device', { err })
+      }
+    }
+
+    await this.savePlan(plan, undefined, reason)
+    localPlans.markOwner(plan.id)
+    return plan
+  }
+
   async savePlan(
     plan: Plan,
     parentVersionId?: string,
     diffSummary = 'Adjusted plan allocations',
     editKey?: string
   ): Promise<SavePlanResult> {
-    const supabase = getClientSupabase()
+    const cloud = this.cloudProvider()
+    const key = editKey ?? capabilityStore.getEditKey(plan.id)
 
-    // 1. Try Supabase cloud save if available
-    if (supabase && editKey) {
+    if (cloud && key && isCloudPlanId(plan.id)) {
       try {
-        const editKeyHash = await hashCapabilityToken(editKey)
+        const outcome = await cloud.savePlanVersion({
+          eventId: plan.id,
+          editKey: key,
+          // A local version id (from an offline stretch) is not a cloud version.
+          parentVersionId: parentVersionId && isUuid(parentVersionId) ? parentVersionId : null,
+          plan,
+          reason: diffSummary,
+          isFloorProtected: Boolean(plan.brief.protectedCategory),
+        })
 
-        // Check event exists and capability matches
-        const { data: event, error: eventErr } = await supabase
-          .from('events')
-          .select('id, edit_key_hash')
-          .eq('id', plan.id)
-          .single()
-
-        if (!eventErr && event && event.edit_key_hash === editKeyHash) {
-          // Check concurrency: query latest version
-          const { data: latestVer } = await supabase
-            .from('plan_versions')
-            .select('id, version_number, lines')
-            .eq('event_id', plan.id)
-            .order('version_number', { ascending: false })
-            .limit(1)
-            .maybeSingle()
-
-          const nextVersionNumber = latestVer ? latestVer.version_number + 1 : 1
-
-          // Optimistic Concurrency Conflict Check (D-15)
-          if (latestVer && parentVersionId && latestVer.id !== parentVersionId) {
-            return {
-              status: 'conflict',
-              versionNumber: latestVer.version_number,
-              conflictPlan: { ...plan, lines: latestVer.lines as any },
-            }
-          }
-
-          // Insert immutable version record (Append-only)
-          const { data: newVer, error: verErr } = await supabase
-            .from('plan_versions')
-            .insert({
-              event_id: plan.id,
-              version_number: nextVersionNumber,
-              parent_version_id: parentVersionId || null,
-              reason: diffSummary,
-              lines: plan.lines as any,
-              totals: { totalBudgetPaise: plan.totalBudgetPaise } as any,
-            })
-            .select('id, version_number')
-            .single()
-
-          if (!verErr && newVer) {
-            // Insert audit change record
-            await supabase.from('change_records').insert({
-              plan_version_id: newVer.id,
-              explanation: diffSummary,
-              is_floor_protected: Boolean(plan.brief.protectedCategory),
-            })
-
-            return {
-              status: 'saved_cloud',
-              versionNumber: newVer.version_number,
-              versionId: newVer.id,
-            }
+        if (outcome.status === 'saved') {
+          localPlans.writePlan(plan) // offline copy of the latest state
+          return {
+            status: 'saved_cloud',
+            versionNumber: outcome.versionNumber,
+            versionId: outcome.versionId,
           }
         }
-      } catch (e) {
-        console.warn('[HybridPersistence] Cloud save failed, falling back to local storage:', e)
-      }
-    }
-
-    // 2. Offline / LocalStorage Fallback (D-13)
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem(LOCAL_STORAGE_PREFIX + plan.id, JSON.stringify(plan))
-
-        const rawHistory = window.localStorage.getItem(LOCAL_VERSIONS_PREFIX + plan.id)
-        const history: PlanVersionRecord[] = rawHistory ? JSON.parse(rawHistory) : []
-
-        // Local concurrency conflict check if parentVersionId is passed
-        if (history.length > 0 && parentVersionId && history[0].id !== parentVersionId) {
+        if (outcome.status === 'conflict') {
           return {
             status: 'conflict',
-            versionNumber: history[0].versionNumber,
-            conflictPlan: history[0].snapshot,
+            versionNumber: outcome.versionNumber,
+            versionId: outcome.versionId,
+            conflictPlan: outcome.conflictPlan,
           }
         }
-
-        const nextVersionNumber = history.length > 0 ? history[0].versionNumber + 1 : 1
-
-        const newVersion: PlanVersionRecord = {
-          id: `local-v-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-          eventId: plan.id,
-          versionNumber: nextVersionNumber,
-          parentVersionId: parentVersionId || null,
-          reason: diffSummary,
-          createdAt: new Date().toISOString(),
-          snapshot: plan,
-        }
-
-        history.unshift(newVersion)
-        window.localStorage.setItem(LOCAL_VERSIONS_PREFIX + plan.id, JSON.stringify(history))
-
-        return {
-          status: 'saved_local',
-          versionNumber: nextVersionNumber,
-          versionId: newVersion.id,
-        }
+        return { status: 'error', error: 'edit_key_rejected' }
+      } catch (err) {
+        logger.warn('cloud save failed, saving on this device instead', { err })
       }
-    } catch (localErr) {
-      return { status: 'error', error: String(localErr) }
     }
 
-    return { status: 'saved_local' }
+    return this.saveLocally(plan, parentVersionId, diffSummary)
   }
 
-  async getPlan(planId: string, editKey?: string): Promise<{ plan: Plan; isReadOnly: boolean } | null> {
-    const supabase = getClientSupabase()
+  private saveLocally(plan: Plan, parentVersionId: string | undefined, reason: string) {
+    if (!localPlans.isAvailable()) return { status: 'saved_local' as const }
+    try {
+      const outcome = localPlans.saveVersion(plan, parentVersionId, reason)
+      if (outcome.status === 'conflict') {
+        return {
+          status: 'conflict' as const,
+          versionNumber: outcome.versionNumber,
+          versionId: outcome.versionId,
+          conflictPlan: outcome.conflictPlan,
+        }
+      }
+      return {
+        status: 'saved_local' as const,
+        versionNumber: outcome.versionNumber,
+        versionId: outcome.versionId,
+      }
+    } catch (err) {
+      return { status: 'error' as const, error: String(err) }
+    }
+  }
 
-    if (supabase) {
+  async getPlan(
+    planId: string,
+    editKey?: string
+  ): Promise<{ plan: Plan; isReadOnly: boolean } | null> {
+    const cloud = this.cloudProvider()
+    const key = editKey ?? capabilityStore.getEditKey(planId)
+
+    if (cloud && key && isCloudPlanId(planId)) {
       try {
-        const { data: event } = await supabase.from('events').select('*').eq('id', planId).single()
-        if (event) {
-          const { data: latestVer } = await supabase
-            .from('plan_versions')
-            .select('*')
-            .eq('event_id', planId)
-            .order('version_number', { ascending: false })
-            .limit(1)
-            .single()
-
-          let isAuthorized = false
-          if (editKey) {
-            const hash = await hashCapabilityToken(editKey)
-            isAuthorized = event.edit_key_hash === hash
-          }
-
-          const reconstructedPlan: Plan = {
-            id: event.id,
-            brief: {
-              title: event.title,
-              eventType: event.event_type as any,
-              eventDate: event.event_date,
-              city: event.city,
-              guestCount: event.guest_count,
-              totalBudgetPaise: event.total_budget_paise,
-              protectedCategory: event.protected_category as any,
-            },
-            lines: (latestVer?.lines as any) || [],
-            totalBudgetPaise: event.total_budget_paise,
-            baselineGuestCount: event.guest_count,
-          }
-
-          return { plan: reconstructedPlan, isReadOnly: !isAuthorized }
+        const found = await cloud.getEditablePlan(planId, key)
+        if (found) {
+          localPlans.writePlan(found.plan)
+          capabilityStore.setEditKey(planId, key)
+          return { plan: found.plan, isReadOnly: false }
         }
-      } catch {
-        // Fall back to local
+        // The server rejected the key: forget it so the UI offers the unlock dialog.
+        capabilityStore.clearEditKey(planId)
+      } catch (err) {
+        logger.warn('cloud read failed, using the copy on this device', { err })
       }
     }
 
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const local = window.localStorage.getItem(LOCAL_STORAGE_PREFIX + planId)
-      if (local) {
-        let isAuthorized = false
-        if (editKey) {
-          isAuthorized = true
-        } else if (window.localStorage.getItem(LOCAL_OWNER_PREFIX + planId)) {
-          isAuthorized = true
-        } else if (typeof document !== 'undefined' && document.cookie.includes(`mehfil_edit_${planId}`)) {
-          isAuthorized = true
-        }
-        return { plan: JSON.parse(local), isReadOnly: !isAuthorized }
-      }
-    }
-
-    return null
+    const local = localPlans.readPlan(planId)
+    if (!local) return null
+    // A cloud plan is editable only if the server accepted the key (above) or this browser
+    // created it. A local-only plan has no server to ask, so a supplied key is accepted.
+    const canEdit = localPlans.isOwner(planId) || (Boolean(editKey) && !isCloudPlanId(planId))
+    return { plan: local, isReadOnly: !canEdit }
   }
 
   async getVersionHistory(planId: string): Promise<PlanVersionRecord[]> {
-    const supabase = getClientSupabase()
+    const cloud = this.cloudProvider()
+    const key = capabilityStore.getEditKey(planId)
 
-    if (supabase) {
+    if (cloud && key && isCloudPlanId(planId)) {
       try {
-        const { data } = await supabase
-          .from('plan_versions')
-          .select('id, event_id, version_number, parent_version_id, reason, created_at, lines')
-          .eq('event_id', planId)
-          .order('version_number', { ascending: false })
-
-        if (data && data.length > 0) {
-          return data.map((row) => ({
-            id: row.id,
-            eventId: row.event_id,
-            versionNumber: row.version_number,
-            parentVersionId: row.parent_version_id,
-            reason: row.reason,
-            createdAt: row.created_at,
-            snapshot: { lines: row.lines } as any,
-          }))
-        }
-      } catch {
-        // Fall back to local
+        const history = await cloud.listVersions(planId, key)
+        if (history.length > 0) return history
+      } catch (err) {
+        logger.warn('cloud history failed, using the copy on this device', { err })
       }
     }
-
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const raw = window.localStorage.getItem(LOCAL_VERSIONS_PREFIX + planId)
-      if (raw) return JSON.parse(raw)
-    }
-
-    return []
+    return localPlans.readHistory(planId)
   }
 
-  async restoreVersion(planId: string, targetVersion: number, editKey?: string): Promise<SavePlanResult> {
+  async restoreVersion(
+    planId: string,
+    targetVersion: number,
+    editKey?: string
+  ): Promise<SavePlanResult> {
     const history = await this.getVersionHistory(planId)
     const target = history.find((v) => v.versionNumber === targetVersion)
-    if (!target || !target.snapshot) {
+    if (!target?.snapshot) {
       return { status: 'error', error: `Version ${targetVersion} not found` }
     }
 
-    // Forward restore creates v(N+1) matching snapshot of v(k) (D-10)
+    // Forward restore creates v(N+1) matching the snapshot of v(k) (D-10).
     return this.savePlan(
       target.snapshot,
       history[0]?.id,
@@ -262,39 +199,33 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
     )
   }
 
-  async regenerateShareKey(planId: string, editKey?: string): Promise<{ shareToken: string } | null> {
-    const newShareToken = generateCapabilityToken()
-    const supabase = getClientSupabase()
+  /**
+   * Replaces the family link. Returns null unless the database accepted it: a token that was
+   * never stored would produce a link that opens nothing (S2).
+   */
+  async regenerateShareKey(
+    planId: string,
+    editKey?: string
+  ): Promise<{ shareToken: string } | null> {
+    const cloud = this.cloudProvider()
+    const key = editKey ?? capabilityStore.getEditKey(planId)
+    if (!cloud || !key || !isCloudPlanId(planId)) return null
 
-    if (supabase && editKey) {
-      try {
-        const editKeyHash = await hashCapabilityToken(editKey)
-        const shareKeyHash = await hashCapabilityToken(newShareToken)
-
-        const { error } = await supabase
-          .from('events')
-          .update({ share_key_hash: shareKeyHash, updated_at: new Date().toISOString() })
-          .eq('id', planId)
-          .eq('edit_key_hash', editKeyHash)
-
-        if (!error) {
-          return { shareToken: newShareToken }
-        }
-      } catch {
-        // Fall back to local
-      }
+    try {
+      const shareToken = await cloud.regenerateShareKey(planId, key)
+      if (!shareToken) return null
+      capabilityStore.setShareToken(planId, shareToken)
+      return { shareToken }
+    } catch (err) {
+      logger.warn('could not replace the family link', { err })
+      return null
     }
-
-    return { shareToken: newShareToken }
   }
 }
 
 export const persistence = new HybridPersistenceAdapter()
 
-/** Saves a freshly generated plan in this browser and marks it as owned by it. */
-export async function saveNewPlan(plan: Plan): Promise<void> {
-  await persistence.savePlan(plan, undefined, 'Initial plan created from archetype')
-  if (typeof window !== 'undefined' && window.localStorage) {
-    window.localStorage.setItem(LOCAL_OWNER_PREFIX + plan.id, '1')
-  }
+/** Creates a fresh plan, in the cloud when configured, and returns it under its final id. */
+export function saveNewPlan(plan: Plan): Promise<Plan> {
+  return persistence.createPlan(plan)
 }

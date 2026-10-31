@@ -24,8 +24,7 @@ export function TitleDraw({ className }: { className?: string }) {
         className="block h-auto w-full overflow-visible"
       >
         {TITLE_GLYPHS.map((glyph, i) => {
-          const colour =
-            glyph.script === 'latin' ? 'hsl(var(--foreground))' : 'hsl(var(--maroon))'
+          const colour = glyph.script === 'latin' ? 'hsl(var(--foreground))' : 'hsl(var(--maroon))'
           return (
             <motion.path
               key={i}

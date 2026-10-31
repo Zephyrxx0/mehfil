@@ -5,6 +5,7 @@ import type {
   IdeaDisplacementRecord,
   MilestoneBand,
   MilestoneBandId,
+  Plan,
   TimelineSchedule,
   TimelineTask,
 } from './types'
@@ -68,7 +69,8 @@ const BAND_TEMPLATES: BandTemplate[] = [
         budgetCategory: 'catering',
         isCriticalPath: true,
         criticalityRank: 2,
-        notes: 'Approve live food counters, dietary nuances (Jain/Vegan), and dinner service format.',
+        notes:
+          'Approve live food counters, dietary nuances (Jain/Vegan), and dinner service format.',
       },
       {
         id: 'task_decor_concept',
@@ -218,10 +220,10 @@ export function calculateBackwardsTimeline(
   let venueBufferDays = 0
   let photoBufferDays = 0
   const winterSayaRisk = environmentalAnalysis?.detectedRisks.find(
-    r => r.id === 'peak_saya_winter'
+    (r) => r.id === 'peak_saya_winter'
   )
   const summerSayaRisk = environmentalAnalysis?.detectedRisks.find(
-    r => r.id === 'peak_saya_summer'
+    (r) => r.id === 'peak_saya_summer'
   )
 
   if (winterSayaRisk?.leadTimeBufferDays) {
@@ -233,9 +235,9 @@ export function calculateBackwardsTimeline(
     t6mOffset += venueBufferDays
   }
 
-  const monsoonRisk = environmentalAnalysis?.detectedRisks.find(r => r.id === 'monsoon_outdoor')
-  const heatRisk = environmentalAnalysis?.detectedRisks.find(r => r.id === 'extreme_summer_heat')
-  const holidayRisk = environmentalAnalysis?.detectedRisks.find(r => r.id === 'holiday_clash')
+  const monsoonRisk = environmentalAnalysis?.detectedRisks.find((r) => r.id === 'monsoon_outdoor')
+  const heatRisk = environmentalAnalysis?.detectedRisks.find((r) => r.id === 'extreme_summer_heat')
+  const holidayRisk = environmentalAnalysis?.detectedRisks.find((r) => r.id === 'holiday_clash')
 
   const offsetMap: Record<MilestoneBandId, number> = {
     milestone_immediate: 0,
@@ -419,15 +421,15 @@ export const CATEGORY_PRIMARY_TASK_MAP: Record<BudgetCategory, string> = {
 export function completePrimaryBookingTask(
   schedule: TimelineSchedule,
   category: BudgetCategory,
-  quoteId: string
+  quoteId: string,
+  completedAt: string = new Date().toISOString()
 ): TimelineSchedule {
   const taskId = CATEGORY_PRIMARY_TASK_MAP[category]
   if (!taskId) return schedule
 
-  const completedAt = new Date().toISOString()
-  const milestoneBands = schedule.milestoneBands.map(band => ({
+  const milestoneBands = schedule.milestoneBands.map((band) => ({
     ...band,
-    tasks: band.tasks.map(task => {
+    tasks: band.tasks.map((task) => {
       if (task.id === taskId) {
         return {
           ...task,
@@ -456,9 +458,9 @@ export function reopenPrimaryBookingTask(
   const taskId = CATEGORY_PRIMARY_TASK_MAP[category]
   if (!taskId) return schedule
 
-  const milestoneBands = schedule.milestoneBands.map(band => ({
+  const milestoneBands = schedule.milestoneBands.map((band) => ({
     ...band,
-    tasks: band.tasks.map(task => {
+    tasks: band.tasks.map((task) => {
       if (task.id === taskId) {
         return {
           ...task,
@@ -477,3 +479,22 @@ export function reopenPrimaryBookingTask(
   }
 }
 
+/**
+ * Marks the primary booking task of every committed budget line as done. The schedule is
+ * derived from the plan, so a committed vendor shows as booked after a reload or on another
+ * device, instead of depending on a click that happened in one browser tab.
+ */
+export function applyCommittedBookings(schedule: TimelineSchedule, plan: Plan): TimelineSchedule {
+  return plan.lines.reduce(
+    (current, line) =>
+      line.isCommitted && line.committedQuoteId
+        ? completePrimaryBookingTask(
+            current,
+            line.category,
+            line.committedQuoteId,
+            line.committedAt
+          )
+        : current,
+    schedule
+  )
+}

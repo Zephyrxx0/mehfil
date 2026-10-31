@@ -28,8 +28,8 @@ export function NewPlanClient() {
   const [isReady, setIsReady] = useState(!fromId)
 
   const openPlan = async (plan: Plan) => {
-    await saveNewPlan(plan)
-    router.push(`/plan/${plan.id}/budget`)
+    const saved = await saveNewPlan(plan)
+    router.push(`/plan/${saved.id}/budget`)
   }
 
   // /new?starter=wedding opens a ready-made plan straight away.
@@ -39,8 +39,8 @@ export function NewPlanClient() {
     if (!starter) return
     let cancelled = false
     const plan = instantiatePlanFromBrief(resolveStarterBrief(starter.brief))
-    saveNewPlan(plan).then(() => {
-      if (!cancelled) router.replace(`/plan/${plan.id}/budget`)
+    saveNewPlan(plan).then((saved) => {
+      if (!cancelled) router.replace(`/plan/${saved.id}/budget`)
     })
     return () => {
       cancelled = true
@@ -84,7 +84,7 @@ export function NewPlanClient() {
         {isStarting ? (
           <div role="status" className="flex flex-col items-center gap-4 py-24 text-center">
             <Loader2 className="h-7 w-7 animate-spin text-marigold" aria-hidden="true" />
-            <p className="text-sm text-royal-plum/60">Preparing your plan...</p>
+            <p className="text-sm text-royal-plum/70">Preparing your plan...</p>
           </div>
         ) : isReady ? (
           <BriefWizard

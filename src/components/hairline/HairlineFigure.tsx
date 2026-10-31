@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
+import { createLogger } from '@/lib/logger'
+const logger = createLogger('hairline')
 
 /**
  * Hosts one Hairline figure (isometric line art that answers the pointer).
@@ -24,8 +26,14 @@ interface Figure {
   ) => { set: (v: number) => void; destroy: () => void }
 }
 
+/** The slice of the `HL` kernel global that this component calls. */
+interface HairlineKernel {
+  inject: (doc: Document) => void
+  mk: (tag: string, attrs: Record<string, string>, parent: Element) => SVGElement
+}
+
 type HairlineWindow = Window & {
-  HL?: any
+  HL?: HairlineKernel
   hairline?: (figure: Figure) => void
   __hairlineFigures?: Map<string, Figure>
 }
@@ -57,7 +65,7 @@ async function loadFigure(name: HairlineName): Promise<Figure | undefined> {
     registry.set(figure.name, figure)
   }
   if (!registry.has(name)) {
-    await import(/* webpackIgnore: true */ `/hairline/${name}.js`)
+    await import(/* webpackIgnore: true */ /* @vite-ignore */ `/hairline/${name}.js`)
   }
   return registry.get(name)
 }
@@ -80,6 +88,7 @@ export function HairlineFigure({ name, className }: HairlineFigureProps) {
       .then((figure) => {
         if (cancelled || !figure) return
         const HL = (window as HairlineWindow).HL
+        if (!HL) return
         HL.inject(document)
         stage.setAttribute('data-hairline', figure.name)
         const svg = HL.mk('svg', { viewBox: '0 0 400 320', 'aria-hidden': 'true' }, stage)
@@ -88,7 +97,7 @@ export function HairlineFigure({ name, className }: HairlineFigureProps) {
       })
       .catch((err) => {
         // Decorative only: a failed figure must never break the page.
-        console.warn('[HairlineFigure]', err)
+        logger.warn('[HairlineFigure]', err)
       })
 
     return () => {

@@ -15,13 +15,7 @@ describe('Vibe Intake Components (VIBE-01, VIBE-02, D-01, D-03, D-04)', () => {
   describe('StepVibeSwatches Component', () => {
     function SwatchesWrapper({ initialIds = [] }: { initialIds?: string[] }) {
       const [ids, setIds] = useState<string[]>(initialIds)
-      return (
-        <StepVibeSwatches
-          selectedSwatchIds={ids}
-          onChange={setIds}
-          showCta={true}
-        />
-      )
+      return <StepVibeSwatches selectedSwatchIds={ids} onChange={setIds} showCta={true} />
     }
 
     const list = () => within(screen.getByRole('list', { name: 'Vibe references' }))
@@ -49,7 +43,9 @@ describe('Vibe Intake Components (VIBE-01, VIBE-02, D-01, D-03, D-04)', () => {
       // The menu stays open so a second category can be ticked.
       await user.click(screen.getByRole('menuitemcheckbox', { name: /High Energy Mela/ }))
       // Radix hides the rest of the page from assistive tech while a menu is open, hence `hidden`.
-      expect(screen.getByRole('button', { name: 'Category', hidden: true })).toHaveTextContent('2 categories')
+      expect(screen.getByRole('button', { name: 'Category', hidden: true })).toHaveTextContent(
+        '2 categories'
+      )
 
       await user.keyboard('{Escape}')
 
@@ -154,7 +150,10 @@ describe('Vibe Intake Components (VIBE-01, VIBE-02, D-01, D-03, D-04)', () => {
       const submit = await screen.findByRole('button', { name: 'Find my vibes' })
       expect(submit).toBeDisabled()
 
-      await user.type(screen.getByRole('textbox', { name: 'Describe your vibe' }), 'Warm brass and marigold')
+      await user.type(
+        screen.getByRole('textbox', { name: 'Describe your vibe' }),
+        'Warm brass and marigold'
+      )
       await user.click(submit)
 
       await waitFor(() => expect(screen.getByText(readyCopy(VIBE_MAX))).toBeInTheDocument())
@@ -172,7 +171,10 @@ describe('Vibe Intake Components (VIBE-01, VIBE-02, D-01, D-03, D-04)', () => {
       const user = userEvent.setup()
       vi.stubGlobal(
         'fetch',
-        vi.fn().mockResolvedValue({ ok: false, json: async () => ({ success: false, error: 'Describe the vibe in a few words' }) })
+        vi.fn().mockResolvedValue({
+          ok: false,
+          json: async () => ({ success: false, error: 'Describe the vibe in a few words' }),
+        })
       )
 
       render(<Wrapper />)
@@ -260,25 +262,25 @@ describe('Vibe Intake Components (VIBE-01, VIBE-02, D-01, D-03, D-04)', () => {
       // Click 'Dazzling Stage & Visual Production'
       const spectacleOption = screen.getByText('Dazzling Stage & Visual Production')
       fireEvent.click(spectacleOption)
-      const spectacleRadio = screen.getAllByRole('radio').find(
-        (el) => el.textContent?.includes('Dazzling Stage & Visual Production')
-      )
+      const spectacleRadio = screen
+        .getAllByRole('radio')
+        .find((el) => el.textContent?.includes('Dazzling Stage & Visual Production'))
       expect(spectacleRadio).toHaveAttribute('aria-checked', 'true')
 
       // Click 'Grand High-Energy Extravaganza'
       const grandOption = screen.getByText('Grand High-Energy Extravaganza')
       fireEvent.click(grandOption)
-      const grandRadio = screen.getAllByRole('radio').find(
-        (el) => el.textContent?.includes('Grand High-Energy Extravaganza')
-      )
+      const grandRadio = screen
+        .getAllByRole('radio')
+        .find((el) => el.textContent?.includes('Grand High-Energy Extravaganza'))
       expect(grandRadio).toHaveAttribute('aria-checked', 'true')
 
       // Click 'Contemporary Chic & Minimalist Elegance'
       const modernOption = screen.getByText('Contemporary Chic & Minimalist Elegance')
       fireEvent.click(modernOption)
-      const modernRadio = screen.getAllByRole('radio').find(
-        (el) => el.textContent?.includes('Contemporary Chic & Minimalist Elegance')
-      )
+      const modernRadio = screen
+        .getAllByRole('radio')
+        .find((el) => el.textContent?.includes('Contemporary Chic & Minimalist Elegance'))
       expect(modernRadio).toHaveAttribute('aria-checked', 'true')
 
       // Verify Primary CTA copy

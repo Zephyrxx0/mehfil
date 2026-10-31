@@ -128,7 +128,12 @@ function peony(): BareShape {
       sparks.push({ dx, dy, fall: 4, r: 1, colour: 'maroon', delay: 0 })
     }
   }
-  return { streaks, sparks, rings: [{ r: 9, colour: 'marigold', weight: 1.2, delay: 0 }], twinkles: [] }
+  return {
+    streaks,
+    sparks,
+    rings: [{ r: 9, colour: 'marigold', weight: 1.2, delay: 0 }],
+    twinkles: [],
+  }
 }
 
 /** A willow: golden branches that arc over and droop, shedding glitter. */
@@ -167,7 +172,12 @@ function ring(): BareShape {
     { r: 24, colour: 'marigold', delay: 0.1 },
     { r: 12, colour: 'maroon', delay: 0.2 },
   ]
-  const rings: Ring[] = layers.map((l) => ({ r: l.r, colour: l.colour, weight: 1.4, delay: l.delay }))
+  const rings: Ring[] = layers.map((l) => ({
+    r: l.r,
+    colour: l.colour,
+    weight: 1.4,
+    delay: l.delay,
+  }))
   const sparks: Spark[] = []
   const streaks: Streak[] = []
   layers.forEach((l, li) => {
@@ -199,7 +209,12 @@ function palm(): BareShape {
     const a = (TAU * i) / 8 - Math.PI / 2 + Math.PI / 16
     const [cx, cy] = at(24, a + 0.55)
     const [ex, ey] = at(40, a + 0.2)
-    streaks.push({ d: `M0 0Q${f(cx)} ${f(cy)} ${f(ex)} ${f(ey)}`, colour: 'rose', weight: 1.6, delay: 0.06 })
+    streaks.push({
+      d: `M0 0Q${f(cx)} ${f(cy)} ${f(ex)} ${f(ey)}`,
+      colour: 'rose',
+      weight: 1.6,
+      delay: 0.06,
+    })
   }
   for (let i = 0; i < 32; i++) {
     const a = (TAU * i) / 32 - Math.PI / 2 + Math.PI / 32
@@ -239,7 +254,13 @@ function chakri(): BareShape {
     const [dx, dy] = at(44, a0 + 1.5)
     sparks.push({ dx, dy, fall: 0, r: 0.9, colour: 'maroon', delay: 0.02 })
   }
-  return { streaks, sparks, rings: [{ r: 4, colour: 'marigold', weight: 1.2, delay: 0 }], twinkles: [], spin: 5 }
+  return {
+    streaks,
+    sparks,
+    rings: [{ r: 4, colour: 'marigold', weight: 1.2, delay: 0 }],
+    twinkles: [],
+    spin: 5,
+  }
 }
 
 function bare(type: FireworkType): BareShape {

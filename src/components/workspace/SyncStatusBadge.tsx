@@ -1,12 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import {
-  TooltipProvider,
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from '@/components/ui/tooltip'
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 export type SyncState = 'cloud_saved' | 'syncing' | 'local_saved'
@@ -32,7 +27,11 @@ const LABEL: Record<SyncState, string> = {
 export function SyncStatusBadge({ status, lastSavedAt, className }: SyncStatusBadgeProps) {
   const formattedTime = React.useMemo(() => {
     if (!lastSavedAt) return null
-    return lastSavedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    return lastSavedAt.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    })
   }, [lastSavedAt])
 
   return (
@@ -54,14 +53,25 @@ export function SyncStatusBadge({ status, lastSavedAt, className }: SyncStatusBa
           {status === 'cloud_saved' && (
             <p>
               Your plan is securely synced to the cloud.
-              {formattedTime && <span className="mt-0.5 block text-royal-plum/60">Last saved at {formattedTime}</span>}
+              {formattedTime && (
+                <span className="mt-0.5 block text-royal-plum/70">
+                  Last saved at {formattedTime}
+                </span>
+              )}
             </p>
           )}
-          {status === 'syncing' && <p>Recording mathematical changes and committing version snapshot...</p>}
+          {status === 'syncing' && (
+            <p>Recording mathematical changes and committing version snapshot...</p>
+          )}
           {status === 'local_saved' && (
             <p>
-              Saved in your browser storage. Connect Supabase credentials to enable multi-device sync.
-              {formattedTime && <span className="mt-0.5 block text-royal-plum/60">Last saved at {formattedTime}</span>}
+              Saved in your browser storage. Connect Supabase credentials to enable multi-device
+              sync.
+              {formattedTime && (
+                <span className="mt-0.5 block text-royal-plum/70">
+                  Last saved at {formattedTime}
+                </span>
+              )}
             </p>
           )}
         </TooltipContent>

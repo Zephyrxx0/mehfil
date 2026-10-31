@@ -21,7 +21,11 @@ interface StepEventBasicsProps {
 const EVENT_TYPES: { type: EventType; label: string; desc: string }[] = [
   { type: 'wedding', label: 'Wedding', desc: 'Multi-day celebration with full rituals' },
   { type: 'birthday', label: 'Milestone Birthday', desc: '50th, 60th, or milestone gathering' },
-  { type: 'community', label: 'Cultural Soiree', desc: 'Diwali gala, society meet, or musical mehfil' },
+  {
+    type: 'community',
+    label: 'Cultural Soiree',
+    desc: 'Diwali gala, society meet, or musical mehfil',
+  },
 ]
 
 export function StepEventBasics({
@@ -36,10 +40,17 @@ export function StepEventBasics({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
+        <span
+          id="celebration-type-label"
+          className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2"
+        >
           Celebration Type
-        </label>
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+        </span>
+        <div
+          role="group"
+          aria-labelledby="celebration-type-label"
+          className="grid grid-cols-1 gap-2.5 sm:grid-cols-3"
+        >
           {EVENT_TYPES.map((t) => {
             const isSelected = eventType === t.type
             return (
@@ -55,7 +66,7 @@ export function StepEventBasics({
                 }`}
               >
                 <span className="text-sm font-semibold text-royal-plum">{t.label}</span>
-                <span className="mt-1 text-xs leading-snug text-royal-plum/60">{t.desc}</span>
+                <span className="mt-1 text-xs leading-snug text-royal-plum/70">{t.desc}</span>
               </button>
             )
           })}
@@ -64,7 +75,10 @@ export function StepEventBasics({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="celebration-name" className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
+          <label
+            htmlFor="celebration-name"
+            className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2"
+          >
             Celebration Name
           </label>
           <input
@@ -73,12 +87,15 @@ export function StepEventBasics({
             placeholder="e.g. Aditi & Kabir's Wedding"
             value={title}
             onChange={(e) => onChange({ title: e.target.value })}
-            className="h-11 w-full rounded-xl border border-royal-plum/15 bg-white/80 px-3.5 text-sm text-royal-plum placeholder:text-royal-plum/40 transition hover:border-royal-plum/30 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
+            className="h-11 w-full rounded-xl border border-royal-plum/15 bg-white/80 px-3.5 text-sm text-royal-plum placeholder:text-royal-plum/70 transition hover:border-royal-plum/30 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
           />
         </div>
 
         <div>
-          <label htmlFor="celebration-city" className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
+          <label
+            htmlFor="celebration-city"
+            className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2"
+          >
             Destination City
           </label>
           <input
@@ -87,22 +104,29 @@ export function StepEventBasics({
             placeholder="e.g. Delhi, Jaipur, Mumbai"
             value={city}
             onChange={(e) => onChange({ city: e.target.value })}
-            className="h-11 w-full rounded-xl border border-royal-plum/15 bg-white/80 px-3.5 text-sm text-royal-plum placeholder:text-royal-plum/40 transition hover:border-royal-plum/30 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
+            className="h-11 w-full rounded-xl border border-royal-plum/15 bg-white/80 px-3.5 text-sm text-royal-plum placeholder:text-royal-plum/70 transition hover:border-royal-plum/30 focus:border-royal-plum focus:outline-none focus:ring-1 focus:ring-royal-plum"
           />
         </div>
       </div>
 
       <div className="sm:max-w-[calc(50%-0.5rem)]">
-        <label htmlFor="celebration-date" className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2">
+        <label
+          htmlFor="celebration-date"
+          className="block text-xs font-semibold uppercase tracking-wider text-royal-plum/70 mb-2"
+        >
           Celebration Date
         </label>
-        <DatePicker id="celebration-date" value={eventDate} onChange={(v) => onChange({ eventDate: v })} />
+        <DatePicker
+          id="celebration-date"
+          value={eventDate}
+          onChange={(v) => onChange({ eventDate: v })}
+        />
         {datePassed ? (
           <p role="alert" className="mt-1.5 text-xs font-medium text-terracotta">
             That date has already passed. Pick today or a later day.
           </p>
         ) : (
-          <p className="mt-1.5 text-xs text-royal-plum/60">
+          <p className="mt-1.5 text-xs text-royal-plum/70">
             Mehfil will build your backwards milestone calendar from this date.
           </p>
         )}

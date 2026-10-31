@@ -1,10 +1,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
-import {
-  ChangeExplainer,
-  type PlanChangeRecord,
-} from '@/components/workspace/ChangeExplainer'
+import { ChangeExplainer } from '@/components/workspace/ChangeExplainer'
+import type { PlanChangeRecord } from '@/lib/engine/types'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
 import type { EventBrief, PlanVersionRecord } from '@/lib/engine/types'
 
@@ -46,9 +44,7 @@ describe('ChangeExplainer Component (D-10, D-11, COLLAB-04)', () => {
 
     render(<ChangeExplainer plan={samplePlan} changes={mockChanges} />)
 
-    expect(
-      screen.getByText('Scaled guest count from 300 to 320 (+20 guests)')
-    ).toBeInTheDocument()
+    expect(screen.getByText('Scaled guest count from 300 to 320 (+20 guests)')).toBeInTheDocument()
     expect(screen.getByText('+₹20,000 to Catering')).toBeInTheDocument()
     expect(screen.getByText('-₹20,000 from Decor')).toBeInTheDocument()
   })
@@ -66,9 +62,7 @@ describe('ChangeExplainer Component (D-10, D-11, COLLAB-04)', () => {
 
     render(<ChangeExplainer plan={samplePlan} changes={mockChanges} />)
 
-    expect(
-      screen.getByText('Protected Moment — Non-negotiable floor locked')
-    ).toBeInTheDocument()
+    expect(screen.getByText('Protected Moment — Non-negotiable floor locked')).toBeInTheDocument()
   })
 
   it('provides an Undo button on each change card and invokes onUndo when clicked', () => {
@@ -82,13 +76,7 @@ describe('ChangeExplainer Component (D-10, D-11, COLLAB-04)', () => {
       },
     ]
 
-    render(
-      <ChangeExplainer
-        plan={samplePlan}
-        changes={mockChanges}
-        onUndo={handleUndo}
-      />
-    )
+    render(<ChangeExplainer plan={samplePlan} changes={mockChanges} onUndo={handleUndo} />)
 
     const undoButton = screen.getByRole('button', { name: /undo/i })
     expect(undoButton).toBeInTheDocument()
@@ -136,13 +124,7 @@ describe('ChangeExplainer Component (D-10, D-11, COLLAB-04)', () => {
     ]
 
     it('renders reverse-chronological version cards with Current badge and relative timestamps', () => {
-      render(
-        <ChangeExplainer
-          plan={samplePlan}
-          versions={mockVersions}
-          currentVersionNumber={2}
-        />
-      )
+      render(<ChangeExplainer plan={samplePlan} versions={mockVersions} currentVersionNumber={2} />)
 
       expect(screen.getByText('Revision History')).toBeInTheDocument()
       expect(screen.getAllByText('v2').length).toBeGreaterThan(0)
@@ -177,13 +159,7 @@ describe('ChangeExplainer Component (D-10, D-11, COLLAB-04)', () => {
     })
 
     it('displays Gulabi Rose Protected Moment held firm tag on version cards', () => {
-      render(
-        <ChangeExplainer
-          plan={samplePlan}
-          versions={mockVersions}
-          currentVersionNumber={2}
-        />
-      )
+      render(<ChangeExplainer plan={samplePlan} versions={mockVersions} currentVersionNumber={2} />)
 
       const protectedTag = screen.getAllByText('Protected Moment held firm')[0]
       expect(protectedTag).toBeInTheDocument()

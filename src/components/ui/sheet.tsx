@@ -44,7 +44,8 @@ export const sheetVariants = cva(
 )
 
 export interface SheetContentProps
-  extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
+  extends
+    React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
     VariantProps<typeof sheetVariants> {}
 
 export const SheetContent = React.forwardRef<
@@ -53,17 +54,13 @@ export const SheetContent = React.forwardRef<
 >(({ side = 'bottom', className, children, ...props }, ref) => (
   <SheetPortal>
     <SheetOverlay />
-    <SheetPrimitive.Content
-      ref={ref}
-      className={cn(sheetVariants({ side }), className)}
-      {...props}
-    >
+    <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
       {/* Persistent drag handle for bottom drawer */}
       {side === 'bottom' && (
         <div className="mx-auto -mt-2 mb-4 h-1.5 w-12 rounded-full bg-royal-plum/20" />
       )}
       {children}
-      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-full p-1 text-royal-plum/50 hover:bg-royal-plum/5 hover:text-royal-plum focus:outline-hidden">
+      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-full p-1 text-royal-plum/70 hover:bg-royal-plum/5 hover:text-royal-plum focus:outline-hidden">
         <X className="h-5 w-5" />
         <span className="sr-only">Close</span>
       </SheetPrimitive.Close>
@@ -72,21 +69,12 @@ export const SheetContent = React.forwardRef<
 ))
 SheetContent.displayName = SheetPrimitive.Content.displayName
 
-export const SheetHeader = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn('flex flex-col space-y-2 text-left', className)}
-    {...props}
-  />
+export const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn('flex flex-col space-y-2 text-left', className)} {...props} />
 )
 SheetHeader.displayName = 'SheetHeader'
 
-export const SheetFooter = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
+export const SheetFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2', className)}
     {...props}

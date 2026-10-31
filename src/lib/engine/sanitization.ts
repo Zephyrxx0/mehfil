@@ -21,9 +21,8 @@ export function sanitizePlanForSharing(
   const totalWithoutContingency = Object.values(categoryTotals).reduce((a, b) => a + b, 0)
   const categoryPercentages: Record<string, number> = {}
   for (const [cat, paise] of Object.entries(categoryTotals)) {
-    categoryPercentages[cat] = totalWithoutContingency > 0
-      ? Math.round((paise / totalWithoutContingency) * 100)
-      : 0
+    categoryPercentages[cat] =
+      totalWithoutContingency > 0 ? Math.round((paise / totalWithoutContingency) * 100) : 0
   }
 
   // 3. Find Protected Moment display info

@@ -33,11 +33,14 @@ function Calendar({
         button_previous: cn(navButton, defaults.button_previous),
         button_next: cn(navButton, defaults.button_next),
         month_caption: cn('flex h-8 items-center justify-center', defaults.month_caption),
-        caption_label: cn('font-serif text-base font-semibold text-royal-plum', defaults.caption_label),
+        caption_label: cn(
+          'font-serif text-base font-semibold text-royal-plum',
+          defaults.caption_label
+        ),
         month_grid: cn('w-full border-collapse', defaults.month_grid),
         weekdays: cn('flex', defaults.weekdays),
         weekday: cn(
-          'flex-1 select-none text-center text-2xs font-semibold uppercase tracking-wider text-royal-plum/50',
+          'flex-1 select-none text-center text-2xs font-semibold uppercase tracking-wider text-royal-plum/70',
           defaults.weekday
         ),
         week: cn('mt-1 flex w-full', defaults.week),
@@ -63,7 +66,12 @@ function Calendar({
   )
 }
 
-function CalendarDayButton({ className, day, modifiers, ...props }: React.ComponentProps<typeof DayButton>) {
+function CalendarDayButton({
+  className,
+  day,
+  modifiers,
+  ...props
+}: React.ComponentProps<typeof DayButton>) {
   const ref = React.useRef<HTMLButtonElement>(null)
   React.useEffect(() => {
     if (modifiers.focused) ref.current?.focus()

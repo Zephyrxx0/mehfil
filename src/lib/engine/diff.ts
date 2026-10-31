@@ -1,4 +1,4 @@
-import type { Plan, PlanChangeDelta } from '@/lib/engine/types'
+import type { BudgetCategory, BudgetLine, Paise, Plan, PlanChangeDelta } from '@/lib/engine/types'
 import { formatINR } from './currency'
 
 export interface PlanDiffInput {
@@ -27,6 +27,41 @@ export interface PlanDiffResult {
   recipientCategories: string[]
 }
 
+/** Lines whose allocation changed between two plans, with the change in integer paise. */
+function movedLines(
+  prevPlan: Plan,
+  nextPlan: Plan
+): Array<{ line: BudgetLine; deltaPaise: Paise }> {
+  const moved: Array<{ line: BudgetLine; deltaPaise: Paise }> = []
+  for (const line of nextPlan.lines) {
+    const prevLine = prevPlan.lines.find((l) => l.id === line.id)
+    // A line that is new in `nextPlan` is measured against its baseline.
+    const prevPaise = prevLine ? prevLine.currentPaise : line.baselinePaise
+    const deltaPaise = line.currentPaise - prevPaise
+    if (deltaPaise !== 0) moved.push({ line, deltaPaise })
+  }
+  return moved
+}
+
+/** How much each budget line moved between two plans, named as the organizer sees them. */
+export function computeLineDeltas(prevPlan: Plan, nextPlan: Plan): PlanChangeDelta[] {
+  return movedLines(prevPlan, nextPlan).map(({ line, deltaPaise }) => ({
+    category: line.name,
+    deltaPaise,
+  }))
+}
+
+/** The same movement keyed by budget category, which the style rationale is written from. */
+export function computeCategoryDeltas(
+  prevPlan: Plan,
+  nextPlan: Plan
+): Array<{ category: BudgetCategory; deltaPaise: Paise }> {
+  return movedLines(prevPlan, nextPlan).map(({ line, deltaPaise }) => ({
+    category: line.category,
+    deltaPaise,
+  }))
+}
+
 /**
  * Pure TypeScript deterministic plan diff engine (D-12, ADR-0004).
  * Computes plain-language audit explanations directly from integer paise deltas with 100% mathematical accuracy.
@@ -48,27 +83,9 @@ export function computePlanDiff(input: PlanDiffInput): PlanDiffResult {
   }
 
   // 2. Compute category level deltas
-  const deltas: PlanChangeDelta[] = []
-  const donorCategories: string[] = []
-  const recipientCategories: string[] = []
-
-  for (const nextLine of nextPlan.lines) {
-    const prevLine = prevPlan.lines.find((l) => l.id === nextLine.id)
-    const prevPaise = prevLine ? prevLine.currentPaise : nextLine.baselinePaise
-    const deltaPaise = nextLine.currentPaise - prevPaise
-
-    if (deltaPaise !== 0) {
-      deltas.push({
-        category: nextLine.name,
-        deltaPaise,
-      })
-      if (deltaPaise > 0) {
-        recipientCategories.push(nextLine.name)
-      } else {
-        donorCategories.push(nextLine.name)
-      }
-    }
-  }
+  const deltas = computeLineDeltas(prevPlan, nextPlan)
+  const donorCategories = deltas.filter((d) => d.deltaPaise < 0).map((d) => d.category)
+  const recipientCategories = deltas.filter((d) => d.deltaPaise > 0).map((d) => d.category)
 
   const isFloorProtected = Boolean(nextPlan.brief.protectedCategory)
   const protectedSuffix = isFloorProtected ? '; Protected Moment held firm' : ''
@@ -76,8 +93,7 @@ export function computePlanDiff(input: PlanDiffInput): PlanDiffResult {
   const prevIdeas = prevPlan.adoptedIdeas ?? []
   const nextIdeas = nextPlan.adoptedIdeas ?? []
   const isIdeaAdopted =
-    actionType === 'adopt_idea' ||
-    (actionType === undefined && nextIdeas.length > prevIdeas.length)
+    actionType === 'adopt_idea' || (actionType === undefined && nextIdeas.length > prevIdeas.length)
   const isIdeaRetracted =
     actionType === 'retract_idea' ||
     (actionType === undefined && prevIdeas.length > nextIdeas.length)
@@ -189,10 +205,7 @@ export function computePlanDiff(input: PlanDiffInput): PlanDiffResult {
   }
 
   // 7. Guest Count Change Action
-  if (
-    actionType === 'guest_scale' ||
-    prevPlan.brief.guestCount !== nextPlan.brief.guestCount
-  ) {
+  if (actionType === 'guest_scale' || prevPlan.brief.guestCount !== nextPlan.brief.guestCount) {
     const prevG = prevPlan.brief.guestCount
     const nextG = nextPlan.brief.guestCount
     const deltaG = nextG - prevG
@@ -217,10 +230,7 @@ export function computePlanDiff(input: PlanDiffInput): PlanDiffResult {
   }
 
   // 8. Total Budget Change Action
-  if (
-    actionType === 'budget_change' ||
-    prevPlan.totalBudgetPaise !== nextPlan.totalBudgetPaise
-  ) {
+  if (actionType === 'budget_change' || prevPlan.totalBudgetPaise !== nextPlan.totalBudgetPaise) {
     const deltaB = nextPlan.totalBudgetPaise - prevPlan.totalBudgetPaise
     const actionVerb = deltaB >= 0 ? 'Increased' : 'Decreased'
     return {

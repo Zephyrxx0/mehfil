@@ -1,0 +1,10 @@
+.next
+.fallow
+.planning
+.agents
+coverage
+node_modules
+public
+pnpm-lock.yaml
+tsconfig.tsbuildinfo
+src/components/hero/title-paths.ts

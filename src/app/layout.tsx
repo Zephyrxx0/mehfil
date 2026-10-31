@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
-import { Fraunces, Plus_Jakarta_Sans, Noto_Serif_Devanagari } from 'next/font/google'
 import localFont from 'next/font/local'
-import { Agentation } from 'agentation'
+import { connection } from 'next/server'
+import { MotionProvider } from '@/components/providers/MotionProvider'
 import './globals.css'
 
 // Ewert — the all-caps slab display face used for the hero wordmark ("Meh").
@@ -12,23 +12,28 @@ const ewert = localFont({
   weight: '400',
 })
 
-const fraunces = Fraunces({
-  subsets: ['latin'],
+// All faces are served from this site (see ./fonts/README.md), so building and running the
+// app never depends on reaching Google Fonts.
+const fraunces = localFont({
+  src: './fonts/fraunces-latin-wght-normal.woff2',
   variable: '--font-fraunces',
   display: 'swap',
+  weight: '100 900',
 })
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
+const plusJakartaSans = localFont({
+  src: './fonts/plus-jakarta-sans-latin-wght-normal.woff2',
   variable: '--font-jakarta',
   display: 'swap',
+  weight: '200 800',
 })
 
-// Noto Serif Devanagari (bold) — the brand's Devanagari face, with the nukta and a
-// strong, confident weight for "महफ़िल" across the app.
-const notoSerifDevanagari = Noto_Serif_Devanagari({
-  weight: ['400', '700'],
-  subsets: ['devanagari', 'latin'],
+// Noto Serif Devanagari: the brand's Hindi face, with the nukta, for "महफ़िल" across the app.
+const notoSerifDevanagari = localFont({
+  src: [
+    { path: './fonts/noto-serif-devanagari-devanagari-400-normal.woff2', weight: '400' },
+    { path: './fonts/noto-serif-devanagari-devanagari-700-normal.woff2', weight: '700' },
+  ],
   variable: '--font-tiro',
   display: 'swap',
 })
@@ -36,7 +41,7 @@ const notoSerifDevanagari = Noto_Serif_Devanagari({
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://mehfil.app')
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://mehfil.app')
   ),
   title: {
     default: 'Mehfil (महफ़िल) — Celebration Planning with Mathematical Integrity',
@@ -83,21 +88,30 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+/** Visual feedback toolbar for local development only. It is never loaded in production. */
+async function DevToolbar() {
+  // Written as an `if` block so the bundler can see it is dead code in production and drop
+  // the import entirely.
+  if (process.env.NODE_ENV === 'development') {
+    const { Agentation } = await import('agentation')
+    return <Agentation endpoint="http://localhost:4747" />
+  }
+  return null
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // A nonce-based CSP (src/middleware.ts) needs a fresh nonce on every request, which static
+  // prerendering cannot provide. Waiting for the connection opts every page into dynamic rendering.
+  await connection()
+
   return (
     <html
       lang="en"
       className={`${fraunces.variable} ${plusJakartaSans.variable} ${notoSerifDevanagari.variable} ${ewert.variable}`}
     >
       <body className="min-h-screen bg-warm-ivory text-royal-plum antialiased font-sans selection:bg-marigold/30 selection:text-royal-plum">
-        {children}
-        {process.env.NODE_ENV === 'development' && (
-          <Agentation endpoint="http://localhost:4747" />
-        )}
+        <MotionProvider>{children}</MotionProvider>
+        <DevToolbar />
       </body>
     </html>
   )

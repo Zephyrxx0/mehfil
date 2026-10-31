@@ -5,15 +5,8 @@
     "description": "Sandstone colonnades bathed in warm amber uplighting, cascading yellow marigolds, and rich zardozi fabric drapes.",
     "image": "/swatches/royal-amber-courtyard.webp",
     "svgFallback": "/swatches/royal-amber-courtyard.svg",
-    "tags": [
-      "Royal Heritage"
-    ],
-    "palette": [
-      "#F7C873",
-      "#8B263E",
-      "#3A2442",
-      "#FFF8EE"
-    ],
+    "tags": ["Royal Heritage"],
+    "palette": ["#F7C873", "#8B263E", "#3A2442", "#FFF8EE"],
     "dimensions": {
       "formality": 85,
       "energy": 60,
@@ -31,15 +24,8 @@
     "description": "Vibrant yellow and orange genda phool garlands falling from raw wooden canopies, accented by brass urli bowls.",
     "image": "/swatches/marigold-cascade.webp",
     "svgFallback": "/swatches/marigold-cascade.svg",
-    "tags": [
-      "High Energy Mela"
-    ],
-    "palette": [
-      "#FF9F1C",
-      "#FFE49E",
-      "#E71D36",
-      "#2EC4B6"
-    ],
+    "tags": ["High Energy Mela"],
+    "palette": ["#FF9F1C", "#FFE49E", "#E71D36", "#2EC4B6"],
     "dimensions": {
       "formality": 40,
       "energy": 90,
@@ -57,16 +43,8 @@
     "description": "Blush pink silk drapes, fragrant rose petal carpets, and intricate jaali screen backdrops with soft golden candlelight.",
     "image": "/swatches/gulabi-rose-palace.webp",
     "svgFallback": "/swatches/gulabi-rose-palace.svg",
-    "tags": [
-      "Royal Heritage",
-      "Garden Pastel"
-    ],
-    "palette": [
-      "#F2A7B8",
-      "#9B2242",
-      "#FFF8EE",
-      "#F7C873"
-    ],
+    "tags": ["Royal Heritage", "Garden Pastel"],
+    "palette": ["#F2A7B8", "#9B2242", "#FFF8EE", "#F7C873"],
     "dimensions": {
       "formality": 80,
       "energy": 55,
@@ -84,15 +62,8 @@
     "description": "Festive night bazaar aesthetic with strings of Edison bulbs, vibrant handloom textiles, and lively street-style food carts.",
     "image": "/swatches/chandni-chowk-night.webp",
     "svgFallback": "/swatches/chandni-chowk-night.svg",
-    "tags": [
-      "High Energy Mela"
-    ],
-    "palette": [
-      "#3A2442",
-      "#FF9F1C",
-      "#E63946",
-      "#F1FAEE"
-    ],
+    "tags": ["High Energy Mela"],
+    "palette": ["#3A2442", "#FF9F1C", "#E63946", "#F1FAEE"],
     "dimensions": {
       "formality": 35,
       "energy": 95,
@@ -110,15 +81,8 @@
     "description": "Monochromatic white mogra florals suspended over sheer ivory organza, accompanied by subtle acoustic sitar tones.",
     "image": "/swatches/mogra-minimalist-canopy.webp",
     "svgFallback": "/swatches/mogra-minimalist-canopy.svg",
-    "tags": [
-      "Minimalist Festive"
-    ],
-    "palette": [
-      "#FFF8EE",
-      "#D8E2DC",
-      "#9D8189",
-      "#F4ACB7"
-    ],
+    "tags": ["Minimalist Festive"],
+    "palette": ["#FFF8EE", "#D8E2DC", "#9D8189", "#F4ACB7"],
     "dimensions": {
       "formality": 70,
       "energy": 35,
@@ -136,15 +100,8 @@
     "description": "Earthy terracotta archways draped in bougainvillea, woven jute accents, and warm sunset-toned clay diyas.",
     "image": "/swatches/jaipur-terracotta-arch.webp",
     "svgFallback": "/swatches/jaipur-terracotta-arch.svg",
-    "tags": [
-      "Royal Heritage"
-    ],
-    "palette": [
-      "#C85A32",
-      "#F7C873",
-      "#4A2810",
-      "#F9EBE0"
-    ],
+    "tags": ["Royal Heritage"],
+    "palette": ["#C85A32", "#F7C873", "#4A2810", "#F9EBE0"],
     "dimensions": {
       "formality": 70,
       "energy": 65,
@@ -162,15 +119,8 @@
     "description": "Perforated Moroccan brass lanterns casting starry light patterns across deep jewel-toned velvet floor cushions.",
     "image": "/swatches/sufi-lantern-glow.webp",
     "svgFallback": "/swatches/sufi-lantern-glow.svg",
-    "tags": [
-      "Intimate Classic"
-    ],
-    "palette": [
-      "#D4A373",
-      "#3A2442",
-      "#CCD5AE",
-      "#FAEDCD"
-    ],
+    "tags": ["Intimate Classic"],
+    "palette": ["#D4A373", "#3A2442", "#CCD5AE", "#FAEDCD"],
     "dimensions": {
       "formality": 60,
       "energy": 50,
@@ -188,15 +138,8 @@
     "description": "Faceted glass mosaic pavilions sparkling under chandeliers, silver brocade furnishings, and crystalline accents.",
     "image": "/swatches/sheesh-mahal-mirror.webp",
     "svgFallback": "/swatches/sheesh-mahal-mirror.svg",
-    "tags": [
-      "Royal Heritage"
-    ],
-    "palette": [
-      "#E0E1DD",
-      "#778DA9",
-      "#1B263B",
-      "#F7C873"
-    ],
+    "tags": ["Royal Heritage"],
+    "palette": ["#E0E1DD", "#778DA9", "#1B263B", "#F7C873"],
     "dimensions": {
       "formality": 90,
       "energy": 60,
@@ -214,15 +157,8 @@
     "description": "Floating pink lotus blossoms, water-reflection mirrors, and natural wooden pillars entwined with tender jasmine vines.",
     "image": "/swatches/lotus-pond-mandap.webp",
     "svgFallback": "/swatches/lotus-pond-mandap.svg",
-    "tags": [
-      "Garden Pastel"
-    ],
-    "palette": [
-      "#F4A261",
-      "#2A9D8F",
-      "#E76F51",
-      "#E9C46A"
-    ],
+    "tags": ["Garden Pastel"],
+    "palette": ["#F4A261", "#2A9D8F", "#E76F51", "#E9C46A"],
     "dimensions": {
       "formality": 75,
       "energy": 50,
@@ -240,16 +176,8 @@
     "description": "Opulent crimson silk woven with intricate golden zari motifs, heavy brass tall lamps, and fresh tuberoses.",
     "image": "/swatches/banarasi-zari-crimson.webp",
     "svgFallback": "/swatches/banarasi-zari-crimson.svg",
-    "tags": [
-      "Royal Heritage",
-      "Intimate Classic"
-    ],
-    "palette": [
-      "#800E13",
-      "#D4AF37",
-      "#38040E",
-      "#FFF8EE"
-    ],
+    "tags": ["Royal Heritage", "Intimate Classic"],
+    "palette": ["#800E13", "#D4AF37", "#38040E", "#FFF8EE"],
     "dimensions": {
       "formality": 85,
       "energy": 65,
@@ -267,16 +195,8 @@
     "description": "Deep banana leaf table mats, polished brass urulis with floating jasmine, and natural rain-washed teakwood.",
     "image": "/swatches/kerala-monsoon-greens.webp",
     "svgFallback": "/swatches/kerala-monsoon-greens.svg",
-    "tags": [
-      "Garden Pastel",
-      "Minimalist Festive"
-    ],
-    "palette": [
-      "#2D6A4F",
-      "#74C69D",
-      "#D8F3DC",
-      "#B7E4C7"
-    ],
+    "tags": ["Garden Pastel", "Minimalist Festive"],
+    "palette": ["#2D6A4F", "#74C69D", "#D8F3DC", "#B7E4C7"],
     "dimensions": {
       "formality": 55,
       "energy": 45,
@@ -294,15 +214,8 @@
     "description": "Traditional low-seating bolsters, hand-block-printed quilts, carved wooden pillars, and gentle sitar acoustics.",
     "image": "/swatches/haveli-courtyard-baithak.webp",
     "svgFallback": "/swatches/haveli-courtyard-baithak.svg",
-    "tags": [
-      "Intimate Classic"
-    ],
-    "palette": [
-      "#8B4513",
-      "#D4AF37",
-      "#FFF8EE",
-      "#3A2442"
-    ],
+    "tags": ["Intimate Classic"],
+    "palette": ["#8B4513", "#D4AF37", "#FFF8EE", "#3A2442"],
     "dimensions": {
       "formality": 65,
       "energy": 40,
@@ -320,16 +233,8 @@
     "description": "Rattan furniture, macrame hangings interwoven with bright marigolds, and colorful sun-drenched shamiana tents.",
     "image": "/swatches/boho-marigold-fair.webp",
     "svgFallback": "/swatches/boho-marigold-fair.svg",
-    "tags": [
-      "High Energy Mela",
-      "Garden Pastel"
-    ],
-    "palette": [
-      "#F3722C",
-      "#F8961E",
-      "#F9C74F",
-      "#90BE6D"
-    ],
+    "tags": ["High Energy Mela", "Garden Pastel"],
+    "palette": ["#F3722C", "#F8961E", "#F9C74F", "#90BE6D"],
     "dimensions": {
       "formality": 30,
       "energy": 85,
@@ -347,15 +252,8 @@
     "description": "Serene lakeside palace terrace with marble cupolas, floating candle bowls, and royal indigo silks.",
     "image": "/swatches/udaivilas-waterfront.webp",
     "svgFallback": "/swatches/udaivilas-waterfront.svg",
-    "tags": [
-      "Royal Heritage"
-    ],
-    "palette": [
-      "#1D3557",
-      "#457B9D",
-      "#A8DADC",
-      "#F1FAEE"
-    ],
+    "tags": ["Royal Heritage"],
+    "palette": ["#1D3557", "#457B9D", "#A8DADC", "#F1FAEE"],
     "dimensions": {
       "formality": 90,
       "energy": 50,
@@ -373,15 +271,8 @@
     "description": "Sleek matte-black steel arches with neon script, architectural tropical foliage, and modern lounge seating.",
     "image": "/swatches/contemporary-terrace-cocktail.webp",
     "svgFallback": "/swatches/contemporary-terrace-cocktail.svg",
-    "tags": [
-      "Minimalist Festive"
-    ],
-    "palette": [
-      "#2B2D42",
-      "#8D99AE",
-      "#EDF2F4",
-      "#EF233C"
-    ],
+    "tags": ["Minimalist Festive"],
+    "palette": ["#2B2D42", "#8D99AE", "#EDF2F4", "#EF233C"],
     "dimensions": {
       "formality": 60,
       "energy": 80,
@@ -399,15 +290,8 @@
     "description": "A riot of sunshine yellow and burnt orange marigold flower balls, fairground pinwheels, and colorful bandhani canopies.",
     "image": "/swatches/genda-phool-mela.webp",
     "svgFallback": "/swatches/genda-phool-mela.svg",
-    "tags": [
-      "High Energy Mela"
-    ],
-    "palette": [
-      "#F48C06",
-      "#FAA307",
-      "#FFBA08",
-      "#DC2F02"
-    ],
+    "tags": ["High Energy Mela"],
+    "palette": ["#F48C06", "#FAA307", "#FFBA08", "#DC2F02"],
     "dimensions": {
       "formality": 25,
       "energy": 95,
@@ -425,15 +309,8 @@
     "description": "Deep midnight purple and crimson velvet drapes, antique gold throne chairs, and crystal candelabras.",
     "image": "/swatches/royal-darbar-velvet.webp",
     "svgFallback": "/swatches/royal-darbar-velvet.svg",
-    "tags": [
-      "Royal Heritage"
-    ],
-    "palette": [
-      "#4A0E17",
-      "#C69214",
-      "#1A0B2E",
-      "#FDF8ED"
-    ],
+    "tags": ["Royal Heritage"],
+    "palette": ["#4A0E17", "#C69214", "#1A0B2E", "#FDF8ED"],
     "dimensions": {
       "formality": 95,
       "energy": 55,
@@ -451,15 +328,8 @@
     "description": "Hydrangeas, peonies, and baby's breath tucked under breezy mint and lavender voiles for an ethereal garden feel.",
     "image": "/swatches/pastel-floral-shamiana.webp",
     "svgFallback": "/swatches/pastel-floral-shamiana.svg",
-    "tags": [
-      "Garden Pastel"
-    ],
-    "palette": [
-      "#FFC6FF",
-      "#BDB2FF",
-      "#CAFFBF",
-      "#FDFFB6"
-    ],
+    "tags": ["Garden Pastel"],
+    "palette": ["#FFC6FF", "#BDB2FF", "#CAFFBF", "#FDFFB6"],
     "dimensions": {
       "formality": 65,
       "energy": 50,
@@ -477,15 +347,8 @@
     "description": "Hundreds of flickering handcrafted brass oil lamps tiered on stone steps, casting a golden ceremonial luminescence.",
     "image": "/swatches/brass-diya-constellation.webp",
     "svgFallback": "/swatches/brass-diya-constellation.svg",
-    "tags": [
-      "Intimate Classic"
-    ],
-    "palette": [
-      "#B8860B",
-      "#3A2442",
-      "#DAA520",
-      "#FFF8EE"
-    ],
+    "tags": ["Intimate Classic"],
+    "palette": ["#B8860B", "#3A2442", "#DAA520", "#FFF8EE"],
     "dimensions": {
       "formality": 75,
       "energy": 45,
@@ -503,15 +366,8 @@
     "description": "Retro gramophone centerpieces, warm sepia lighting, vinyl record coasters, and cozy velvet armchairs.",
     "image": "/swatches/vintage-radio-sangeet.webp",
     "svgFallback": "/swatches/vintage-radio-sangeet.svg",
-    "tags": [
-      "Intimate Classic"
-    ],
-    "palette": [
-      "#6F4E37",
-      "#E6BE8A",
-      "#A0522D",
-      "#FDF5E6"
-    ],
+    "tags": ["Intimate Classic"],
+    "palette": ["#6F4E37", "#E6BE8A", "#A0522D", "#FDF5E6"],
     "dimensions": {
       "formality": 50,
       "energy": 75,
@@ -529,16 +385,8 @@
     "description": "Rustic cedar wood beams draped in pine garlands, fairy lights in pinecones, and open fire pits under starlit hills.",
     "image": "/swatches/himalayan-cedar-grove.webp",
     "svgFallback": "/swatches/himalayan-cedar-grove.svg",
-    "tags": [
-      "Garden Pastel",
-      "Intimate Classic"
-    ],
-    "palette": [
-      "#355070",
-      "#6D597A",
-      "#B56576",
-      "#E56B6F"
-    ],
+    "tags": ["Garden Pastel", "Intimate Classic"],
+    "palette": ["#355070", "#6D597A", "#B56576", "#E56B6F"],
     "dimensions": {
       "formality": 50,
       "energy": 55,
@@ -556,15 +404,8 @@
     "description": "Twinkling micro-fairy lights wrapped around ancient banyan branches with hanging glass orbs and wild greenery.",
     "image": "/swatches/dusk-fairy-forest.webp",
     "svgFallback": "/swatches/dusk-fairy-forest.svg",
-    "tags": [
-      "Garden Pastel"
-    ],
-    "palette": [
-      "#2E1C44",
-      "#7B4B94",
-      "#E3A857",
-      "#FDE8C7"
-    ],
+    "tags": ["Garden Pastel"],
+    "palette": ["#2E1C44", "#7B4B94", "#E3A857", "#FDE8C7"],
     "dimensions": {
       "formality": 60,
       "energy": 60,
@@ -582,15 +423,8 @@
     "description": "Geometric brass grills, jade green marble inlays, sleek linear fluting, and warm incandescent globe pendants.",
     "image": "/swatches/art-deco-bombay.webp",
     "svgFallback": "/swatches/art-deco-bombay.svg",
-    "tags": [
-      "Minimalist Festive"
-    ],
-    "palette": [
-      "#1F2421",
-      "#216869",
-      "#9CC5A1",
-      "#DCE1DE"
-    ],
+    "tags": ["Minimalist Festive"],
+    "palette": ["#1F2421", "#216869", "#9CC5A1", "#DCE1DE"],
     "dimensions": {
       "formality": 80,
       "energy": 65,
@@ -608,15 +442,8 @@
     "description": "Rich amber and copper chinar foliage, papier-mâché decorative accents, and fine pashmina-textured runners.",
     "image": "/swatches/kashmiri-chinar-autumn.webp",
     "svgFallback": "/swatches/kashmiri-chinar-autumn.svg",
-    "tags": [
-      "Intimate Classic"
-    ],
-    "palette": [
-      "#9E2A2B",
-      "#E09F3E",
-      "#FFF3B0",
-      "#540B0E"
-    ],
+    "tags": ["Intimate Classic"],
+    "palette": ["#9E2A2B", "#E09F3E", "#FFF3B0", "#540B0E"],
     "dimensions": {
       "formality": 75,
       "energy": 50,

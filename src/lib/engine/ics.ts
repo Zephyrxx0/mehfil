@@ -22,11 +22,7 @@ function nextDayICSDate(dateStr: string): string {
  * Escape text for RFC 5545 format (newlines, semicolons, commas).
  */
 function escapeICSText(text: string): string {
-  return text
-    .replace(/\\/g, '\\\\')
-    .replace(/;/g, '\\;')
-    .replace(/,/g, '\\,')
-    .replace(/\n/g, '\\n')
+  return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
 }
 
 /**
@@ -42,10 +38,7 @@ export function generatePublicCeremoniesICS(sanitized: SanitizedSharedPlan): str
     'METHOD:PUBLISH',
   ]
 
-  const nowUTC = new Date()
-    .toISOString()
-    .replace(/[-:]/g, '')
-    .slice(0, 15) + 'Z'
+  const nowUTC = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z'
 
   for (const milestone of sanitized.publicMilestones) {
     const dtStart = toICSDate(milestone.targetDate)
@@ -88,7 +81,6 @@ export function generatePublicCeremoniesICS(sanitized: SanitizedSharedPlan): str
   return lines.join('\r\n') + '\r\n'
 }
 
-
 /**
  * Pure RFC 5545 iCalendar (.ics) generator.
  * Emits compliant VCALENDAR string with all-day VEVENT entries and 9:00 AM VALARM reminders.
@@ -105,10 +97,7 @@ export function generateICS(schedule: TimelineSchedule, plan: Plan): string {
     'METHOD:PUBLISH',
   ]
 
-  const nowUTC = new Date()
-    .toISOString()
-    .replace(/[-:]/g, '')
-    .slice(0, 15) + 'Z'
+  const nowUTC = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z'
 
   for (const band of schedule.milestoneBands) {
     const dtStart = toICSDate(band.targetDate)
@@ -126,7 +115,7 @@ export function generateICS(schedule: TimelineSchedule, plan: Plan): string {
 
     for (const task of band.tasks) {
       // Find matching budget line allocation
-      const budgetLine = plan.lines.find(l => l.category === task.budgetCategory)
+      const budgetLine = plan.lines.find((l) => l.category === task.budgetCategory)
       const budgetText = budgetLine
         ? ` (${budgetLine.name} • ${formatINR(budgetLine.currentPaise)})`
         : ''
@@ -136,7 +125,10 @@ export function generateICS(schedule: TimelineSchedule, plan: Plan): string {
       }
     }
 
-    descParts.push('', 'Planned with Mehfil (महफ़िल) — Mathematical Integrity for Milestone Celebrations')
+    descParts.push(
+      '',
+      'Planned with Mehfil (महफ़िल) — Mathematical Integrity for Milestone Celebrations'
+    )
 
     const escapedDesc = escapeICSText(descParts.join('\n'))
 
@@ -179,4 +171,3 @@ export function downloadICS(content: string, filename = 'celebration-timeline.ic
   document.body.removeChild(link)
   URL.revokeObjectURL(url)
 }
-

@@ -11,7 +11,6 @@ export interface QuoteReportProps {
   quote?: VendorQuote
   plan?: Plan
   onCommitQuote?: (tierId: string, adders: string[]) => void
-  onUnlockQuote?: () => void
   className?: string
 }
 
@@ -20,14 +19,16 @@ export function QuoteReport({
   quote: propQuote,
   plan: propPlan,
   onCommitQuote,
-  onUnlockQuote,
   className,
 }: QuoteReportProps) {
   const context = usePlanContext()
   const plan = propPlan || context.plan
 
-  const handleCommit = onCommitQuote || (context.onCommitQuote && quoteId ? (tierId, adders) => context.onCommitQuote!(quoteId, tierId, adders) : undefined)
-  const handleUnlock = onUnlockQuote || (context.onUnlockQuote && quoteId ? () => context.onUnlockQuote!(quoteId) : undefined)
+  const handleCommit =
+    onCommitQuote ||
+    (context.onCommitQuote && quoteId
+      ? (tierId, adders) => context.onCommitQuote!(quoteId, tierId, adders)
+      : undefined)
 
   // Resolve quote by entity ID from props, plan.quotes, or context.quotes
   const allQuotes = [
@@ -37,8 +38,7 @@ export function QuoteReport({
   ]
 
   const resolvedQuote: VendorQuote | undefined =
-    propQuote ||
-    (quoteId ? allQuotes.find((q) => q.id === quoteId) : allQuotes[0])
+    propQuote || (quoteId ? allQuotes.find((q) => q.id === quoteId) : allQuotes[0])
 
   if (!resolvedQuote) {
     return (
@@ -68,9 +68,7 @@ export function QuoteReport({
         plan={plan}
         guestCount={plan?.brief.guestCount}
         onCommit={handleCommit}
-        onUnlock={handleUnlock}
       />
     </div>
   )
 }
-

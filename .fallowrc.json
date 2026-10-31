@@ -1,0 +1,19 @@
+{
+  "dynamicallyLoaded": ["public/hairline/**"],
+  "ignoreExports": [
+    {
+      "file": "src/components/ui/**",
+      "exports": ["*"]
+    },
+    {
+      "file": "src/lib/ai/schemas.ts",
+      "exports": ["GenerativeUIComponent", "LayoutVariant"]
+    },
+    {
+      "file": "src/lib/engine/types.ts",
+      "exports": ["GenerativeUIComponent", "GenerativeUISection", "LayoutVariant"]
+    }
+  ],
+  "ignoreDependencies": ["eslint-config-next", "typescript-eslint", "agentation"],
+  "usedClassMembers": ["savePlanVersion", "listVersions"]
+}

@@ -139,7 +139,13 @@ export function buildMandala(): RangoliGroup[] {
         { d: scallops(FOLD * 2, 84, 1.4, half / 2) + ring(80), colour: 'rose', opacity: 0.4 },
       ],
       traces: [
-        { d: scallops(FOLD * 2, 84, 1.4, half / 2), colour: 'maroon', seconds: 15, offset: 8, weight: 2 },
+        {
+          d: scallops(FOLD * 2, 84, 1.4, half / 2),
+          colour: 'maroon',
+          seconds: 15,
+          offset: 8,
+          weight: 2,
+        },
       ],
       dots: [{ points: ringPoints(FOLD * 4, 97.5, 0), radius: 0.4, seconds: 8 }],
     },

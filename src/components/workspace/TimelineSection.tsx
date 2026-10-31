@@ -16,11 +16,14 @@ export function TimelineSection({ plan, schedule }: TimelineSectionProps) {
     <div className="flex flex-col gap-8" data-testid="timeline-section">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h3 className="flex items-center gap-2.5 font-serif text-xl font-bold text-royal-plum">
-            <span aria-hidden="true" className="h-4 w-1 shrink-0 origin-bottom rounded-full bg-gradient-to-b from-marigold to-gulabi-rose motion-safe:animate-[mehfil-flourish_0.5s_cubic-bezier(0.22,1,0.36,1)_both]" />
+          <h2 className="flex items-center gap-2.5 font-serif text-xl font-bold text-royal-plum">
+            <span
+              aria-hidden="true"
+              className="h-4 w-1 shrink-0 origin-bottom rounded-full bg-gradient-to-b from-marigold to-gulabi-rose motion-safe:animate-[mehfil-flourish_0.5s_cubic-bezier(0.22,1,0.36,1)_both]"
+            />
             <span>Backwards Milestone Roadmap</span>
-          </h3>
-          <p className="mt-0.5 text-sm text-royal-plum/60">
+          </h2>
+          <p className="mt-0.5 text-sm text-royal-plum/70">
             Target dates scheduled backwards from celebration day ({plan.brief.eventDate})
           </p>
         </div>

@@ -15,7 +15,9 @@ export function ICSExportButton({ plan, schedule }: ICSExportButtonProps) {
 
   const handleExport = () => {
     const icsContent = generateICS(schedule, plan)
-    const sanitizedTitle = (plan.brief.title || 'celebration').toLowerCase().replace(/[^a-z0-9]/g, '-')
+    const sanitizedTitle = (plan.brief.title || 'celebration')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
     downloadICS(icsContent, `${sanitizedTitle}-timeline.ics`)
 
     setDownloaded(true)
