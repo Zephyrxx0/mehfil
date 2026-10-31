@@ -26,14 +26,13 @@ export default defineConfig({
       exclude: [
         'src/components/ui/**', // generated shadcn primitives
         'src/types/**',
-        'src/data/**', // static catalogues
         'src/**/*.d.ts',
         'src/**/title-paths.ts', // generated glyph outlines
         'src/app/**/opengraph-image.tsx',
         'src/app/**/twitter-image.tsx',
       ],
-      // A floor just under today's numbers (90 / 82 / 80): CI fails if coverage erodes.
-      thresholds: { statements: 87, lines: 87, branches: 79, functions: 77 },
+      // A floor just under today's numbers (91.9 / 83.7 / 82.9): CI fails if coverage erodes.
+      thresholds: { statements: 91, lines: 91, branches: 83, functions: 82 },
     },
   },
   resolve: {
