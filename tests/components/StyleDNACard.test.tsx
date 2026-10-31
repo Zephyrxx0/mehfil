@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { act, render, screen, fireEvent } from '@testing-library/react'
 import React from 'react'
 import { StyleDNACard } from '@/components/workspace/StyleDNACard'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
@@ -116,7 +116,9 @@ describe('StyleDNACard & Retune Flow (VIBE-04, D-08, D-11, D-14)', () => {
     const retryBtn = screen.getByRole('button', { name: /Retry Extraction/i })
     expect(retryBtn).toBeInTheDocument()
 
-    fireEvent.click(retryBtn)
+    await act(async () => {
+      fireEvent.click(retryBtn)
+    })
     expect(handleRetry).toHaveBeenCalledTimes(1)
   })
 

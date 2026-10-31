@@ -1,10 +1,17 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { act, render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
 import { PlanWorkspace } from '@/components/workspace/PlanWorkspace'
 import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
 import type { EventBrief } from '@/lib/engine/types'
+
+/** Renders, then lets the version-history load settle so its state update happens inside act(). */
+async function renderWorkspace(ui: React.ReactElement) {
+  const result = render(ui)
+  await act(async () => {})
+  return result
+}
 
 describe('PlanWorkspace Component', () => {
   const futureBrief: EventBrief = {
@@ -73,8 +80,8 @@ describe('PlanWorkspace Component', () => {
     expect(screen.getAllByText('300').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('switches to Timeline tab and renders milestone roadmap (D-13, D-15, TIME-04)', () => {
-    render(<PlanWorkspace initialPlan={initialPlan} />)
+  it('switches to Timeline tab and renders milestone roadmap (D-13, D-15, TIME-04)', async () => {
+    await renderWorkspace(<PlanWorkspace initialPlan={initialPlan} />)
 
     const timelineTab = screen.getByRole('tab', { name: /Timeline/i })
     fireEvent.click(timelineTab)
@@ -84,8 +91,8 @@ describe('PlanWorkspace Component', () => {
     expect(screen.getAllByText('Venue & Date Lock (T-6M)').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('clicking Export to Calendar triggers download without errors', () => {
-    render(<PlanWorkspace initialPlan={initialPlan} />)
+  it('clicking Export to Calendar triggers download without errors', async () => {
+    await renderWorkspace(<PlanWorkspace initialPlan={initialPlan} />)
 
     const timelineTab = screen.getByRole('tab', { name: /Timeline/i })
     fireEvent.click(timelineTab)
@@ -114,8 +121,8 @@ describe('PlanWorkspace Component', () => {
   })
 
   describe('Phase 3 Collaboration & Orchestration (D-01, D-09, D-14, D-15, COLLAB-04)', () => {
-    it('renders top-bar SyncStatusBadge and Share & Save trigger button', () => {
-      render(<PlanWorkspace initialPlan={initialPlan} />)
+    it('renders top-bar SyncStatusBadge and Share & Save trigger button', async () => {
+      await renderWorkspace(<PlanWorkspace initialPlan={initialPlan} />)
 
       expect(screen.getByTestId('sync-status-badge')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /Share & Save/i })).toBeInTheDocument()
@@ -132,9 +139,9 @@ describe('PlanWorkspace Component', () => {
       expect(screen.getByRole('tab', { name: /Family Share Link/i })).toBeInTheDocument()
     })
 
-    it('renders Read-Only View banner and unlock button when isReadOnly is true', () => {
+    it('renders Read-Only View banner and unlock button when isReadOnly is true', async () => {
       const handleUnlock = vi.fn()
-      render(
+      await renderWorkspace(
         <PlanWorkspace initialPlan={initialPlan} isReadOnly={true} onUnlockEdit={handleUnlock} />
       )
 
@@ -146,7 +153,7 @@ describe('PlanWorkspace Component', () => {
     })
 
     it('orchestrates 800ms debounced save on guest scaling', async () => {
-      render(<PlanWorkspace initialPlan={initialPlan} />)
+      await renderWorkspace(<PlanWorkspace initialPlan={initialPlan} />)
 
       const plusButton = screen.getAllByText('+10')[0]
       fireEvent.click(plusButton)
