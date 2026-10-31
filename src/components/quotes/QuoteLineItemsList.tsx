@@ -14,7 +14,7 @@ interface QuoteLineItemsListProps {
 export function QuoteLineItemsList({ lineItems, onViewSource }: QuoteLineItemsListProps) {
   return (
     <div className="flex flex-col gap-2.5 bg-soft-ivory/60 p-4 rounded-2xl border border-royal-plum/8">
-      <div className="flex items-center justify-between text-xs font-semibold text-royal-plum/70 border-b border-royal-plum/8 pb-2">
+      <div className="flex items-center justify-between gap-2 text-xs font-semibold text-royal-plum/70 border-b border-royal-plum/8 pb-2">
         <span>Extracted Line Items ({lineItems?.length || 0})</span>
         <span>Verbatim Source Evidence</span>
       </div>
@@ -23,11 +23,13 @@ export function QuoteLineItemsList({ lineItems, onViewSource }: QuoteLineItemsLi
         {lineItems?.map((item) => (
           <div
             key={item.id}
-            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-xl bg-white/70 border border-royal-plum/6"
+            className="flex min-w-0 flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-xl bg-white/70 border border-royal-plum/6"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <CheckCircle2 className="w-3.5 h-3.5 text-[#4A7C59] shrink-0" />
-              <span className="text-sm font-medium text-royal-plum">{item.description}</span>
+              <span className="min-w-0 break-words text-sm font-medium text-royal-plum">
+                {item.description}
+              </span>
               <Badge
                 variant="outline"
                 className="text-3xs font-mono text-royal-plum/70 border-royal-plum/10"
@@ -36,8 +38,8 @@ export function QuoteLineItemsList({ lineItems, onViewSource }: QuoteLineItemsLi
               </Badge>
             </div>
 
-            <div className="flex items-center gap-3 justify-between sm:justify-end">
-              <span className="font-semibold text-sm text-royal-plum tabular-nums">
+            <div className="flex min-w-0 items-center gap-3 justify-between sm:justify-end">
+              <span className="shrink-0 whitespace-nowrap font-semibold text-sm text-royal-plum tabular-nums">
                 {formatINR(item.itemPaise)}
               </span>
 
@@ -48,10 +50,10 @@ export function QuoteLineItemsList({ lineItems, onViewSource }: QuoteLineItemsLi
                     <button
                       type="button"
                       onClick={() => onViewSource(item.sourceAnchor)}
-                      className="rounded-full bg-marigold/30 hover:bg-marigold text-royal-plum border border-marigold/60 px-2.5 py-1 text-2xs font-semibold flex items-center gap-1 transition-colors max-w-[200px] truncate"
+                      className="rounded-full bg-marigold/30 hover:bg-marigold text-royal-plum border border-marigold/60 px-2.5 py-1 text-2xs font-semibold flex items-center gap-1 transition-colors min-w-0 max-w-[200px]"
                     >
                       <Quote className="w-2.5 h-2.5 shrink-0 fill-royal-plum" />
-                      <span className="truncate">&ldquo;{item.sourceAnchor}&rdquo;</span>
+                      <span className="min-w-0 truncate">&ldquo;{item.sourceAnchor}&rdquo;</span>
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="text-xs max-w-xs">

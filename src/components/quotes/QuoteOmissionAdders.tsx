@@ -39,9 +39,11 @@ export function QuoteOmissionAdders({
               )}
               title={adder.rationale}
             >
-              <span>{isEnabled ? '✓' : '+'}</span>
+              <span className="shrink-0">{isEnabled ? '✓' : '+'}</span>
               <span>{adder.name}</span>
-              <span className="tabular-nums font-semibold">(+{formatINR(adder.amountPaise)})</span>
+              <span className="tabular-nums font-semibold whitespace-nowrap shrink-0">
+                (+{formatINR(adder.amountPaise)})
+              </span>
             </button>
           )
         })}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import type React from 'react'
 import type { BudgetCategory, VendorQuote } from '@/lib/engine/types'
 import { SAMPLE_QUOTES } from '@/data/sample-quotes'
@@ -73,10 +73,31 @@ export function useQuoteExtraction({
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [extractedQuote, setExtractedQuote] = useState<VendorQuote | null>(null)
 
-  // Sync initial category when sheet opens
-  useEffect(() => {
-    if (open) {
+  // Bumped on every intake reset so a request that was started before the reset cannot write its
+  // result into the fresh intake.
+  const requestIdRef = useRef(0)
+  const previousRef = useRef({ open: false, initialCategory })
+
+  const resetIntake = () => {
+    requestIdRef.current += 1
+    setExtractedQuote(null)
+    setRawText('')
+    setImageBase64(undefined)
+    setImageFileName(undefined)
+    setErrorMessage(null)
+    setIsLoading(false)
+  }
+
+  // Start every opening at a fresh intake for the requested category: on open (false -> true) and
+  // when the requested category changes while open. A layout effect so the stale breakdown never
+  // paints. Re-renders with the same open state and category leave the intake untouched.
+  useLayoutEffect(() => {
+    const previous = previousRef.current
+    previousRef.current = { open, initialCategory }
+    if (!open) return
+    if (!previous.open || previous.initialCategory !== initialCategory) {
       setCategory(initialCategory)
+      resetIntake()
     }
   }, [open, initialCategory])
 
@@ -116,27 +137,24 @@ export function useQuoteExtraction({
   const extract = async () => {
     if (!isInputValid || isLoading) return
 
+    const requestId = ++requestIdRef.current
+    const isStale = () => requestId !== requestIdRef.current
+
     setIsLoading(true)
     setErrorMessage(null)
 
     try {
       const quote = await requestVendorQuote({ rawText, imageBase64, category, guestCount })
+      if (isStale()) return
       setExtractedQuote(quote)
       onQuoteExtracted?.(quote)
     } catch (err) {
+      if (isStale()) return
       logger.error('[QuoteIntakeSheet] Extraction error:', err)
       setErrorMessage(err instanceof Error ? err.message : 'Failed to extract vendor quote.')
     } finally {
-      setIsLoading(false)
+      if (!isStale()) setIsLoading(false)
     }
-  }
-
-  const reset = () => {
-    setExtractedQuote(null)
-    setRawText('')
-    setImageBase64(undefined)
-    setImageFileName(undefined)
-    setErrorMessage(null)
   }
 
   return {
@@ -153,6 +171,6 @@ export function useQuoteExtraction({
     handleFileChange,
     clearImage,
     extract,
-    reset,
+    reset: resetIntake,
   }
 }

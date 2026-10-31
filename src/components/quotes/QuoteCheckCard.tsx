@@ -39,7 +39,7 @@ export function QuoteCheckCard({
     <div
       data-testid="quote-check-card"
       className={cn(
-        'rounded-3xl border border-royal-plum/10 bg-warm-ivory p-6 shadow-sm flex flex-col gap-5 text-royal-plum',
+        'min-w-0 rounded-3xl border border-royal-plum/10 bg-warm-ivory p-6 shadow-sm flex flex-col gap-5 text-royal-plum',
         className
       )}
     >
