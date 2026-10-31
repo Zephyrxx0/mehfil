@@ -3,6 +3,8 @@ import { defineConfig, devices } from '@playwright/test'
 const APP_PORT = 3940
 const SUPABASE_PORT = 54329
 const SUPABASE_URL = `http://localhost:${SUPABASE_PORT}`
+// Server-only key for the shared abuse counters. Not a secret: it only exists for these tests.
+const SERVICE_KEY = 'local-e2e-service-role-key-not-a-secret'
 
 /**
  * End-to-end tests run the production build against a local database that applies the real
@@ -30,7 +32,7 @@ export default defineConfig({
       url: `${SUPABASE_URL}/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
-      env: { LOCAL_SUPABASE_PORT: String(SUPABASE_PORT) },
+      env: { LOCAL_SUPABASE_PORT: String(SUPABASE_PORT), LOCAL_SUPABASE_SERVICE_KEY: SERVICE_KEY },
     },
     {
       // The public Supabase settings are inlined at build time, so build with them set.
@@ -41,6 +43,7 @@ export default defineConfig({
       env: {
         NEXT_PUBLIC_SUPABASE_URL: SUPABASE_URL,
         NEXT_PUBLIC_SUPABASE_ANON_KEY: 'local-e2e-anon-key-not-a-secret',
+        SUPABASE_SERVICE_ROLE_KEY: SERVICE_KEY,
         GOOGLE_GENERATIVE_AI_API_KEY: '',
       },
     },

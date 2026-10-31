@@ -220,7 +220,7 @@ export async function suggestVibes(
     process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim() || process.env.GEMINI_API_KEY?.trim()
   )
   if (!options.model && !hasKey) return suggestVibesHeuristic(text)
-  if (!options.model && !tryConsumeModelCall()) return suggestVibesHeuristic(text)
+  if (!options.model && !(await tryConsumeModelCall())) return suggestVibesHeuristic(text)
 
   const fenced = fenceUntrustedText('user_vibe_description', text)
 

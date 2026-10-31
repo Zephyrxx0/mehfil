@@ -61,21 +61,21 @@ describe('Security Rate Limiter (Task 6)', () => {
       expect(ipOf({})).toBe(UNKNOWN_CLIENT)
     })
 
-    it('cannot be evaded by rotating forged headers on every request', () => {
+    it('cannot be evaded by rotating forged headers on every request', async () => {
       process.env.TEST_RATE_LIMIT = 'true'
       try {
-        const statuses = Array.from(
-          { length: 4 },
-          (_, i) =>
-            enforceRateLimit(
-              new Request('http://localhost', {
-                headers: { 'x-real-ip': '198.51.100.9', 'x-vercel-ip': `10.0.0.${i}` },
-              }),
-              'forged-header-route',
-              2,
-              60_000
-            )?.status
-        )
+        const statuses: Array<number | undefined> = []
+        for (let i = 0; i < 4; i++) {
+          const res = await enforceRateLimit(
+            new Request('http://localhost', {
+              headers: { 'x-real-ip': '198.51.100.9', 'x-vercel-ip': `10.0.0.${i}` },
+            }),
+            'forged-header-route',
+            2,
+            60_000
+          )
+          statuses.push(res?.status)
+        }
         expect(statuses).toEqual([undefined, undefined, 429, 429])
       } finally {
         delete process.env.TEST_RATE_LIMIT
@@ -83,7 +83,7 @@ describe('Security Rate Limiter (Task 6)', () => {
     })
   })
 
-  it('enforces rate limit through enforceRateLimit helper', () => {
+  it('enforces rate limit through enforceRateLimit helper', async () => {
     const req = new Request('http://localhost', {
       headers: { 'x-real-ip': '1.2.3.4' },
     })
@@ -91,11 +91,11 @@ describe('Security Rate Limiter (Task 6)', () => {
     process.env.TEST_RATE_LIMIT = 'true'
     try {
       // 2 requests allowed
-      expect(enforceRateLimit(req, 'test-route', 2, 60_000)).toBeNull()
-      expect(enforceRateLimit(req, 'test-route', 2, 60_000)).toBeNull()
+      expect(await enforceRateLimit(req, 'test-route', 2, 60_000)).toBeNull()
+      expect(await enforceRateLimit(req, 'test-route', 2, 60_000)).toBeNull()
 
       // 3rd request blocked
-      const res = enforceRateLimit(req, 'test-route', 2, 60_000)
+      const res = await enforceRateLimit(req, 'test-route', 2, 60_000)
       expect(res).not.toBeNull()
       expect(res?.status).toBe(429)
       expect(res?.headers.get('Retry-After')).toBeDefined()

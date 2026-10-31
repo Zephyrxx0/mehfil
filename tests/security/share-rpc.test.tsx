@@ -9,7 +9,10 @@ import { instantiatePlanFromBrief } from '@/lib/engine/archetypes'
 import { createMigratedDatabase, createPgliteRpcClient } from '../helpers/pglite'
 
 let supabase: unknown = null
-vi.mock('@/lib/supabase/server', () => ({ getServerRpc: vi.fn(() => supabase) }))
+vi.mock('@/lib/supabase/server', () => ({
+  getServerRpc: vi.fn(() => supabase),
+  getServiceRpc: vi.fn(() => null),
+}))
 
 // Capture what the page hands to the view, so the test sees the sanitised plan itself.
 const seen: { plan: Record<string, unknown> | null }[] = []

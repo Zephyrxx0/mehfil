@@ -203,6 +203,61 @@ describe('family link management (S2)', () => {
   })
 })
 
+describe('plan creation throttle (#6)', () => {
+  const fillBreaker = () =>
+    db.query(
+      "INSERT INTO public.rate_limit_hits (bucket, hit_at) SELECT 'create_event:all', now() FROM generate_series(1, 300)"
+    )
+  const clearBreaker = () => db.exec('TRUNCATE public.rate_limit_hits')
+
+  it('keeps the plan on this device, fully usable, while the breaker is open', async () => {
+    await fillBreaker()
+    try {
+      const plan = await adapter.createPlan(instantiatePlanFromBrief(BRIEF))
+
+      expect(plan.id).not.toMatch(/^[0-9a-f-]{36}$/) // a local id, not a cloud one
+      const opened = await adapter.getPlan(plan.id)
+      expect(opened?.isReadOnly).toBe(false)
+      expect(device.getItem(`mehfil_editkey_${plan.id}`)).toBeNull() // nothing to share yet
+      expect((await adapter.getVersionHistory(plan.id)).length).toBe(1)
+
+      const saved = await adapter.savePlan(
+        rebalanceGuestCount(plan, 230),
+        undefined,
+        'Edit while throttled'
+      )
+      expect(saved.status).toBe('saved_local')
+    } finally {
+      await clearBreaker()
+    }
+  })
+
+  it('goes back to the cloud on its own once the window has passed', async () => {
+    await fillBreaker()
+    expect((await adapter.createPlan(instantiatePlanFromBrief(BRIEF))).id).not.toMatch(
+      /^[0-9a-f-]{36}$/
+    )
+    await db.exec("UPDATE public.rate_limit_hits SET hit_at = now() - interval '11 minutes'")
+
+    const plan = await adapter.createPlan(instantiatePlanFromBrief(BRIEF))
+    expect(plan.id).toMatch(/^[0-9a-f-]{36}$/)
+    await clearBreaker()
+  })
+
+  it('reports the database error code to the caller of the cloud layer', async () => {
+    await fillBreaker()
+    try {
+      const cloud = new CloudPlans(createPgliteRpcClient(db))
+      await expect(cloud.createEvent(instantiatePlanFromBrief(BRIEF), 'x')).rejects.toMatchObject({
+        name: 'CloudError',
+        code: '53400',
+      })
+    } finally {
+      await clearBreaker()
+    }
+  })
+})
+
 describe('offline resilience', () => {
   it('keeps the user’s work on this device when the cloud call fails', async () => {
     const plan = await createdPlan()

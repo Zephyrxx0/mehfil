@@ -13,7 +13,7 @@ const RequestSchema = z.object({
 })
 
 export async function POST(request: Request) {
-  const rateLimitResponse = enforceRateLimit(request, 'vibes-suggest', 15)
+  const rateLimitResponse = await enforceRateLimit(request, 'vibes-suggest', 15)
   if (rateLimitResponse) return rateLimitResponse
 
   const payload = await readJsonBody(request, 16_000)

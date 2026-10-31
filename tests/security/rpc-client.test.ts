@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createRpcClient } from '@/lib/supabase/rpc-client'
 import { readSupabaseConfig } from '@/lib/supabase/config'
 
-const CONFIG = { url: 'https://abc.supabase.co/', anonKey: 'anon-key-123' }
+const CONFIG = { url: 'https://abc.supabase.co/', apiKey: 'anon-key-123' }
 
 function respond(status: number, body: unknown) {
   return vi.fn(
@@ -38,7 +38,7 @@ describe('createRpcClient', () => {
     })
     expect(await client.rpc('create_event', {} as never)).toEqual({
       data: null,
-      error: { message: 'invalid plan snapshot' },
+      error: { message: 'invalid plan snapshot', code: '22023' },
     })
   })
 
@@ -111,5 +111,20 @@ describe('readSupabaseConfig', () => {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = ' real-key '
     expect(readSupabaseConfig()).toEqual({ url: 'https://real.supabase.co', anonKey: 'real-key' })
     restore()
+  })
+})
+
+describe('createRpcClient and the global fetch', () => {
+  it('uses whichever fetch is current at call time, not the one from when it was created', async () => {
+    const client = createRpcClient({ url: 'https://abc.supabase.co', apiKey: 'k' })
+
+    const replacement = vi.fn(async () => new Response('true', { status: 200 }))
+    vi.stubGlobal('fetch', replacement)
+    try {
+      expect(await client.rpc('verify_edit_key', {} as never)).toEqual({ data: true, error: null })
+      expect(replacement).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 })

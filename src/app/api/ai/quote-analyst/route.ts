@@ -25,7 +25,7 @@ const QuoteAnalystRequestSchema = z.object({
 })
 
 export async function POST(request: Request) {
-  const rateLimitResponse = enforceRateLimit(request, 'quote-analyst', 15)
+  const rateLimitResponse = await enforceRateLimit(request, 'quote-analyst', 15)
   if (rateLimitResponse) return rateLimitResponse
 
   const payload = await readJsonBody(request)

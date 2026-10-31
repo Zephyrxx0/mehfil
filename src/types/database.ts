@@ -171,6 +171,15 @@ export interface Database {
         Args: { p_event_id: string; p_edit_key: string }
         Returns: Json
       }
+      // Server-only: granted to the service role, never to the public key.
+      consume_rate_limit: {
+        Args: { p_bucket: string; p_limit: number; p_window_seconds: number }
+        Returns: Json
+      }
+      consume_model_call: {
+        Args: { p_cap: number }
+        Returns: boolean
+      }
       get_shared_plan: {
         Args: { p_share_key: string }
         Returns: {

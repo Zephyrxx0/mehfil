@@ -14,6 +14,7 @@ vi.mock('next/headers', () => ({
 // Mock supabase/server to return null (local fallback mode)
 vi.mock('@/lib/supabase/server', () => ({
   getServerRpc: vi.fn(() => null),
+  getServiceRpc: vi.fn(() => null),
 }))
 
 describe('POST /api/plan/[id]/claim Rate Limiting (Task 1.2)', () => {

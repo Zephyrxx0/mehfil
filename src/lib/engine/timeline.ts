@@ -498,3 +498,20 @@ export function applyCommittedBookings(schedule: TimelineSchedule, plan: Plan): 
     schedule
   )
 }
+
+/** How far along the plan is: tasks marked done out of all tasks. */
+export function countCompletedTasks(schedule: TimelineSchedule): { done: number; total: number } {
+  const tasks = schedule.milestoneBands.flatMap((band) => band.tasks)
+  return { done: tasks.filter((task) => task.isCompleted).length, total: tasks.length }
+}
+
+/**
+ * The vendor a completed booking task was closed with, from the committed budget line.
+ * Returns undefined for tasks that are not bookings or are not done.
+ */
+export function bookedVendorFor(task: TimelineTask, plan: Plan): string | undefined {
+  if (!task.isCompleted || !task.originQuoteId) return undefined
+  const line = plan.lines.find((l) => l.isCommitted && l.committedQuoteId === task.originQuoteId)
+  if (line?.committedVendor) return line.committedVendor
+  return plan.quotes?.find((q) => q.id === task.originQuoteId)?.vendorName
+}

@@ -2,7 +2,7 @@ import type { Plan, PlanVersionRecord } from '@/lib/engine/types'
 import { createLogger } from '@/lib/logger'
 import { getRpcClient } from '@/lib/supabase/client'
 import { capabilityStore } from './capability-store'
-import { CloudPlans, isCloudPlanId, isUuid } from './cloud-plans'
+import { CREATION_BREAKER_CODE, CloudError, CloudPlans, isCloudPlanId, isUuid } from './cloud-plans'
 import { localPlans } from './local-plans'
 
 const logger = createLogger('persistence')
@@ -57,7 +57,12 @@ export class HybridPersistenceAdapter implements PersistenceAdapter {
         localPlans.markOwner(created.eventId)
         return stored
       } catch (err) {
-        logger.warn('cloud create failed, keeping the plan on this device', { err })
+        if (err instanceof CloudError && err.code === CREATION_BREAKER_CODE) {
+          // Not a fault: the database is protecting itself from a burst of new plans.
+          logger.info('plan creation is throttled, keeping the plan on this device for now')
+        } else {
+          logger.warn('cloud create failed, keeping the plan on this device', { err })
+        }
       }
     }
 

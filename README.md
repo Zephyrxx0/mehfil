@@ -39,12 +39,13 @@ pnpm dev                     # http://localhost:3000
 
 With no configuration, plans are kept in the browser and the deterministic engine does all the work. Two things are optional:
 
-| Variable                                                       | Enables                                                        |
-| -------------------------------------------------------------- | -------------------------------------------------------------- |
-| `GOOGLE_GENERATIVE_AI_API_KEY`                                 | Tier 1 and 2 models (`GEMINI_API_KEY` also works)              |
-| `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Cloud save, cross-device edit links and family share links     |
-| `MODEL_DAILY_CAP`                                              | Daily ceiling on model calls per server instance (default 300) |
-| `LOG_LEVEL`                                                    | `debug`, `info`, `warn`, `error` or `silent` (default `info`)  |
+| Variable                                                       | Enables                                                                                                 |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `GOOGLE_GENERATIVE_AI_API_KEY`                                 | Tier 1 and 2 models (`GEMINI_API_KEY` also works)                                                       |
+| `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Cloud save, cross-device edit links and family share links                                              |
+| `SUPABASE_SERVICE_ROLE_KEY`                                    | Server-only. Makes the rate limits and the daily model cap one shared count across all server instances |
+| `MODEL_DAILY_CAP`                                              | Daily ceiling on model calls per server instance (default 300)                                          |
+| `LOG_LEVEL`                                                    | `debug`, `info`, `warn`, `error` or `silent` (default `info`)                                           |
 
 ### Cloud setup (optional)
 
@@ -53,6 +54,7 @@ Apply every file in `supabase/migrations/` to your project, in order (`supabase 
 1. `20261027000000_create_collaboration_schema.sql`: tables for events, immutable versions and an audit log.
 2. `20261030000000_allow_shared_plan_read.sql`: the first family-link function (replaced by 3).
 3. `20261031000000_token_checked_access.sql`: closes the tables to the browser and adds the token-checked functions the app uses.
+4. `20261031120000_shared_limits.sql`: the shared rate-limit and model-cap counters (service role only) and a circuit breaker on plan creation.
 
 `supabase/seed.sql` adds a sample event with published tokens. **Never run it against a production database.**
 
@@ -91,10 +93,10 @@ Coverage is about 90% of statements. `pnpm test:e2e` uses a Playwright browser; 
 - **256-bit tokens, generated in the database,** returned once. Replacing the family link revokes the old one immediately. Unknown plans and wrong keys get the same answer.
 - **Prompt quarantine.** Vendor text and the user's "protected moment" sentence are wrapped in a tag with a random per-request suffix, so a quote cannot close its own data block. Validation text is never fed back into a repair prompt. Models get no tools, and the Numeric Guard rejects any figure without a verbatim anchor.
 - **Strict CSP.** `src/middleware.ts` sets a per-request nonce policy: no `unsafe-eval` or `unsafe-inline` for scripts in production, images only from this site, and the browser may contact only the configured Supabase project. HSTS, framing and MIME-sniffing protections are set too.
-- **Abuse limits.** Rate limiting trusts only platform-set client-address headers (a forged `x-vercel-ip` buys nothing). A daily cap on model calls drops to the deterministic tier. Request bodies and uploaded images are size-limited, and images are checked by type and by their first bytes.
+- **Abuse limits.** Rate limiting trusts only platform-set client-address headers (a forged `x-vercel-ip` buys nothing). A daily cap on model calls drops to the deterministic tier. With `SUPABASE_SERVICE_ROLE_KEY` set, both counters are shared through Postgres (see [ADR-0011](docs/adr/0011-shared-abuse-limits.md)), and `create_event` throttles itself. Request bodies and uploaded images are size-limited, and images are checked by type and by their first bytes.
 - **Fail closed.** The claim route returns 503 in production if no database is configured. Error text from models and storage is logged on the server, not returned.
 
-Known limits: rate-limit and model-cap counters are per server instance, so on serverless hosting the effective ceiling is multiplied by the number of warm instances. A key kept in `localStorage` can be read by script running in the page (the CSP is the mitigation). `create_event` is open to anyone holding the public key, though it is size-limited. These and the trade-offs are written up in the ADR.
+Known limits: without `SUPABASE_SERVICE_ROLE_KEY`, rate-limit and model-cap counters are per server instance, so on serverless hosting the effective ceiling is multiplied by the number of warm instances. A key kept in `localStorage` can be read by script running in the page (the CSP is the mitigation). `create_event` is open to anyone holding the public key; it is size-limited and capped at 300 plans per 10 minutes across everyone, which bounds storage growth but cannot tell one caller from another. These and the trade-offs are written up in ADR-0010 and ADR-0011.
 
 ## Accessibility and design
 
@@ -126,7 +128,7 @@ src/
     supabase/           Config and a small fetch client for the database functions
 supabase/migrations/    Schema and the token-checked functions
 tests/  e2e/            Unit and integration tests; Playwright
-docs/adr/               Ten architecture decision records
+docs/adr/               Eleven architecture decision records
 ```
 
 `.planning/` and `.agents/` are the spec-driven workflow's own files (roadmap, requirements, phase plans and agent instructions). They are kept in the repository to show how the project was planned and are not used at runtime.
@@ -137,6 +139,5 @@ Fonts are self-hosted, so a build needs no network and the app contacts only its
 
 ## Known gaps
 
-- The timeline records which vendor bookings are done, but does not yet show a completed state.
 - The Ewert display font (`src/app/Ewert.ttf`) has no licence file in this repository.
 - No `LICENSE` file has been added yet.

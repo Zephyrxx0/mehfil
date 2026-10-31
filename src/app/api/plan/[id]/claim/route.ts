@@ -16,7 +16,7 @@ const isProduction = () => process.env.NODE_ENV === 'production'
  */
 export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   // 10 attempts per minute per client to slow down key guessing
-  const rateLimitResponse = enforceRateLimit(req, 'claim-plan', 10, 60_000)
+  const rateLimitResponse = await enforceRateLimit(req, 'claim-plan', 10, 60_000)
   if (rateLimitResponse) return rateLimitResponse
 
   const { id: planId } = await context.params

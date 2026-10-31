@@ -1,66 +1,7 @@
 import { NextResponse } from 'next/server'
+import { getLimits } from './shared-limits'
 
-interface RateLimitRecord {
-  timestamps: number[]
-}
-
-// In-memory sliding window cache
-const rateLimitMap = new Map<string, RateLimitRecord>()
-
-// Clean up stale IP records every 5 minutes to prevent memory growth
-if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now()
-    for (const [key, record] of rateLimitMap.entries()) {
-      record.timestamps = record.timestamps.filter((t) => now - t < 300_000)
-      if (record.timestamps.length === 0) {
-        rateLimitMap.delete(key)
-      }
-    }
-  }, 300_000).unref?.()
-}
-
-export interface RateLimitResult {
-  success: boolean
-  limit: number
-  remaining: number
-  resetTime: number
-}
-
-/**
- * Checks a sliding-window rate limit for a given key (e.g. client IP + route).
- */
-export function checkRateLimit(key: string, limit = 15, windowMs = 60_000): RateLimitResult {
-  const now = Date.now()
-  let record = rateLimitMap.get(key)
-
-  if (!record) {
-    record = { timestamps: [] }
-    rateLimitMap.set(key, record)
-  }
-
-  // Filter timestamps outside current sliding window
-  record.timestamps = record.timestamps.filter((t) => now - t < windowMs)
-
-  if (record.timestamps.length >= limit) {
-    const oldest = record.timestamps[0]
-    const resetTime = oldest + windowMs
-    return {
-      success: false,
-      limit,
-      remaining: 0,
-      resetTime,
-    }
-  }
-
-  record.timestamps.push(now)
-  return {
-    success: true,
-    limit,
-    remaining: limit - record.timestamps.length,
-    resetTime: now + windowMs,
-  }
-}
+export { checkRateLimit, resetRateLimitStore } from './memory-limits'
 
 /** Bucket shared by every request whose address cannot be determined. */
 export const UNKNOWN_CLIENT = 'unknown'
@@ -90,23 +31,43 @@ export function getClientIp(request: Request): string {
 }
 
 /**
+ * The bucket name for one client on one route. Client addresses are personal data, so when the
+ * counters are shared in the database the address is stored only as a keyed hash: the key is
+ * the server-only service key, so the hashes cannot be reversed by trying every IPv4 address.
+ */
+async function bucketFor(route: string, ip: string): Promise<string> {
+  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  if (!secret) return `${route}:${ip}`
+
+  const key = await globalThis.crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  const mac = await globalThis.crypto.subtle.sign('HMAC', key, new TextEncoder().encode(ip))
+  const hex = Array.from(new Uint8Array(mac).slice(0, 16), (b) => b.toString(16).padStart(2, '0'))
+  return `${route}:${hex.join('')}`
+}
+
+/**
  * Rate limit helper for route handlers.
  * Returns a 429 NextResponse if rate limit exceeded, or null if allowed.
  */
-export function enforceRateLimit(
+export async function enforceRateLimit(
   request: Request,
   routeIdentifier: string,
   limit = 15,
   windowMs = 60_000
-): NextResponse | null {
+): Promise<NextResponse | null> {
   // Allow disabling in tests if specified
   if (process.env.NODE_ENV === 'test' && !process.env.TEST_RATE_LIMIT) {
     return null
   }
 
-  const ip = getClientIp(request)
-  const key = `${routeIdentifier}:${ip}`
-  const result = checkRateLimit(key, limit, windowMs)
+  const bucket = await bucketFor(routeIdentifier, getClientIp(request))
+  const result = await getLimits().hit(bucket, limit, windowMs)
 
   if (!result.success) {
     const retryAfterSeconds = Math.max(1, Math.ceil((result.resetTime - Date.now()) / 1000))
@@ -128,11 +89,4 @@ export function enforceRateLimit(
   }
 
   return null
-}
-
-/**
- * Resets the in-memory rate limit store (used in unit tests).
- */
-export function resetRateLimitStore(): void {
-  rateLimitMap.clear()
 }

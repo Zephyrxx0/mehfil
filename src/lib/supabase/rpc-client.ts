@@ -1,11 +1,16 @@
 import type { RpcClient } from '@/lib/storage/cloud-plans'
-import type { SupabaseConfig } from './config'
+
+/** Where to send calls and which key to present. Not tied to the public anon key. */
+export interface RpcCredentials {
+  url: string
+  apiKey: string
+}
 
 const DEFAULT_TIMEOUT_MS = 10_000
 
 export interface RpcClientOptions {
   timeoutMs?: number
-  /** Injected in tests. Defaults to the global `fetch`. */
+  /** Injected in tests. Defaults to the global `fetch`, looked up at call time. */
   fetchImpl?: typeof fetch
 }
 
@@ -25,20 +30,22 @@ interface PostgrestErrorBody {
  * lives in the database functions (ADR-0010), not in this client.
  */
 export function createRpcClient(
-  config: SupabaseConfig,
-  { timeoutMs = DEFAULT_TIMEOUT_MS, fetchImpl = fetch }: RpcClientOptions = {}
+  credentials: RpcCredentials,
+  { timeoutMs = DEFAULT_TIMEOUT_MS, fetchImpl }: RpcClientOptions = {}
 ): RpcClient {
-  const base = config.url.replace(/\/+$/, '')
+  const base = credentials.url.replace(/\/+$/, '')
 
   return {
     async rpc(fn, args) {
       try {
-        const response = await fetchImpl(`${base}/rest/v1/rpc/${fn}`, {
+        // Looked up now, not when the client was built, so a replaced global fetch is honoured.
+        const doFetch = fetchImpl ?? fetch
+        const response = await doFetch(`${base}/rest/v1/rpc/${fn}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            apikey: config.anonKey,
-            Authorization: `Bearer ${config.anonKey}`,
+            apikey: credentials.apiKey,
+            Authorization: `Bearer ${credentials.apiKey}`,
           },
           body: JSON.stringify(args ?? {}),
           signal: AbortSignal.timeout(timeoutMs),
@@ -50,7 +57,10 @@ export function createRpcClient(
 
         if (!response.ok) {
           const failure = (body ?? {}) as PostgrestErrorBody
-          return { data: null, error: { message: failure.message ?? `HTTP ${response.status}` } }
+          return {
+            data: null,
+            error: { message: failure.message ?? `HTTP ${response.status}`, code: failure.code },
+          }
         }
         return { data: body, error: null }
       } catch (err) {

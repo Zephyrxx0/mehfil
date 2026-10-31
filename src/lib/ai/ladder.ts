@@ -84,7 +84,7 @@ export async function runLadder<T>(spec: LadderSpec<T>): Promise<LadderResult<T>
   if (options?.forceTier === 3) {
     return finish(deterministic(), 3, TIER_3_MODEL_ID, 'forced_tier_3')
   }
-  if (usesRealProvider && !tryConsumeModelCall()) {
+  if (usesRealProvider && !(await tryConsumeModelCall())) {
     return finish(deterministic(), 3, TIER_3_MODEL_ID, 'daily_model_cap_reached')
   }
 

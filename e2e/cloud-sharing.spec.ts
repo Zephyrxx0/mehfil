@@ -215,3 +215,92 @@ test.describe('browser security', () => {
     expect(statuses.indexOf(429)).toBeLessThanOrEqual(15)
   })
 })
+
+test.describe('shared limits (Postgres)', () => {
+  test('the rate limit is counted in the database, not in server memory', async ({ request }) => {
+    // The forged-header test above already hit 429 through these counters; here the public key
+    // is shown to be unable to touch them directly, which would let anyone lock out a victim.
+    const asPublic = await request.post('http://localhost:54329/rest/v1/rpc/consume_rate_limit', {
+      headers: {
+        Authorization: 'Bearer local-e2e-anon-key-not-a-secret',
+        apikey: 'local-e2e-anon-key-not-a-secret',
+      },
+      data: { p_bucket: 'claim-plan:victim', p_limit: 1, p_window_seconds: 60 },
+    })
+    expect(asPublic.status()).toBe(400)
+    expect(JSON.stringify(await asPublic.json())).toMatch(/permission denied/i)
+
+    const model = await request.post('http://localhost:54329/rest/v1/rpc/consume_model_call', {
+      headers: { Authorization: 'Bearer local-e2e-anon-key-not-a-secret' },
+      data: { p_cap: 1000 },
+    })
+    expect(model.status()).toBe(400)
+  })
+
+  test('the server does use the shared counters: a client is limited across requests', async ({
+    request,
+  }) => {
+    const statuses: number[] = []
+    for (let i = 0; i < 12; i++) {
+      const res = await request.post('/api/plan/00000000-0000-4000-8000-000000000000/claim', {
+        headers: { 'x-real-ip': '203.0.113.200' },
+        data: { key: 'f'.repeat(64) },
+      })
+      statuses.push(res.status())
+    }
+    expect(statuses.slice(0, 10).every((s) => s === 401)).toBe(true)
+    expect(statuses.slice(10)).toEqual([429, 429]) // 10 attempts a minute
+
+    // The 429s alone would also come from the in-memory fallback, so look at the database: it
+    // holds exactly the 10 allowed hits, and the address appears only as a hash.
+    const counters = await request.get('http://localhost:54329/__counters?prefix=claim-plan:')
+    expect((await counters.json()).n).toBeGreaterThanOrEqual(10)
+    const stored = await request.get(
+      'http://localhost:54329/__counters?prefix=claim-plan:203.0.113.200'
+    )
+    expect((await stored.json()).n).toBe(0) // the raw IP is never stored
+  })
+})
+
+test.describe('timeline shows what is booked', () => {
+  test('committing a quote marks the booking done, and it survives a reload and a second device', async ({
+    browser,
+  }) => {
+    const a = await newDevice(browser)
+    await a.page.goto('/new?starter=wedding')
+    await a.page.waitForURL(/\/plan\/[0-9a-f-]{36}\/budget/, { timeout: 30_000 })
+
+    // Check a venue quote from the sample chips, then commit it.
+    await a.page.getByRole('button', { name: 'Check Quote' }).first().click()
+    await a.page.getByRole('button', { name: /Royal Heritage Lawn/ }).click()
+    await a.page.getByRole('button', { name: /Extract Quote Breakdown/ }).click()
+    await a.page.getByRole('button', { name: /Commit Venue Quote/ }).click({ timeout: 30_000 })
+    await expect(a.page.getByRole('dialog')).toHaveCount(0)
+
+    await a.page.getByRole('tab', { name: 'Timeline' }).click()
+    const done = a.page.getByText(/^Done: booked with /)
+    await expect(done).toHaveCount(1)
+    await expect(a.page.getByTestId('timeline-progress')).toHaveText(/^1 of \d+ tasks done$/)
+    const vendorText = await done.innerText()
+
+    // It is saved, not just on screen: a reload still shows it.
+    await expect(a.page.getByTestId('sync-status-badge')).toContainText('Saved to Cloud', {
+      timeout: 15_000,
+    })
+    await a.page.reload()
+    await a.page.getByRole('tab', { name: 'Timeline' }).click()
+    await expect(a.page.getByText(/^Done: booked with /)).toHaveText(vendorText)
+
+    // And a co-organizer on another device sees it.
+    const { editUrl } = await readLinks(a.page)
+    const b = await newDevice(browser)
+    await b.page.goto(editUrl)
+    await expect(b.page.getByTestId('sync-status-badge')).toContainText('Saved to Cloud', {
+      timeout: 30_000,
+    })
+    await b.page.getByRole('tab', { name: 'Timeline' }).click()
+    await expect(b.page.getByText(/^Done: booked with /)).toHaveText(vendorText)
+
+    await Promise.all([a.context.close(), b.context.close()])
+  })
+})

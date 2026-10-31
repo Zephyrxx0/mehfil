@@ -1,11 +1,15 @@
 'use client'
 
 import React from 'react'
-import type { MilestoneBand as MilestoneBandType } from '@/lib/engine/types'
+import { CheckCircle2 } from 'lucide-react'
+import type { MilestoneBand as MilestoneBandType, Plan } from '@/lib/engine/types'
+import { bookedVendorFor } from '@/lib/engine/timeline'
 import { cn } from '@/lib/utils'
 
 interface MilestoneBandProps {
   band: MilestoneBandType
+  /** Used to name the vendor a finished booking was closed with. */
+  plan?: Plan
 }
 
 const CATEGORY_NAMES: Record<string, string> = {
@@ -19,7 +23,7 @@ const CATEGORY_NAMES: Record<string, string> = {
   contingency: 'Contingency Cash',
 }
 
-export function MilestoneBand({ band }: MilestoneBandProps) {
+export function MilestoneBand({ band, plan }: MilestoneBandProps) {
   const handleScrollToCategory = (category: string) => {
     const el = document.getElementById(`category-${category}`)
     if (el) {
@@ -66,52 +70,69 @@ export function MilestoneBand({ band }: MilestoneBandProps) {
         </header>
 
         <ul className="divide-y divide-royal-plum/8">
-          {band.tasks.map((task) => (
-            <li
-              key={task.id}
-              className="group flex flex-col gap-1 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
-            >
-              <div className="min-w-0">
-                <p className="text-base font-medium text-royal-plum">{task.title}</p>
-                {task.notes && <p className="mt-0.5 text-sm text-royal-plum/70">{task.notes}</p>}
-                {(task.isCriticalPath ||
-                  (task.appliedBufferDays !== undefined && task.appliedBufferDays > 0) ||
-                  task.environmentalRiskId) && (
-                  <p className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
-                    {task.isCriticalPath && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-terracotta/10 px-2 py-0.5 font-semibold text-terracotta">
-                        <span
-                          aria-hidden="true"
-                          className="h-1.5 w-1.5 rounded-full bg-terracotta"
-                        />
-                        Critical Path
-                      </span>
-                    )}
-                    {task.appliedBufferDays !== undefined && task.appliedBufferDays > 0 && (
-                      <span className="rounded-full bg-marigold/15 px-2 py-0.5 font-medium text-royal-plum/75">
-                        +{task.appliedBufferDays}d peak buffer
-                      </span>
-                    )}
-                    {task.environmentalRiskId && (
-                      <span className="rounded-full bg-royal-plum/5 px-2 py-0.5 text-royal-plum/70">
-                        {task.environmentalRiskId}
-                      </span>
-                    )}
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleScrollToCategory(task.budgetCategory)}
-                aria-label={`Jump to ${CATEGORY_NAMES[task.budgetCategory] || task.budgetCategory} in the budget`}
-                title={`Jump to ${CATEGORY_NAMES[task.budgetCategory] || task.budgetCategory} in the budget`}
-                className="w-fit shrink-0 rounded-full border border-royal-plum/10 bg-warm-ivory px-3 py-1 text-sm text-royal-plum/70 transition hover:border-royal-plum/25 hover:bg-white hover:text-royal-plum motion-safe:group-hover:border-royal-plum/20"
+          {band.tasks.map((task) => {
+            const vendor = plan ? bookedVendorFor(task, plan) : undefined
+            return (
+              <li
+                key={task.id}
+                data-completed={task.isCompleted}
+                className="group flex flex-col gap-1 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
               >
-                {CATEGORY_NAMES[task.budgetCategory] || task.budgetCategory}
-              </button>
-            </li>
-          ))}
+                <div className="min-w-0">
+                  <p
+                    className={cn(
+                      'text-base font-medium text-royal-plum',
+                      task.isCompleted && 'text-royal-plum/70'
+                    )}
+                  >
+                    {task.title}
+                  </p>
+                  {task.isCompleted && (
+                    <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-[#2E5A44]">
+                      <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      <span>Done{vendor ? `: booked with ${vendor}` : ''}</span>
+                    </p>
+                  )}
+                  {task.notes && <p className="mt-0.5 text-sm text-royal-plum/70">{task.notes}</p>}
+                  {(task.isCriticalPath ||
+                    (task.appliedBufferDays !== undefined && task.appliedBufferDays > 0) ||
+                    task.environmentalRiskId) && (
+                    <p className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+                      {task.isCriticalPath && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-terracotta/10 px-2 py-0.5 font-semibold text-terracotta">
+                          <span
+                            aria-hidden="true"
+                            className="h-1.5 w-1.5 rounded-full bg-terracotta"
+                          />
+                          Critical Path
+                        </span>
+                      )}
+                      {task.appliedBufferDays !== undefined && task.appliedBufferDays > 0 && (
+                        <span className="rounded-full bg-marigold/15 px-2 py-0.5 font-medium text-royal-plum/75">
+                          +{task.appliedBufferDays}d peak buffer
+                        </span>
+                      )}
+                      {task.environmentalRiskId && (
+                        <span className="rounded-full bg-royal-plum/5 px-2 py-0.5 text-royal-plum/70">
+                          {task.environmentalRiskId}
+                        </span>
+                      )}
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleScrollToCategory(task.budgetCategory)}
+                  aria-label={`Jump to ${CATEGORY_NAMES[task.budgetCategory] || task.budgetCategory} in the budget`}
+                  title={`Jump to ${CATEGORY_NAMES[task.budgetCategory] || task.budgetCategory} in the budget`}
+                  className="w-fit shrink-0 rounded-full border border-royal-plum/10 bg-warm-ivory px-3 py-1 text-sm text-royal-plum/70 transition hover:border-royal-plum/25 hover:bg-white hover:text-royal-plum motion-safe:group-hover:border-royal-plum/20"
+                >
+                  {CATEGORY_NAMES[task.budgetCategory] || task.budgetCategory}
+                </button>
+              </li>
+            )
+          })}
         </ul>
       </section>
     </li>

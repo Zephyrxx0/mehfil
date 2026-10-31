@@ -2,6 +2,7 @@
 
 import React from 'react'
 import type { Plan, TimelineSchedule } from '@/lib/engine/types'
+import { countCompletedTasks } from '@/lib/engine/timeline'
 import { MilestoneBand } from './MilestoneBand'
 import { SeasonalAdvisoryBanner } from './SeasonalAdvisoryBanner'
 import { ICSExportButton } from './ICSExportButton'
@@ -12,6 +13,8 @@ export interface TimelineSectionProps {
 }
 
 export function TimelineSection({ plan, schedule }: TimelineSectionProps) {
+  const { done, total } = countCompletedTasks(schedule)
+
   return (
     <div className="flex flex-col gap-8" data-testid="timeline-section">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -26,6 +29,14 @@ export function TimelineSection({ plan, schedule }: TimelineSectionProps) {
           <p className="mt-0.5 text-sm text-royal-plum/70">
             Target dates scheduled backwards from celebration day ({plan.brief.eventDate})
           </p>
+          {done > 0 && (
+            <p
+              className="mt-0.5 text-sm font-medium text-[#2E5A44]"
+              data-testid="timeline-progress"
+            >
+              {done} of {total} tasks done
+            </p>
+          )}
         </div>
         <ICSExportButton plan={plan} schedule={schedule} />
       </div>
@@ -54,7 +65,7 @@ export function TimelineSection({ plan, schedule }: TimelineSectionProps) {
 
       <ol className="flex flex-col gap-8">
         {schedule.milestoneBands.map((band) => (
-          <MilestoneBand key={band.id} band={band} />
+          <MilestoneBand key={band.id} band={band} plan={plan} />
         ))}
       </ol>
     </div>

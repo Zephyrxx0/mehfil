@@ -3,19 +3,15 @@
  * deterministic Tier 3 path, so the app keeps working and a flood of requests, including
  * ones that dodge per-IP limits, cannot run up the Gemini bill.
  *
- * Counters are per server instance. On serverless hosting each warm instance counts on its
- * own, so the effective ceiling is `MODEL_DAILY_CAP x concurrent instances`. Set the cap with
- * that in mind, and also set a spend limit in the Google AI console.
+ * With the server-only service key configured, the count is shared by every server instance
+ * through Postgres, so `MODEL_DAILY_CAP` is the real daily ceiling. Without it the count is per
+ * instance (exact locally, and a multiple of the cap on serverless hosting). Either way, also set
+ * a spend limit in the Google AI console. See ADR-0011.
  */
+import { resetMemoryModelBudget } from './memory-limits'
+import { getLimits, resetLimitsForTests } from './shared-limits'
 
 const DEFAULT_DAILY_CAP = 300
-
-let currentDay = ''
-let callsToday = 0
-
-function utcDay(now: Date): string {
-  return now.toISOString().slice(0, 10)
-}
 
 export function getDailyModelCap(): number {
   const configured = Number.parseInt(process.env.MODEL_DAILY_CAP ?? '', 10)
@@ -26,19 +22,12 @@ export function getDailyModelCap(): number {
  * Reserves one model call. Returns false when today's ceiling is reached, in which case the
  * caller must use the deterministic tier instead.
  */
-export function tryConsumeModelCall(now: Date = new Date()): boolean {
-  const day = utcDay(now)
-  if (day !== currentDay) {
-    currentDay = day
-    callsToday = 0
-  }
-  if (callsToday >= getDailyModelCap()) return false
-  callsToday += 1
-  return true
+export function tryConsumeModelCall(now: Date = new Date()): Promise<boolean> {
+  return getLimits().takeModelCall(getDailyModelCap(), now)
 }
 
-/** Clears the counter (used in unit tests). */
+/** Clears the counters this process holds (used in unit tests). */
 export function resetModelBudget(): void {
-  currentDay = ''
-  callsToday = 0
+  resetMemoryModelBudget()
+  resetLimitsForTests()
 }

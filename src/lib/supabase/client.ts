@@ -9,6 +9,6 @@ export function getRpcClient(): RpcClient | null {
   if (instance) return instance
   const config = readSupabaseConfig()
   if (!config) return null
-  instance = createRpcClient(config)
+  instance = createRpcClient({ url: config.url, apiKey: config.anonKey })
   return instance
 }

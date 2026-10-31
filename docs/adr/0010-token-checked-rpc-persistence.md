@@ -29,5 +29,5 @@ ADR-0006 assumed Supabase anonymous sessions and `owner_id = auth.uid()` policie
 ## Residual risks
 
 - A key stored in `localStorage` can be read by script running in the page. The nonce-based CSP (S9) is the mitigation; an HttpOnly sealed-key cookie behind server routes would remove the exposure, at the cost of routing every save through the server.
-- `create_event` is callable by anyone holding the public anon key. It is size-limited, but not rate-limited per client. Put a Supabase/edge rate limit or CAPTCHA in front of it if it is abused.
-- Migration `20261031000000` must be applied to the live project (`supabase db push`) before the cloud paths work there. Until then the app runs in local mode.
+- `create_event` is callable by anyone holding the public anon key. It is size-limited and, since [ADR-0011](0011-shared-abuse-limits.md), throttled by a global circuit breaker, but it cannot tell callers apart. Put a Supabase/edge rate limit or CAPTCHA in front of it if it is abused.
+- Migrations `20261031000000` and `20261031120000` must be applied to the live project (`supabase db push`) before the cloud paths work there. Until then the app runs in local mode.

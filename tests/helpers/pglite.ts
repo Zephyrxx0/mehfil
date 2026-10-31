@@ -37,11 +37,9 @@ export async function createMigratedDatabase(): Promise<PGlite> {
 }
 
 /** Runs `work` with the privileges of a Supabase API role, then restores the superuser. */
-export async function asRole<T>(
-  db: PGlite,
-  role: 'anon' | 'authenticated',
-  work: () => Promise<T>
-): Promise<T> {
+export type ApiRole = 'anon' | 'authenticated' | 'service_role'
+
+export async function asRole<T>(db: PGlite, role: ApiRole, work: () => Promise<T>): Promise<T> {
   await db.exec(`SET ROLE ${role}`)
   try {
     return await work()
@@ -60,7 +58,8 @@ const TABLE_FUNCTIONS = new Set(['get_shared_plan'])
 export async function callRpc<T = unknown>(
   db: PGlite,
   name: string,
-  args: Record<string, unknown>
+  args: Record<string, unknown>,
+  role: ApiRole = 'anon'
 ): Promise<{ data: T | null; error: { message: string; code?: string } | null }> {
   const entries = Object.entries(args)
   const placeholders = entries.map(([key], i) => `${key} => $${i + 1}`).join(', ')
@@ -72,7 +71,7 @@ export async function callRpc<T = unknown>(
     ? `SELECT coalesce(jsonb_agg(to_jsonb(t)), '[]'::jsonb) AS data FROM ${call} t`
     : `SELECT to_jsonb(${call}) AS data`
   try {
-    const result = await asRole(db, 'anon', () => db.query<{ data: T }>(sql, values))
+    const result = await asRole(db, role, () => db.query<{ data: T }>(sql, values))
     return { data: (result.rows[0]?.data ?? null) as T | null, error: null }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
@@ -84,8 +83,8 @@ export async function callRpc<T = unknown>(
  * A Supabase-shaped client whose `rpc` runs against the in-process database as the `anon` role.
  * Lets the real TypeScript persistence code talk to the real SQL.
  */
-export function createPgliteRpcClient(db: PGlite) {
+export function createPgliteRpcClient(db: PGlite, role: ApiRole = 'anon') {
   return {
-    rpc: async (fn: string, args: Record<string, unknown>) => callRpc(db, fn, args),
+    rpc: async (fn: string, args: Record<string, unknown>) => callRpc(db, fn, args, role),
   } as unknown as import('@/lib/storage/cloud-plans').RpcClient
 }

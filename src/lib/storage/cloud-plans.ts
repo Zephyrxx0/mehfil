@@ -19,11 +19,18 @@ export interface RpcClient {
   rpc<F extends RpcName>(
     fn: F,
     args: Functions[F]['Args']
-  ): PromiseLike<{ data: unknown; error: { message: string } | null }>
+  ): PromiseLike<{ data: unknown; error: { message: string; code?: string } | null }>
 }
 
-class CloudError extends Error {
-  constructor(message: string) {
+/** The database refuses new plans for a few minutes when too many are created at once. */
+export const CREATION_BREAKER_CODE = '53400'
+
+export class CloudError extends Error {
+  constructor(
+    message: string,
+    /** The database's error code, such as 53400 when plan creation is throttled. */
+    readonly code?: string
+  ) {
     super(message)
     this.name = 'CloudError'
   }
@@ -82,7 +89,7 @@ export class CloudPlans {
 
   private async call<F extends RpcName>(fn: F, args: Functions[F]['Args']): Promise<unknown> {
     const { data, error } = await this.client.rpc(fn, args)
-    if (error) throw new CloudError(`${fn} failed: ${error.message}`)
+    if (error) throw new CloudError(`${fn} failed: ${error.message}`, error.code)
     return data
   }
 
